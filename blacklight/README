@@ -1,0 +1,3 @@
+This directory contains the blacklight configuration to bring up a faceted browse
+over the data indexed in solr.  This can be done by dropping the blacklight_config.rb
+file into the blacklight config/initializers directory.
