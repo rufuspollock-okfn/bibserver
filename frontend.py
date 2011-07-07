@@ -11,15 +11,14 @@ render = web.template.render('templates/')
 urls = (
     '/','index',
     '/bibsoup','bibsoup',
-    '/bibsoup/record','record',
-    '/bibsoup/collection','collection',
-    '/bibsoup/person','person',
-    '/bibsoup/group','group'
+    '/bibsoup/record/(.*)','record',
+    '/bibsoup/collection/(.*)','collection',
+    '/bibsoup/person/(.*)','person'
 )
 
 app = web.application(urls,globals())
 
-# show splash page
+# show splash page  
 # should include link to create new
 # link to view collection
 # stats of collections available
@@ -95,11 +94,6 @@ class collection:
 
 # content-negociate for a person
 class person:
-    def GET(self):
-        return "show a person"
-
-# content-negociate for a group
-class group:
     def GET(self):
         return "show a person"
 
