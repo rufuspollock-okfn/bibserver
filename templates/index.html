@@ -2,19 +2,120 @@ $def with (none)
 
 <html>
 <head>
+
+<style type="text/css">
+html, body{
+    margin:0;
+    padding:0;
+    font-size:0.9em;
+}
+#bibserver_container{
+    margin:10px auto 0 auto;
+    width:800px;
+    background:#fff;
+    padding:2px 10px 10px 10px;
+    border:1px solid #373737;
+   -moz-border-radius: 20px;
+    -webkit-border-radius: 20px;
+    border-radius: 20px;
+    -moz-box-shadow: 5px 5px 10px #373737;
+    -webkit-box-shadow: 5px 5px 10px #373737;
+    box-shadow: 5px 5px 10px #373737;
+}
+#bibserver_header{
+    border:1px solid red;
+    margin:20px auto 10px auto;
+    width:300px;
+    text-align:center;
+   -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    -moz-box-shadow: 2px 2px 10px red;
+    -webkit-box-shadow: 2px 2px 10px red;
+    box-shadow: 2px 2px 10px red;
+}
+#bibserver_header h1{
+    color:red;
+}
+#bibserver_search{
+    border:1px solid red;
+    float:left;
+    width:40%;
+    margin:0 0 0 20px;
+}
+#bibserver_create{
+    margin:0 0 0 60px;
+    border:1px solid red;
+    float:left;
+    width:45%;
+}
+#bibserver_vis{
+    clear:both;
+    border:1px solid red;
+    width:100%;
+}
+#bibserver_footer{
+    border:1px solid red;
+    width:100%;
+}
+</style>
+
 </head>
 
 <body>
 
-<form action="" method="GET">
+<div id="bibserver_container">
 
-<p>Give me a bibTex file location!</p>
+<form action="" method="POST">
 
-<input type="text" name="loc" />
+<div id="bibserver_header">
+    <h1>BibServer</h1>
+    <p>interesting stats here</p>
+</div>
 
-<input type="submit" name="submit" value="submit" />
+<div id="bibserver_search">
+    <p>search bibsoup!</p>
+    <input type="text" name="search" />
+    <p>View a collection!</p>
+    <select>
+        <option>list of links to collections here</option>
+    </select>
+    <p>browse records, collections, authors, etc</p>
+    <p>suggestions to help data accuracy - dedupe, etc</p>
+</div>
+
+<div id="bibserver_create">
+    <p>Create new collection from file URL!</p>
+    <input type="text" name="source" />
+    <p>Create new collection from file upload!</p>
+    <input type="file" name="file" />
+    <p>upload format type</p>
+    <select>
+        <option>choose upload type here</option>
+        <option>bibtex</option>
+        <option>bibjson</option>
+        <option>delicious</option>
+        <option>google spreadsheet</option>
+        <option>google fusion table</option>
+        <option>comma separated value file</option>
+        <option>more</option>
+    </select>
+    <p>Name your collection! (defaults to file URL)</p>
+    <input type="text" name="name" />
+    <input type="submit" name="submit" value="submit" />
+</div>
 
 </form>
+
+<div id="bibserver_vis">
+    <p>Nice visualisations of data here</p>
+</div>
+
+<div id="bibserver_footer">
+    <p>Links to project site, project partners, sign in (once available)</p>
+</div>
+
+</div>
 
 </body>
 
