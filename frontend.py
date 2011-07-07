@@ -3,17 +3,18 @@ import urllib2
 
 from datasource import DataSource
 from indexer import Indexer
-from dao import dao
+#from dao import dao
 from serialisers.JsonSerialiser import JsonSerialiser
+from solreyes import SolrEyesController
 
 render = web.template.render('templates/')
 
 urls = (
     '/','index',
-    '/bibsoup','bibsoup',
-    '/bibsoup/record/(.*)','record',
-    '/bibsoup/collection/(.*)','collection',
-    '/bibsoup/person/(.*)','person'
+    '/bibsoup','SolrEyesController' #,
+#    '/bibsoup/record/(.*)','record',
+#    '/bibsoup/collection/(.*)','collection',
+#    '/bibsoup/person/(.*)','person'
 )
 
 app = web.application(urls,globals())
@@ -46,10 +47,10 @@ class index:
             i.index(d)
         
             # pass to couch    
-            s = JsonSerialiser()
-            j = s.serialise(d)
-            r = dao()
-            r.relax(j)
+#            s = JsonSerialiser()
+#            j = s.serialise(d)
+#            r = dao()
+#            r.relax(j)
         
         # go to page with index of the collection
         return "done"
