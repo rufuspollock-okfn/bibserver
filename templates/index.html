@@ -3,60 +3,92 @@ $def with (none)
 <html>
 <head>
 
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:300&v2">
+
 <style type="text/css">
 html, body{
     margin:0;
     padding:0;
-    font-size:0.9em;
+    color:#373737;
+    font-size:1.0em;
+    font-family: 'Open Sans', sans-serif;
+    text-shadow: 1px 1px 1px #aaa;
+}
+a{
+    text-decoration:none;
+    border-bottom:1px solid #ccc;
+    color:#373737;
+}
+a:hover{
+    color:red;
+    border-bottom:1px solid red;
 }
 #bibserver_container{
-    margin:10px auto 0 auto;
+    margin:0 auto 0 auto;
     width:800px;
     background:#fff;
-    padding:2px 10px 10px 10px;
-    border:1px solid #373737;
-   -moz-border-radius: 20px;
-    -webkit-border-radius: 20px;
-    border-radius: 20px;
-    -moz-box-shadow: 5px 5px 10px #373737;
-    -webkit-box-shadow: 5px 5px 10px #373737;
-    box-shadow: 5px 5px 10px #373737;
+    padding:0;
 }
 #bibserver_header{
-    border:1px solid red;
-    margin:20px auto 10px auto;
-    width:300px;
+    margin:-30px 0 20px 0;
+    width:100%;
     text-align:center;
-   -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    -moz-box-shadow: 2px 2px 10px red;
-    -webkit-box-shadow: 2px 2px 10px red;
-    box-shadow: 2px 2px 10px red;
+    padding:0;
+   -moz-border-radius: 0 0 5px 5px;
+    -webkit-border-radius: 0 0 5px 5px;
+    border-radius: 0 0 5px 5px;
+    -moz-box-shadow: 2px 2px 10px #373737;
+    -webkit-box-shadow: 2px 2px 10px #373737;
+    box-shadow: 2px 2px 10px #373737;
+    background:#eee;
 }
 #bibserver_header h1{
-    color:red;
+    color:#373737;
+    font-size:2em;
+    padding:10px 0 0 0;
 }
 #bibserver_search{
-    border:1px solid red;
     float:left;
-    width:40%;
-    margin:0 0 0 20px;
+    width:70%;
+    margin:0;
+    min-height:400px;
+}
+#bibsoup_searchbox{
+    width:100%;
+    height:40px;
+    border:2px solid red;
+   -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    font-size:1.4em;
+    margin:0;
+}
+#bibsoup_options{
+    margin:0;
+    float:left;
+    width:30%;
+    text-align:right;
+}
+#bibsoup_options ul{
+    list-style-type:none;
+    padding:0;
+    margin:0 0 20px 0;
 }
 #bibserver_create{
-    margin:0 0 0 60px;
-    border:1px solid red;
-    float:left;
-    width:45%;
+    display:none;
 }
 #bibserver_vis{
     clear:both;
-    border:1px solid red;
     width:100%;
 }
 #bibserver_footer{
-    border:1px solid red;
+    border:1px solid #ddd;
     width:100%;
+}
+#bibserver_footer ul{
+    float:left;
+    list-style-type:none;
+    padding:0 30px 0 0;
 }
 </style>
 
@@ -69,23 +101,23 @@ html, body{
 <form action="" method="POST">
 
 <div id="bibserver_header">
-    <h1>BibServer</h1>
-    <p>interesting stats here</p>
+    <h1>BibSoup</h1>
+    <p>all the world's research <span style="font-size:0.8em; padding:0 0 0 10px">(... or, as much as we can find)</span></p>
 </div>
 
 <div id="bibserver_search">
-    <p>search bibsoup!</p>
-    <input type="text" name="search" />
-    <p>View a collection!</p>
-    <select>
-        <option>list of links to collections here</option>
-    </select>
-    <p>browse records, collections, authors, etc</p>
-    <p>suggestions to help data accuracy - dedupe, etc</p>
+    <input id="bibsoup_searchbox" type="text" name="search" />
+    <p>collection | author | license | journal | year | language</p>
 </div>
 
-<div id="bibserver_create">
-    <p>Create new collection from file URL!</p>
+<div id="bibsoup_options">
+    <ul>
+    <li><a href="">create new record</a></li>
+    <li><a href="">create new collection</a></li>
+    <li><a href="">manage collections</a></li>
+    </ul>
+    
+    <div id="bibserver_create">
     <input type="text" name="source" />
     <p>Create new collection from file upload!</p>
     <input type="file" name="file" />
@@ -103,6 +135,17 @@ html, body{
     <p>Name your collection! (defaults to file URL)</p>
     <input type="text" name="name" />
     <input type="submit" name="submit" value="submit" />
+    </div>
+    
+    <ul>
+    <li>collections:</li>
+    <li>bla</li>
+    </ul>
+    
+    <ul>
+    <li>popular:</li>
+    <li>stuff</li>
+    </ul>
 </div>
 
 </form>
@@ -112,7 +155,17 @@ html, body{
 </div>
 
 <div id="bibserver_footer">
-    <p>Links to project site, project partners, sign in (once available)</p>
+    <ul>
+    <li>BibSoup runs BibServer</li>
+    <li><a href="http://bibserver.okfn.org">learn more about BibServer</a></li>
+    <li><a href="http://bitbucket.org/okfn/bibserver">Get the code</a></li>
+    </ul>
+    
+    <ul>
+    <li>BibSoup is supported by</li>
+    <li><a href="http://okfn.org">Open Knowledge Foundation</a></li>
+    <li><a href="http://cottagelabs.com">Cottage Labs</a></li>
+    <li></li>
 </div>
 
 </div>
