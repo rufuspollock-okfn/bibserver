@@ -360,6 +360,8 @@ class Solr(object):
                     qs.append(value) #----MM
         q = " AND ".join(qs)
         
+        if q == "": q = "*" #----MM
+        
         # start position (for paging)
         if args.has_key("start"):
             solr_args["start"] = args["start"]
