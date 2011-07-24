@@ -1,3 +1,9 @@
+# things I added:
+# are marked with #----MM <
+# to #----MM >
+# or just #----MM if one-liners
+# so can search for #----MM to find my changes
+
 import web, solr, os, json, urllib2, operator, re, unicodedata
 from mako.template import Template
 from mako.runtime import Context
@@ -28,6 +34,7 @@ class SolrEyesController(object):
         initial_request = False
         if args is None:
             args = config.get_default_args()
+            if web.input().get("q") is not None: args["q"]["*"] = web.input().get("q").split(' ') #----MM
             initial_request = True
         
         # set the UrlManager for the UI to use
@@ -39,6 +46,12 @@ class SolrEyesController(object):
             properties['results'] = ResultManager(s.initial(args), config, args)
         else:
             properties['results'] = ResultManager(s.search(args), config, args)
+        #----MM <
+        if web.input().get("q") is not None:
+            properties['q'] = web.input().get("q") 
+        else:
+            properties['q'] = ""
+        #----MM >
         return self.render(config.template, properties)
     
     def render(self, template_name, properties):
@@ -309,8 +322,9 @@ class Solr(object):
         
     def initial(self, args):
         args = deepcopy(args)
-        args["q"]["*"] = "*"
-        args["rows"] = 0
+        if "*" not in args["q"]: #----MM
+            args["q"]["*"] = "*"
+        #args["rows"] = 0
         return self._do_query(args)
         
     def _do_query(self, args, arg_separator="__"):
@@ -342,7 +356,8 @@ class Solr(object):
                 qs.append(field + ":[" + str(args["q"][field][0]) + " TO " + str(limit) + "]")
             elif field == "*":
                 for value in args['q'][field]:
-                    qs.append(field + ":" + value)
+#                    qs.append(field + ":" + value)
+                    qs.append(value) #----MM
         q = " AND ".join(qs)
         
         # start position (for paging)

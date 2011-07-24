@@ -1,19 +1,19 @@
 # create range facets for previous RAE periods
 # create install scripts and readmes
 {
-    "service_name" : "BRUCE Reporting Tool",
+    "service_name" : "BibSoup",
     
     # solr service base url
     "solr_url" : "http://localhost:8983/solr",
     
     # solr request handler
-    "request_handler" : "/cerif",
+    "request_handler" : "/select",
     
     # UI template
     "template" : "solreyes.mako",
     
     # Solreyes base URL
-    "base_url" : "http://localhost:8080/",
+    "base_url" : "http://bibserver.cottagelabs.com/search",
     
     # default results per page (integer)
     "default_results_per_page" : 10,
@@ -32,12 +32,10 @@
     # "facet_fields" : { "<facet_name>" : { "display" : "<Display Name>" } ... }
     #
     "facet_fields" : {
-        "entity" : { "display" : "Report On" },
-        "org_unit_name" : { "display" : "Org Unit"},
-        "gender" : {"display" : "Gender"},
-        "fte" : {"display" : "FTE"},
-        "funding_code" : {"display" : "Funding Code"},
-        "primary_position" : {"display" : "Position"}
+        "collection" : { "display" : "collection" },
+        "journal" : { "display" : "journal"},
+        "author" : {"display" : "author"},
+        "year" : {"display" : "year"}
     },
     
     # The fields which are used for straight ranged faceting (dates should be dealt with
@@ -60,122 +58,34 @@
     #                                       "mincount" : "<Minimum number per Gap>",
     #                                       "infinity" : "<Effective Infinity>"}
     "facet_ranges" : {
-        #"journal_count" : {
-        #    "display" : "Total Journal Count", 
-        #    "min" : 0, "max" : 300, "gap" : 2, "mincount" : 2, "infinity" : 350
-        #}, 
-        #"book_count" : {
-        #    "display" : "Total Book Count",
-        #    "min" : 0, "max" : 100, "gap" : 2, "mincount" : 2, "infinity" : 150
-        #}, 
-        #"chapter_count" : {
-        #    "display" : "Total Chapter Count",
-        #    "min" : 0, "max" : 8, "gap" : 2, "mincount" : 2, "infinity" : 10
-        #}, 
-        #"conference_count" : {
-        #    "display" : "Total Conference Count",
-        #    "min" : 0, "max" : 8, "gap" : 2, "mincount" : 2, "infinity" : 10
-        #}
     },
     
     "facet_dates" : {
-        "contract_end" : {
-            "display" : "Contract End",
-            "min" : "1850-01-01T00:00:00Z", "max" : "1910-01-01T00:00:00Z" , "gap" : "+1YEAR", "mincount" : 2
-        },
-        "publication_date" : {
-            "display" : "Publication Year",
-            "min" : "1850-01-01T00:00:00Z", "max" : "1910-01-01T00:00:00Z", "gap" : "+1YEAR", "mincount" : 2
-        }
     },
     
     "facet_queries" : {
-        "publication_date" : {
-            "display" : "Reporting Period",
-            "queries" : [
-                {"display" : "RAE 2001", "query" : "[1800-01-01T00:00:00Z TO 1899-12-31T23:59:59Z]"},
-                {"display" : "RAE 2008", "query" : "[1900-01-01T00:00:00Z TO 1910-01-01T00:00:00Z]"}
-            ]
-        }
     },
     
-    "display_facet_order" : ["entity", "publication_date", "org_unit_name", "gender", "fte", "contract_end",
-                                "funding_code", "primary_position"],
+    "display_facet_order" : ["collection","journal","author","year"],
     
     "sort_fields" : {
-        "primary_department" : {"display" : "Department"}, 
-        "contract_end" : {"display" : "Contract End"}, 
-        "name" : {"display" : "Name"},
-        "fte" : {"display" : "FTE"}
     },
     
     "facet_value_functions" : {
-        "entity" : {"value_map" : {"cfPers" : "People"}},
-        "gender" : {"value_map" : {"M" : "Male", "F" : "Female"}},
-        "publication_date" : {"regex_map" : {"expression" : "([\\d]{4})-.*"}},
-        "contract_end" : {"regex_map" : {"expression" : "([\\d]{4})-.*"}}
     },
     
     "upper_display_functions" : {
-        "publication_date" : {"years_different" : {}},
-        "contract_end" : {"years_different" : {}}
     },
     
     "display_fields" : {
-        "gender" : "Gender", 
-        "fte" : "FTE", 
-        "name" : "Name",
-        "phd_supervisions" : "Total PhD Students",
-        "primary_department" : "Department",
-        "primary_position" : "Position",
-        "contract_end" : "Contract End",
-        "funding_code" : "Funding Code",
-        "period_publications_count" : "Publications in period",
-        "period_journal_count" : "Journals in period",
-        "period_book_count" : "Books in period",
-        "period_chapter_count" : "Chapters in period",
-        "period_conference_count" : "Conferences in period"
+        "title" : "title",
+        "author" : "author",
+        "collection" : "collection"
     },
     "display_value_functions" : {
-        "contract_end" : {"regex_map" : {"expression" : "([\\d]{4}-[\\d]{2}-[\\d]{2}).*"}}
     },
-    "display_field_order" : ["primary_department", "primary_position", "name", "gender", "fte", "contract_end", "funding_code",
-                                "phd_supervisions", "period_publications_count", "period_journal_count", "period_book_count", 
-                                "period_chapter_count", "period_conference_count"],
+    "display_field_order" : ["title","author","collection"],
     
     "dynamic_fields" :{
-        "period_publications_count" : {
-            "date_range_count" : {
-                "bounding_field" : "publication_date", 
-                "results_field" : "publication_date"
-            }
-        },
-        "period_journal_count" : {
-            "date_range_count" : {
-                "bounding_field" : "publication_date", 
-                "results_field" : "journal_date"
-            }
-        },
-        "period_book_count" : {
-            "date_range_count" : {
-                "bounding_field" : "publication_date", 
-                "results_field" : "book_date"
-            }
-        },
-        "period_chapter_count" : {
-            "date_range_count" : {
-                "bounding_field" : "publication_date", 
-                "results_field" : "chapter_date"
-            }
-        },
-        "period_conference_count" : {
-            "date_range_count" : {
-                "bounding_field" : "publication_date", 
-                "results_field" : "conference_date"
-            }
-        },
-        "phd_supervisions" : {
-            "array_count" : { "count_field" : "supervising" }
-        }
     }
 }

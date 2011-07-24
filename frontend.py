@@ -22,55 +22,40 @@ app = web.application(urls,globals())
 class index:
     def GET(self):
         # if passed a query param
-        if web.ctx.query:
-            queries = dict(item.split("=") for item in str(web.ctx.query.replace("?","")).split("&"))
-            # if there is a source param
-            if queries.get('source'):
-                # presuming its from bibtex at the moment
-                # get the data from the source
-                source = urllib2.unquote(queries.get('source'))
+        if web.input().get("source"):
+            # presuming its from bibtex at the moment
+            # get the data from the source
+            try:
+                source = urllib2.unquote(web.input().get("source"))
                 ds = DataSource()
                 data = ds.import_from(source)
                 # save the data
                 db = dao();
-                db.save(data)
-                return "thanks! we are uploading that"
+                #db.save(data)
+                return "thanks! we are uploading from " + web.input().get("source")
+            except:
+                return "sorry. we could not upload from " + web.input().get("source")
 
         # otherwise display a default front page
         return render.index(False)
 
     def POST(self):
         # if passed a source URL from the form
-        if True:
+        if web.input().get("source"):
             # presuming its from bibtex at the moment
             # get the data from the source
             source = urllib2.unquote(queries.get('source'))
             ds = DataSource()
             data = ds.import_from(source)
             # save the data
-            db = dao();
-            db.save(data)
-            return "thanks! we are uploading that"
+            db = dao()
+            #db.save(data)
+            return "thanks! we are uploading from " + web.input().get("source")
+
+        if web.input().get("q"):
+            raise web.seeother('/search?q=' + web.input().get("q"))
         
-        # if passed a file to upload
-        if False:
-            return "thanks! we are uploading that"
-
-    def POST(self): 
-        form = myform()
-        if not form.validates():
-            return render.formtest(form)
-        else:
-            # read the uploaded file
-            ds = DataSource()
-            data = ds.read_from(form["source"])
-            # save the data
-            db = dao();
-            db.save(data)
-            return "thanks! we are uploading that"
-
-        # go to index of this collection
-        return "nothing to do"
+        return "posting"
 
 # content-negociate for a record
 class record:
