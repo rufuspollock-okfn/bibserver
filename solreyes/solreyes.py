@@ -34,7 +34,7 @@ class SolrEyesController(object):
         initial_request = False
         if args is None:
             args = config.get_default_args()
-            if web.input().get("q") is not None: args["q"]["*"] = web.input().get("q").split(' ') #----MM
+            if web.input().get("q") is not None and web.input().get("q") != "": args["q"]["*"] = web.input().get("q").split(' ') #----MM
             initial_request = True
         
         # set the UrlManager for the UI to use
@@ -47,7 +47,7 @@ class SolrEyesController(object):
         else:
             properties['results'] = ResultManager(s.search(args), config, args)
         #----MM <
-        if web.input().get("q") is not None:
+        if web.input().get("q") is not None and web.input().get("q") != "":
             properties['q'] = web.input().get("q") 
         else:
             properties['q'] = ""

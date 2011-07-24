@@ -52,11 +52,13 @@ class index:
             #db.save(data)
             return "thanks! we are uploading from " + web.input().get("source")
 
-        if web.input().get("q"):
+        # if passed a query param from the form
+        if web.input().get("q") != "":
             raise web.seeother('/search?q=' + web.input().get("q"))
-        
-        return "posting"
 
+        # default back to just showing the main page        
+        return render.index(False)
+        
 # content-negociate for a record
 class record:
     def GET(self,record):
