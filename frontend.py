@@ -52,26 +52,29 @@ class index:
             #db.save(data)
             return "thanks! we are uploading from " + web.input().get("source")
 
-        # if passed a query param from the form
-        if web.input().get("q") != "":
-            raise web.seeother('/search?q=' + web.input().get("q"))
 
-        # default back to just showing the main page        
-        return render.index(False)
+        # default to hitting the search result page
+        raise web.seeother('/search?q=' + web.input().get("q"))
         
 # content-negociate for a record
 class record:
     def GET(self,record):
         return "show a record " + record
 
-# content-negociate for a collection
+# pass collections info to the requester
 class collection:
+
+    # do conneg here - should pass solreyes if html, should pass JSON object if JSON
     def GET(self,collection):
-        return "show a collection " + collection
+        s = SolrEyesController()
+        settings = {"q":{"collection":[collection]},"base_url":"http://bibserver.cottagelabs.com/collection/" + collection}
+        return s.GET(settings)
 
 # content-negociate for a person
 class person:
     def GET(self,person):
+        # if a string, do a search for the string
+        # if a person ID, get the person record
         return "show a person " + person
 
 if __name__ == "__main__": app.run()

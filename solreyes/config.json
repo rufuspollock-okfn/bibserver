@@ -10,7 +10,7 @@
     "request_handler" : "/select",
     
     # UI template
-    "template" : "solreyes.mako",
+    "template" : "bibserver.mako",
     
     # Solreyes base URL
     "base_url" : "http://bibserver.cottagelabs.com/search",
@@ -79,12 +79,14 @@
     
     "display_fields" : {
         "title" : "title",
+        "journal" : "journal",
         "author" : "author",
-        "collection" : "collection"
+        "doi" : "doi",
+        "url" : "url"
     },
     "display_value_functions" : {
     },
-    "display_field_order" : ["title","author","collection"],
+    "display_field_order" : ["title","journal","author","doi","url"],
     
     "dynamic_fields" :{
     }

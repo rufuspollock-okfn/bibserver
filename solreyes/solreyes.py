@@ -14,14 +14,17 @@ from pkg_resources import resource_stream
 from datetime import datetime, timedelta
 
 class SolrEyesController(object):
-    def GET(self):
+    #def GET(self):
+    def GET(self,settings=None): #----MM
         # get the args (if available) out of the request
         a = web.input().get("a")
         args = None
-        if a is not None:
+        
+        #if a is not None:
+        if a is not None and a != "":
             a = urllib2.unquote(a)
             args = json.loads(a)
-        
+                
         # set up the configuration and the UI properties
         config = Configuration()
         properties = {}
@@ -34,9 +37,25 @@ class SolrEyesController(object):
         initial_request = False
         if args is None:
             args = config.get_default_args()
-            if web.input().get("q") is not None and web.input().get("q") != "": args["q"]["*"] = web.input().get("q").split(' ') #----MM
             initial_request = True
+
+        #----MM <
+        if web.input().get("q") is not None:
+            if web.input().get("q") != "":
+                args["q"]["*"] = [web.input().get("q")]#.split(' ')
+            else:
+                if "*" in args["q"]:
+                    del args["q"]["*"]
+        #----MM >
         
+        #----MM <
+        if settings is not None:
+            if "q" in settings:
+                args["q"] = dict( args["q"].items() + settings["q"].items() )
+            if "base_url" in settings:
+                config.base_url = settings["base_url"]
+        #----MM >
+
         # set the UrlManager for the UI to use
         properties['url_manager'] = UrlManager(config, args)
         
@@ -47,10 +66,12 @@ class SolrEyesController(object):
         else:
             properties['results'] = ResultManager(s.search(args), config, args)
         #----MM <
-        if web.input().get("q") is not None and web.input().get("q") != "":
-            properties['q'] = web.input().get("q") 
+        if "*" in args["q"]:
+            properties['q'] = args['q']['*']
         else:
             properties['q'] = ""
+        if args is not None:
+            properties['a'] = urllib2.quote( json.dumps(args) )
         #----MM >
         return self.render(config.template, properties)
     
@@ -367,44 +388,46 @@ class Solr(object):
             solr_args["start"] = args["start"]
         
         # set up the ranged search parameters
-        for f in args["facet_range"].keys():
-            if solr_args.has_key("facet.range"):
-                solr_args["facet.range"].append(f)
-            else:
-                solr_args["facet.range"] = [f]
-            
-            if args["facet_range"][f].has_key("mincount"):
-                solr_args["f." + f + ".facet.mincount"] = args["facet_range"][f]["mincount"]
-            
-            if args["facet_range"][f].has_key("min"):
-                solr_args["f." + f + ".facet.range.start"] = args["facet_range"][f]["min"]
+        if "facet_range" in args: #----MM
+            for f in args["facet_range"].keys():
+                if solr_args.has_key("facet.range"):
+                    solr_args["facet.range"].append(f)
+                else:
+                    solr_args["facet.range"] = [f]
                 
-            if args["facet_range"][f].has_key("max"):
-                solr_args["f." + f + ".facet.range.end"] = args["facet_range"][f]["max"]
+                if args["facet_range"][f].has_key("mincount"):
+                    solr_args["f." + f + ".facet.mincount"] = args["facet_range"][f]["mincount"]
                 
-            if args["facet_range"][f].has_key("gap"):
-                solr_args["f." + f + ".facet.range.gap"] = args["facet_range"][f]["gap"]
+                if args["facet_range"][f].has_key("min"):
+                    solr_args["f." + f + ".facet.range.start"] = args["facet_range"][f]["min"]
+                    
+                if args["facet_range"][f].has_key("max"):
+                    solr_args["f." + f + ".facet.range.end"] = args["facet_range"][f]["max"]
+                    
+                if args["facet_range"][f].has_key("gap"):
+                    solr_args["f." + f + ".facet.range.gap"] = args["facet_range"][f]["gap"]
         
         # set up the date range parameters
-        for f in args["facet_date"].keys():
-            if solr_args.has_key("facet.date"):
-                solr_args["facet.date"].append(f)
-            else:
-                solr_args["facet.date"] = [f]
-            
-            if args["facet_date"][f].has_key("mincount"):
-                solr_args["f." + f + ".facet.mincount"] = args["facet_date"][f]["mincount"]
-            
-            if args["facet_date"][f].has_key("min"):
-                solr_args["f." + f + ".facet.date.start"] = args["facet_date"][f]["min"]
+        if "facet_date" in args: #----MM
+            for f in args["facet_date"].keys():
+                if solr_args.has_key("facet.date"):
+                    solr_args["facet.date"].append(f)
+                else:
+                    solr_args["facet.date"] = [f]
                 
-            if args["facet_date"][f].has_key("max"):
-                solr_args["f." + f + ".facet.date.end"] = args["facet_date"][f]["max"]
-            else:
-                solr_args["f." + f + ".facet.date.end"] = datetime.today().strftime("%Y-%m-%dT%H:%M:%SZ")
+                if args["facet_date"][f].has_key("mincount"):
+                    solr_args["f." + f + ".facet.mincount"] = args["facet_date"][f]["mincount"]
                 
-            if args["facet_date"][f].has_key("gap"):
-                solr_args["f." + f + ".facet.date.gap"] = args["facet_date"][f]["gap"]
+                if args["facet_date"][f].has_key("min"):
+                    solr_args["f." + f + ".facet.date.start"] = args["facet_date"][f]["min"]
+                    
+                if args["facet_date"][f].has_key("max"):
+                    solr_args["f." + f + ".facet.date.end"] = args["facet_date"][f]["max"]
+                else:
+                    solr_args["f." + f + ".facet.date.end"] = datetime.today().strftime("%Y-%m-%dT%H:%M:%SZ")
+                    
+                if args["facet_date"][f].has_key("gap"):
+                    solr_args["f." + f + ".facet.date.gap"] = args["facet_date"][f]["gap"]
         
         # set up the facet queries
         if args.has_key('facet_query'):
@@ -422,7 +445,8 @@ class Solr(object):
             solr_args["rows"] = args["rows"]
             
         # plain facet fields
-        solr_args["facet.field"] = args["facet_field"]
+        if "facet_field" in args: #----MM
+            solr_args["facet.field"] = args["facet_field"]
         
         # sort options
         if args.has_key("sort"):
