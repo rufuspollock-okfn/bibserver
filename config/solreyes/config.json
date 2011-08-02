@@ -24,6 +24,10 @@
     # default minimum number of results required to trigger a facet being included (integer)
     "facet_mincount" : 1,
     
+    "allow_text_search" : true,
+    
+    "text_search_field" : "text",
+    
     "always_visible" : 5,
     
     # The fields which are plain text/value facets, and their display names

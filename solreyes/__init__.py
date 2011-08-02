@@ -1,1 +1,0 @@
-from solreyes import SolrEyesController

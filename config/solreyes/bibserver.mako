@@ -112,17 +112,7 @@ a:hover{
 </div>
 
 <div id="bibserver_search">
-    <form action="" method="GET">
-    <input id="bibsoup_searchbox" type="text" name="q" value="
-% for i,x in enumerate(c['q']):
-% if i != 0:
- 
-% endif
-${x}
-% endfor
-" />
-    <input type="hidden" name="a" value="${c['a']}" />
-    </form>
+    <%include file="/search-box.mako"/>
 </div>
 
     <div id="navigation">

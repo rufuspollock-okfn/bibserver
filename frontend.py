@@ -11,9 +11,7 @@ render = web.template.render('templates/')
 urls = (
     '/','index',
     '/search','SolrEyesController',
-    '/record/(.*)','record',
-    '/collection/(.*)','collection',
-    '/person/(.*)','person'
+    '/(.*)','SolrEyesController'
 )
 
 app = web.application(urls,globals())
