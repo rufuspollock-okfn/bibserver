@@ -11,9 +11,10 @@
     
     # UI template
     "template" : "bibserver.mako",
+    "result_view" : "list-view.mako",
     
     # Solreyes base URL
-    "base_url" : "http://bibserver.cottagelabs.com/search",
+    "base_url" : "http://localhost:8080/search",
     
     # default results per page (integer)
     "default_results_per_page" : 10,
@@ -27,8 +28,6 @@
     "allow_text_search" : true,
     
     "text_search_field" : "text",
-    
-    "always_visible" : 5,
     
     # The fields which are plain text/value facets, and their display names
     # (object with keys representing facet names, and values as objects containing
@@ -88,9 +87,15 @@
         "doi" : "doi",
         "url" : "url"
     },
+    
     "display_value_functions" : {
+        "title" : {"wrap" : {"start" : "<a href=\"\">", "end" : "</a>"}},
+        "journal" : {"wrap" : {"start" : "<em>", "end" : "</em>"}},
+        "doi" : {"doiify" : {"resolver" : "http://dx.doi.org/"}},
+        "url" : {"linkify" : {}}
     },
-    "display_field_order" : ["title","journal","author","doi","url"],
+    
+   "display_field_order" : ["title","journal","author","doi","url"],
     
     "dynamic_fields" :{
     }
