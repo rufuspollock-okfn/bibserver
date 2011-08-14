@@ -11,7 +11,12 @@ class BibTexParser(object):
         self.keys_dict['BIBTEX'] = 'URL_BIB'
 
     def parse(self, instring):
-        return self.read_bibstring(instring)
+        # return parsed bibtex as bibjson, with keys lowercased
+        self.bib = self.read_bibstring(instring)
+        self.bibjson = {}
+        for k, v in self.bib.iteritems():
+            self.bibjson[k.lower()] = v
+        return self.bibjson
 
     def read_bibstring(self, instring):  ###parses a bibtex string into a list of dictionaries
         """ Main function 
@@ -34,108 +39,108 @@ class BibTexParser(object):
         return dlist
 
     def read_bibitem(self, item):     ### returns a python dict
-            d = {} 
-            type_rest = string.split(item, '{' ,1)
-            d['BIBTYPE'] = string.upper(string.strip(type_rest[0]))
+        d = {} 
+        type_rest = string.split(item, '{' ,1)
+        d['BIBTYPE'] = string.upper(string.strip(type_rest[0]))
+        try:
+            rest = type_rest[1]
+        except IndexError:
+            d['ERROR'] = 'IndexError: nothing after first { in @' + item
+            rest = ''
+        if d['BIBTYPE'] == 'STRING':
+        ###### Example:   @string{AnnAP = "Ann. Appl. Probab."}
             try:
-                rest = type_rest[1]
+                key_val = string.split(rest,'=')
+                key = string.strip(key_val[0])
+                val = string.strip(key_val[1])
+                val = string.strip(val[:-1])   ## strip the trailing '}'
+                val = val[1:-1]                ## strip the outer quotes 
+                self.string_dict[key] = val
+                #print 'string_dict[', key, '] = ', val
+
             except IndexError:
-                d['ERROR'] = 'IndexError: nothing after first { in @' + item
+                d['ERROR'] = 'IndexError: can\'t parse string definition in @' + item
                 rest = ''
-            if d['BIBTYPE'] == 'STRING':
-            ###### Example:   @string{AnnAP = "Ann. Appl. Probab."}
-                try:
-                    key_val = string.split(rest,'=')
-                    key = string.strip(key_val[0])
-                    val = string.strip(key_val[1])
-                    val = string.strip(val[:-1])   ## strip the trailing '}'
-                    val = val[1:-1]                ## strip the outer quotes 
-                    self.string_dict[key] = val
-                    #print 'string_dict[', key, '] = ', val
-    
-                except IndexError:
-                    d['ERROR'] = 'IndexError: can\'t parse string definition in @' + item
-                    rest = ''
-            
-            else:
+        
+        else:
+            comma_split = string.split(rest,',',1)
+            d['CITEKEY'] = string.strip(comma_split[0])
+            d['BIBTEX'] = '@' + item
+            try:
+                rest = comma_split[1]
+            except IndexError:
+                d['ERROR'] = 'IndexError: nothing after first comma in @' + item
+                rest = ''
+        
+            count = 0
+            current_field = ''
+            while count <= 100:   ### just a safey net to avoid infinite looping if code breaks
+                count = count + 1
                 comma_split = string.split(rest,',',1)
-                d['CITEKEY'] = string.strip(comma_split[0])
-                d['BIBTEX'] = '@' + item
-                try:
-                    rest = comma_split[1]
-                except IndexError:
-                    d['ERROR'] = 'IndexError: nothing after first comma in @' + item
-                    rest = ''
-            
-                count = 0
-                current_field = ''
-                while count <= 100:   ### just a safey net to avoid infinite looping if code breaks
-                    count = count + 1
-                    comma_split = string.split(rest,',',1)
-                    this_frag = comma_split[0]
-                    current_field = current_field + this_frag + ','
-                    (quote_count,br_count) = self.check_well_formed(current_field)
-                    if quote_count == 0 and br_count == 0:
-                        key_val = string.split(current_field,'=',1)
-                        key = key_val[0]
-                        val = key_val[1]
-                        try:
-                            key, val = self.handle_authors(key, val)
-                            print key
-                            print val
-                            d[self.add_key(key)] = self.add_val(val)
-                        except IndexError:
-                            d[self.add_key(key)] = ''
-                        current_field = ''
-                    elif quote_count == 0 and br_count < 0:    ###end of bibtex record
-                        key_val = string.split(current_field,'=',1)
-                        key = key_val[0]
-                        try:
-                            rest = comma_split[1]
-                        except IndexError:
-                            rest = ''
-                        try:
-                            val_comments  = string.split(key_val[1],'}')
-                            val = val_comments[0] 
-                            (quote_count,br_count) = test(val)
-                            if br_count == 1: val = val + '}'  
-                            else: val = val + ','  ## add comma to match format
-                            #### problem is record can end with  either e.g.
-                            #### year = 1997}
-                            #### year = {1997}}
-                            if string.find(key,'}') < 0:
-                                d[self.add_key(key)] = self.add_val( val)
-                            #d['ERROR'] = str( br_count )
-                            ## putting error messages into d['ERROR'] is a good
-                            ## trick for debugging
-                            try:
-                                comments = val_comments[1][:-1]
-                                comments = string.strip(comments)
-                                if comments != '':
-                                    d['BETWEEN_ENTRIES'] = self.add_val(comments + ',') + self.add_val(rest)
-                            except: IndexError
-                        except: IndexError
-                        current_field = ''
-                        break
+                this_frag = comma_split[0]
+                current_field = current_field + this_frag + ','
+                (quote_count,br_count) = self.check_well_formed(current_field)
+                if quote_count == 0 and br_count == 0:
+                    key_val = string.split(current_field,'=',1)
+                    key = key_val[0]
+                    val = key_val[1]
+                    try:
+                        key, val = self.handle_authors(key, val)
+                        print key
+                        print val
+                        d[self.add_key(key)] = self.add_val(val)
+                    except IndexError:
+                        d[self.add_key(key)] = ''
+                    current_field = ''
+                elif quote_count == 0 and br_count < 0:    ###end of bibtex record
+                    key_val = string.split(current_field,'=',1)
+                    key = key_val[0]
                     try:
                         rest = comma_split[1]
                     except IndexError:
-                        key_val = string.split(current_field,'=',1)
-                        key = self.add_key( key_val[0] )
-                        if key != '':
-                            try:
-                                d[key] = self.add_val( key_val[1])
-                            except IndexError:
-                                d[key] = ''
-                        break
-            ### impute year from Davis Fron to arxiv output:
-            if d.has_key('EPRINT') and not d.has_key('YEAR'): 
-                yy = '????'
-                ss = string.split(d['EPRINT'],'/')
-                if len(ss) == 2: yy = ss[1][0:2]
-                if yy[0] in ['0']: d['YEAR'] = '20' + yy   ### year 2010 problem!!
-                elif yy[0] in ['9']: d['YEAR'] = '19' + yy
-            return d
+                        rest = ''
+                    try:
+                        val_comments  = string.split(key_val[1],'}')
+                        val = val_comments[0] 
+                        (quote_count,br_count) = test(val)
+                        if br_count == 1: val = val + '}'  
+                        else: val = val + ','  ## add comma to match format
+                        #### problem is record can end with  either e.g.
+                        #### year = 1997}
+                        #### year = {1997}}
+                        if string.find(key,'}') < 0:
+                            d[self.add_key(key)] = self.add_val( val)
+                        #d['ERROR'] = str( br_count )
+                        ## putting error messages into d['ERROR'] is a good
+                        ## trick for debugging
+                        try:
+                            comments = val_comments[1][:-1]
+                            comments = string.strip(comments)
+                            if comments != '':
+                                d['BETWEEN_ENTRIES'] = self.add_val(comments + ',') + self.add_val(rest)
+                        except: IndexError
+                    except: IndexError
+                    current_field = ''
+                    break
+                try:
+                    rest = comma_split[1]
+                except IndexError:
+                    key_val = string.split(current_field,'=',1)
+                    key = self.add_key( key_val[0] )
+                    if key != '':
+                        try:
+                            d[key] = self.add_val( key_val[1])
+                        except IndexError:
+                            d[key] = ''
+                    break
+        ### impute year from Davis Fron to arxiv output:
+        if d.has_key('EPRINT') and not d.has_key('YEAR'): 
+            yy = '????'
+            ss = string.split(d['EPRINT'],'/')
+            if len(ss) == 2: yy = ss[1][0:2]
+            if yy[0] in ['0']: d['YEAR'] = '20' + yy   ### year 2010 problem!!
+            elif yy[0] in ['9']: d['YEAR'] = '19' + yy
+        return d
 
     def handle_authors(self, key, value):
         if key.lower() == "author":

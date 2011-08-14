@@ -42,7 +42,7 @@ class Manager(object):
     def index(self,pkg):
         fh = open('store/raw/' + pkg["localfile"], 'r')
         ds = DataSet()
-        data = ds.convert(pkg["source"],pkg["format"])
+        data = ds.convert(pkg)
         data = self.prepare(data,pkg)
         db = dao();
         db.save(data)

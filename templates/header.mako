@@ -47,7 +47,6 @@ jQuery(document).ready(function() {
     <ul>
     <li><a href="/content/caveat">ALPHA - caveats</a></li>
     <li><a href="/content/feedback">feedback - issues</a></li>
-    <li><a href="">upload new collection</a></li>
     </ul>
 </div>
 
