@@ -1,0 +1,30 @@
+<%include file="/header.mako"/>
+
+<div id="bibsoup_upload">
+    <form action="/upload" method="GET">
+    <div class="infobubble">
+        <div class="style_head"><p>01. file location</p></div>
+        <p>web address: <input type="text" name="source" /></p>
+        <p>or upload from PC: <input type="file" name="upfile" /></p>
+    </div>
+    <div class="infobubble">
+        <div class="style_head"><p>02. check format</p></div>
+        <input name="format" type="radio" value="bibtex" /> bibtex <br />
+        <input name="format" type="radio" value="bibjson" /> bibjson <br />
+        <input name="format" type="radio" value="csv" /> csv <br />
+    </div>
+    <div class="infobubble">
+        <div class="style_head"><p>03. name your collection</p></div>
+        <p>name: <input type="text" name="name" /></p>
+        <p>(if the records in your file already contain collection information, it will be used automatically and you can ignore this question)</p>
+    </div>
+    <div class="infobubble">
+        <div class="style_head"><p>04. ready to go</p></div>
+        <p><input type="submit" name="submit" value="upload" /></p>
+        <p>small uploads will be available really quick!</p>
+    </div>
+    </form>
+</div>
+
+<%include file="/footer.mako"/>
+

@@ -1,0 +1,3 @@
+This directory contains the solr schema.xml and solrconfig.xml to use with the 
+example set up of the SolrSerialiser.py.  Just deploy these in your solr config
+directory, and it will be set up to properly index the output of the serialiser

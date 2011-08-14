@@ -1,0 +1,19 @@
+<%include file="/header.mako"/>
+
+<div id="bibsoup_upload">
+
+% if page == "caveat":
+<p>this service is alpha - brand new, in testing. no data is secure or backed up. you may see odd errors. but don't worry, just have fun.</p>
+% endif
+
+% if page == "howto":
+<p>More details about how bibsoup works.</p>
+<p>Details about embedding in documents.</p>
+<p>Details about using js tools to send data to bibsoup / bibserver.</p>
+<p>Information about the bibserver software.</p>
+% endif
+
+</div>
+
+<%include file="/footer.mako"/>
+
