@@ -26,6 +26,7 @@ curl -X POST -H "Content-Type: text/xml" --data "<delete><query>collection:aldou
 """
 
 import urllib2
+import csv
 import json
 from parsers.BibTexParser import BibTexParser
 
@@ -45,6 +46,10 @@ class DataSet(object):
             d = data
         if self.format == "csv":
             # convert from csv to json
+            #dt = csv.dictReader( self.localfile )
+            #d = {}
+            #for k,v in dt:
+            #    d(k) = v
             pass
         
         # add collection information
@@ -58,25 +63,24 @@ class DataSet(object):
         
         return d
     
-    def set_collection(self,data,package):
-        # set the collection information based on what was in file and what was provided at upload
-        return data
-        
-    def list2bibjson(self, btlist, location=None, collection=None):
+    def set_collection(self,data,package):        
         jsonObj = []
         
         has_meta = False
         meta = None
         
-        for btrecord in btlist:
-            bibtype = btrecord.get('BIBTYPE')
-            if bibtype == "COMMENT" and not has_meta:
+        source = package["source"]
+        collection = package["collection"]
+        
+        for btrecord in data:
+            bibtype = btrecord.get('bibtype')
+            if bibtype == "comment" and not has_meta:
                 meta = self.get_meta(btrecord)
-                meta['location'] = location
+                meta['source'] = source
                 meta['collection'] = collection
                 has_meta = True
             else:
-                bibjson = self.get_bibjson_object(btrecord)
+                bibjson = btrecord
                 bibjson['location'] = location
                 bibjson['collection'] = collection
                 jsonObj.append(bibjson)
@@ -84,20 +88,14 @@ class DataSet(object):
         if meta is not None:
             jsonObj = [meta] + jsonObj
         
-        srlzd = json.dumps(self.jsonObj, indent=2)
-        return srlzd
+        return jsonObj
 
+    # used by set_colllection to find meta record
     def get_meta(self, btrecord):
         meta = {}
         meta["class"] = "metadata"
         for k, v in btrecord.iteritems():
             meta[k.lower()] = v
         return meta
-        
-    def get_bibjson_object(self, btrecord):
-        bibjson = {}
-        
-        for k, v in btrecord.iteritems():
-            bibjson[k.lower()] = v
-        return bibjson
+    
 

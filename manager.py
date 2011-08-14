@@ -45,7 +45,7 @@ class Manager(object):
         data = ds.convert(pkg)
         data = self.prepare(data,pkg)
         db = dao();
-        db.save(data)
+        #db.save(data)
         return "saved"
 
     # check prepare the data in various ways

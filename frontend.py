@@ -25,6 +25,8 @@ urls = (
     '/search','SolrEyesController',
     '/query(.*)','query',
     '/content/(.*)','content',
+    '/collection','collections',
+    '/person','persons',
     '/(.*)','SolrEyesController'
 )
 
@@ -35,6 +37,14 @@ app = web.application(urls,globals())
 class index:
     def GET(self):
         return render.index()
+
+class collections:
+    def GET(self):
+        return "return a list of all collections in HTML or JSON"
+
+class persons:
+    def GET(self):
+        return "return a list of all persons in HTML or JSON"
 
 # the admin control
 # show various admin functions
