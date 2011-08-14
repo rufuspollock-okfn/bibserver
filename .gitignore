@@ -1,1 +1,3 @@
 *.pyc
+store/bibjson/*
+store/raw/*
