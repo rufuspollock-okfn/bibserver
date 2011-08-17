@@ -2,6 +2,7 @@
 
 import urllib2
 import uuid
+import json
 
 from dataset import DataSet
 from dao import dao
@@ -11,7 +12,7 @@ class Manager(object):
     # schedule something
     # for now, does not schedule. just executes.
     def schedule(self,pkg):
-        if "upfile" in pkg:
+        if "upfile" in pkg or "data" in pkg:
             pkg["localfile"] = self.store(pkg)
         if "source" in pkg:
             pkg["localfile"] = self.retrieve(pkg)
@@ -36,12 +37,18 @@ class Manager(object):
     
     # store uploaded file
     def store(self,pkg):
-        uploadfile = pkg["upfile"]
-        filepath = uploadfile.filename.replace('\\','/')
-        filename = filepath.split('/')[-1]
-        fh = open('store/raw/' + filename, 'w')
-        fh.write( uploadfile.file.read() )
-        fh.close()
+        if "upfile" in pkg:
+            uploadfile = pkg["upfile"]
+            filepath = uploadfile.filename.replace('\\','/')
+            filename = filepath.split('/')[-1]
+            fh = open('store/raw/' + filename, 'w')
+            fh.write( uploadfile.file.read() )
+            fh.close()
+        if "data" in pkg:
+            filename = "POST_" + pkg["ip"] + "_" + pkg["received"]
+            fh = open('store/raw/' + filename, 'w')
+            fh.write( pkg["data"] )
+            fh.close()            
         return filename
 
     
@@ -50,6 +57,12 @@ class Manager(object):
         ds = DataSet()
         data = ds.convert(pkg)
         data = self.prepare(data,pkg)
+
+        # write data to file (maybe just for testing)
+        fh = open('store/bibjson/' + pkg["localfile"], 'w')
+        fh.write( json.dumps(data,indent=2) )
+        fh.close()
+
         db = dao();
         #db.save(data)
         #return "saved"
@@ -63,8 +76,8 @@ class Manager(object):
             if "collection" in item:
                 pass
             else:
-                if metadata["name"] != "":
-                    data[index]["collection"] = [metadata["name"]]
+                if metadata["collection"] != "":
+                    data[index]["collection"] = [metadata["collection"]]
                 elif metadata["url"] != "":
                     data[index]["collection"] = [metadata["url"]]
                 else:

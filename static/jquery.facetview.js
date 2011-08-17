@@ -99,21 +99,8 @@ return this.bind(type, data, cb);
                             }
         };
 
-        // add in any options from the query URL
-        var geturlparams = function() {
-            var vars = [], hash;
-            var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-            for (var i = 0; i < hashes.length; i++) {
-                    hash = hashes[i].split('=');
-                    vars.push(hash[0]);
-                    vars[hash[0]] = hash[1];
-            }
-            return vars;
-        }
-        var opts = $.extend(defaults,geturlparams())
-
         // and add in any overrides from the call
-        var options = $.extend(defaults, opts);
+        var options = $.extend(defaults, options);
 
         // ===============================================
         // functions to do with filters

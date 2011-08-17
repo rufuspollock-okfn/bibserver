@@ -1,4 +1,5 @@
 import string
+import json
 
 class BibTexParser(object):
 
@@ -10,13 +11,13 @@ class BibTexParser(object):
         self.keys_dict['AUTHORS'] = 'AUTHOR'
         self.keys_dict['BIBTEX'] = 'URL_BIB'
 
-    def parse(self, instring):
-        # return parsed bibtex as bibjson, with keys lowercased
-        self.bib = self.read_bibstring(instring)
-        self.bibjson = {}
-        for k, v in self.bib.iteritems():
-            self.bibjson[k.lower()] = v
-        return self.bibjson
+
+    def parse(self, instring, package):
+#        return self.read_bibstring(instring)
+        blist = self.read_bibstring(instring)
+        j = self.list2bibjson(blist)
+        return j
+        
 
     def read_bibstring(self, instring):  ###parses a bibtex string into a list of dictionaries
         """ Main function 
@@ -72,67 +73,62 @@ class BibTexParser(object):
                 d['ERROR'] = 'IndexError: nothing after first comma in @' + item
                 rest = ''
         
-            count = 0
             current_field = ''
-            while count <= 100:   ### just a safey net to avoid infinite looping if code breaks
-                count = count + 1
-                comma_split = string.split(rest,',',1)
-                this_frag = comma_split[0]
-                current_field = current_field + this_frag + ','
-                (quote_count,br_count) = self.check_well_formed(current_field)
-                if quote_count == 0 and br_count == 0:
-                    key_val = string.split(current_field,'=',1)
-                    key = key_val[0]
-                    val = key_val[1]
-                    try:
-                        key, val = self.handle_authors(key, val)
-                        print key
-                        print val
-                        d[self.add_key(key)] = self.add_val(val)
-                    except IndexError:
-                        d[self.add_key(key)] = ''
-                    current_field = ''
-                elif quote_count == 0 and br_count < 0:    ###end of bibtex record
-                    key_val = string.split(current_field,'=',1)
-                    key = key_val[0]
-                    try:
-                        rest = comma_split[1]
-                    except IndexError:
-                        rest = ''
-                    try:
-                        val_comments  = string.split(key_val[1],'}')
-                        val = val_comments[0] 
-                        (quote_count,br_count) = test(val)
-                        if br_count == 1: val = val + '}'  
-                        else: val = val + ','  ## add comma to match format
-                        #### problem is record can end with  either e.g.
-                        #### year = 1997}
-                        #### year = {1997}}
-                        if string.find(key,'}') < 0:
-                            d[self.add_key(key)] = self.add_val( val)
-                        #d['ERROR'] = str( br_count )
-                        ## putting error messages into d['ERROR'] is a good
-                        ## trick for debugging
-                        try:
-                            comments = val_comments[1][:-1]
-                            comments = string.strip(comments)
-                            if comments != '':
-                                d['BETWEEN_ENTRIES'] = self.add_val(comments + ',') + self.add_val(rest)
-                        except: IndexError
-                    except: IndexError
-                    current_field = ''
-                    break
+
+            comma_split = string.split(rest,',',1)
+            this_frag = comma_split[0]
+            current_field = current_field + this_frag + ','
+            (quote_count,br_count) = self.check_well_formed(current_field)
+            if quote_count == 0 and br_count == 0:
+                key_val = string.split(current_field,'=',1)
+                key = key_val[0]
+                val = key_val[1]
+                try:
+                    d[self.add_key(key)] = self.add_val(val)
+                except IndexError:
+                    d[self.add_key(key)] = ''
+                current_field = ''
+            elif quote_count == 0 and br_count < 0:    ###end of bibtex record
+                key_val = string.split(current_field,'=',1)
+                key = key_val[0]
                 try:
                     rest = comma_split[1]
                 except IndexError:
-                    key_val = string.split(current_field,'=',1)
-                    key = self.add_key( key_val[0] )
-                    if key != '':
-                        try:
-                            d[key] = self.add_val( key_val[1])
-                        except IndexError:
-                            d[key] = ''
-                    break
+                    rest = ''
+                try:
+                    val_comments  = string.split(key_val[1],'}')
+                    val = val_comments[0] 
+                    (quote_count,br_count) = test(val)
+                    if br_count == 1: val = val + '}'  
+                    else: val = val + ','  ## add comma to match format
+                    #### problem is record can end with  either e.g.
+                    #### year = 1997}
+                    #### year = {1997}}
+                    if string.find(key,'}') < 0:
+                        d[self.add_key(key)] = self.add_val( val)
+                    #d['ERROR'] = str( br_count )
+                    ## putting error messages into d['ERROR'] is a good
+                    ## trick for debugging
+                    try:
+                        comments = val_comments[1][:-1]
+                        comments = string.strip(comments)
+                        if comments != '':
+                            d['BETWEEN_ENTRIES'] = self.add_val(comments + ',') + self.add_val(rest)
+                    except: IndexError
+                except: IndexError
+                current_field = ''
+
+            try:
+                rest = comma_split[1]
+            except IndexError:
+                key_val = string.split(current_field,'=',1)
+                key = self.add_key( key_val[0] )
+                if key != '':
+                    try:
+                        d[key] = self.add_val( key_val[1])
+                    except IndexError:
+                        d[key] = ''
+
         ### impute year from Davis Fron to arxiv output:
         if d.has_key('EPRINT') and not d.has_key('YEAR'): 
             yy = '????'
@@ -142,12 +138,6 @@ class BibTexParser(object):
             elif yy[0] in ['9']: d['YEAR'] = '19' + yy
         return d
 
-    def handle_authors(self, key, value):
-        if key.lower() == "author":
-            values = value.split(" and ")
-            return key, values
-        else:
-            return key, value
 
     def check_well_formed(self, instring):  
         """Test to check if instring is well-formed value of a bibtex field:
@@ -198,3 +188,55 @@ class BibTexParser(object):
         return val
 
 
+
+    def list2bibjson(self, btlist):
+        self.jsonObj = []
+        
+        has_meta = False
+        meta = None
+        
+        for btrecord in btlist:            
+            bibtype = btrecord.get('BIBTYPE')
+            if bibtype == "COMMENT" and not has_meta:
+                meta = self.get_meta(btrecord)
+                #meta['collection'] = collection
+                has_meta = True
+            else:
+                bibjson = self.get_bibjson_object(btrecord)
+                #bibjson['collection'] = collection
+                self.jsonObj.append(bibjson)
+        
+        if meta is not None:
+            self.jsonObj = [meta] + self.jsonObj
+        
+        return self.jsonObj
+
+    def get_meta(self, btrecord):
+        meta = {}
+        meta["class"] = "metadata"
+        for k, v in btrecord.iteritems():
+            meta[k.lower()] = v
+        return meta
+        
+    def get_bibjson_object(self, btrecord):
+        bibjson = {}
+        
+        for k, v in btrecord.iteritems():
+            if k.lower() == "author":
+                if type(v) is not list:
+                    v = v.split(" and ")
+            bibjson[k.lower()] = v
+        return bibjson
+
+
+
+if __name__ == "__main__":
+    f = open("test/bibserver.bib")
+    instring = f.read()
+    f.close()
+    btp = BibTexParser()
+    blist = btp.parse(instring)
+    j = btp.list2bibjson(blist)
+    f = open("test/bib.json", "w")
+    f.write( json.dumps(j,indent=2) )
+    f.close()

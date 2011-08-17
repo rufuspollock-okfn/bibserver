@@ -83,16 +83,15 @@ class upload:
             manager.schedule(pkg)
             return render.index(msg='Thanks! Your file ' + pkg["source"] + 
                 ' has been scheduled for upload. It will soon be available at <a href="/collection/' + 
-                pkg["name"] + '">http://bibsoup.net/collection/' + pkg["name"] + '</a>')
+                pkg["collection"] + '">http://bibsoup.net/collection/' + pkg["collection"] + '</a>')
 
         return render.upload()
 
     def POST(self,extra):
-        data = web.data()
         pkg = self.package(web)
+        pkg["data"] = web.data()
         if self.validate(pkg):
             manager = Manager()
-            manager.store(data)
             manager.schedule(pkg)
             return "scheduled"
         
@@ -109,11 +108,12 @@ class upload:
         pkg = dict()
         pkg["format"] = "bibtex"
         if web.input().get("format") is not None: pkg["format"] = web.input().get("format")
-        pkg["name"] = web.input().get("name")
+        if web.input().get("collection") is not None: pkg["collection"] = web.input().get("collection")
         pkg["notify"] = web.input().get("notify")
         # also with source URL / file upload if present
         if web.input().get("source") is not None: pkg["source"] = urllib2.unquote(web.input().get("source"))
-        if web.input().get("upfile") is not None: pkg["upfile"] = web.input().get("upfile")
+        if web.input().get("upfile") is not None and web.input().get("source") is None: 
+            pkg["upfile"] = web.input().get("upfile")
         # get request info
         pkg["ip"] = web.ctx.ip
         pkg["received"] = datetime.now()
