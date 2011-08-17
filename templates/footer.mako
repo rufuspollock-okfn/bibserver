@@ -9,8 +9,8 @@
     
     <ul>
     <li>BibSoup is supported by <a href="http://okfn.org">Open Knowledge Foundation</a></li>
-    <li>BibServer started life as part of the <a href="http://www.nsf.gov/">NSF</a> grant #0835851</li>
-    <li><a href="http://cottagelabs.com">Cottage Labs</a> have fun coding for BibServer</li>
+    <li>BibServer has previously received funding from <a href="http://www.nsf.gov/">NSF</a> grant #0835851</li>
+    <li><a href="http://cottagelabs.com">Cottage Labs</a> have fun coding BibServer</li>
     <li>Building on the work of the <a href="http://jisc.ac.uk">JISC</a> <a href="http://openbiblio.net">Open Biblio</a> project</li>
     <li></li>
 </div>

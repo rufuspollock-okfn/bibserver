@@ -33,37 +33,42 @@ from parsers.BibTexParser import BibTexParser
 class DataSet(object):
     
     def convert(self, package):
+        self.localfile = package["localfile"]
         self.url = package["source"]
         self.format = package["format"]
         
+        fh = open('store/raw/' + self.localfile, 'r')
+        
         # read source and convert
-        source = urllib2.urlopen(self.url)
-        data = source.read()
         if self.format == "bibtex":
+            d = fh.read()
             parser = BibTexParser()
-            d = parser.parse(data)
+            data = parser.parse(d)
         if self.format == "bibjson":
-            d = data
-        if self.format == "csv":
+            data = fh.read()
+        if self.format == "csv" or self.format == "google":
             # convert from csv to json
-            #dt = csv.dictReader( self.localfile )
-            #d = {}
-            #for k,v in dt:
-            #    d(k) = v
-            pass
+            data = csv.dictReader( fh )
+            #data = {}
+            #for k,v in d:
+            #    data(k) = v
+            #pass
         
-        # add collection information
-        collection = self.set_collection(d)
-        
-        # write data to file (maybe just for testing)
-        tidyname = url.replace("/","___")
-        fh = open('store/bibjson/' + tidyname, 'w')
-        fh.write( json.dumps(collection) )
         fh.close()
         
-        return d
+        # add collection information
+        data = self.prepare_collection(data,package)
+        
+        # write data to file (maybe just for testing)
+        tidyname = self.url.replace("/","___")
+        fh = open('store/bibjson/' + tidyname, 'w')
+        fh.write( json.dumps(data) )
+        fh.close()
+        
+        return data
     
-    def set_collection(self,data,package):        
+    # set the collection metadata
+    def prepare_collection(self,data,package):
         jsonObj = []
         
         has_meta = False
@@ -72,17 +77,22 @@ class DataSet(object):
         source = package["source"]
         collection = package["collection"]
         
-        for btrecord in data:
-            bibtype = btrecord.get('bibtype')
-            if bibtype == "comment" and not has_meta:
-                meta = self.get_meta(btrecord)
-                meta['source'] = source
-                meta['collection'] = collection
+        for record in data:
+            if record.get('bibtype') == "comment" and not has_meta:
+                meta = self.get_meta(record)
+                if "source" not in meta:
+                    meta['source'] = source
+                if "collection" not in meta:
+                    meta['collection'] = collection
+                else:
+                    collection = meta["collection"]
                 has_meta = True
             else:
-                bibjson = btrecord
-                bibjson['location'] = location
-                bibjson['collection'] = collection
+                bibjson = record
+                if "collection" not in bibjson:
+                    bibjson['collection'] = collection
+                # parse people out of the record
+                bibjson = parse_people(bibjson)
                 jsonObj.append(bibjson)
         
         if meta is not None:
@@ -91,11 +101,45 @@ class DataSet(object):
         return jsonObj
 
     # used by set_colllection to find meta record
-    def get_meta(self, btrecord):
+    def get_meta(self, record):
         meta = {}
         meta["class"] = "metadata"
-        for k, v in btrecord.iteritems():
+        for k, v in record.iteritems():
             meta[k.lower()] = v
         return meta
     
+    # parse potential people names out of a collection file
+    # check if they have a person record in bibsoup
+    # if not create one
+    # append person IDs to a person attribute of every record
+    def parse_people(self,record):
+        if "person" in record:
+            return record
+
+        record["person"] = []
+        if "author" in record:
+            for author in record["author"]:
+                person = self.do_person(author)
+                if person not in record["person"]:
+                    record["person"].append( person )
+        if "advisor" in record:
+            for advisor in record["advisor"]:
+                person = self.do_person(advisor)
+                if person not in record["person"]:
+                    record["person"].append( person )
+    
+    # find the person in the index and return their ID
+    # or create a new one and return the new ID
+    def do_person(self,person):
+        return person
+                    
+
+
+
+
+
+
+
+
+
 

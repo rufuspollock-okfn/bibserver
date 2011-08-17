@@ -72,6 +72,8 @@ class dao(object):
                 pass
 
     # do deletions
+    # never delete. just remove from collection
+    # ha ha, ATR
     def delete(self):
         pass
 

@@ -169,6 +169,11 @@ a:hover{
     width:30%;
     text-align:right;
 }
+#bibsoup_collections ul{
+    list-style-type:none;
+    padding:0;
+    margin:0 0 20px 0;
+}
 
 #bibserver_vis{
     clear:both;
@@ -186,6 +191,7 @@ a:hover{
     border:1px solid #ddd;
     width:100%;
     clear:both;
+    font-size:0.8em;
 }
 #bibserver_footer ul{
     float:left;

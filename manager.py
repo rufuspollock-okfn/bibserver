@@ -20,10 +20,17 @@ class Manager(object):
     # retrieve from URL into store
     def retrieve(self,pkg):
         # add in checks to see if current local copy is same as remote copy
-        source = urllib2.urlopen( pkg["source"] )
+        url = pkg["source"]
+        # for google spreadsheet data, append csv to url and get it
+        # this is an easy way to get data from a google spreadsheet
+        # the google data API could be used, but here we are assuming public content anyway, so no need
+        # to switch to gdata API would require user passing auth credentials
+        if pkg["format"] == "google":
+            url = url + "&output=csv"
+        content = urllib2.urlopen( url )
         tidyname = url.replace("/","___")
         fh = open('store/raw/' + tidyname, 'w')
-        fh.write( source.read() )
+        fh.write( content.read() )
         fh.close()
         return tidyname
     
@@ -40,13 +47,13 @@ class Manager(object):
     
     # index a file in the store
     def index(self,pkg):
-        fh = open('store/raw/' + pkg["localfile"], 'r')
         ds = DataSet()
         data = ds.convert(pkg)
         data = self.prepare(data,pkg)
         db = dao();
         #db.save(data)
-        return "saved"
+        #return "saved"
+        return data
 
     # check prepare the data in various ways
     def prepare(self,data,metadata):
