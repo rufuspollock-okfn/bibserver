@@ -8,17 +8,7 @@
 
 <link rel="stylesheet" type="text/css" href="/static/bibsoup.css">
 
-
-<script type="text/javascript">
-jQuery(document).ready(function() {
-    jQuery(window).load(function () {
-        jQuery('#bibsoup_searchbox').focus();
-    });
-    if ( jQuery('#bibserver_msg').length ) {
-        setTimeout( function() { jQuery('#bibserver_msg').hide('slow'); jQuery('#bibserver_msg').remove(); }, 20000 )
-    }
-});
-</script>
+<script src="/static/bibsoup.js"></script>
 
 </head>
 
