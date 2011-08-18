@@ -1,5 +1,4 @@
 # this is the data access layer
-# what it does depends on what the storage layer is
 
 import json
 import httplib
@@ -64,7 +63,7 @@ class dao(object):
                 c =  httplib.HTTPConnection(self.solr_url)
                 #c.request('POST', self.solr_update_path, insert)
                 #result = c.getresponse()
-                print insert #result.status, result.reason
+                print insert #, result.status, result.reason
 
         # save to elasticsearch
         if "es" in self.saveto:

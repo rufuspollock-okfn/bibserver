@@ -1,6 +1,7 @@
 # convert a source file to bibjson
 
 import urllib2
+import uuid
 import csv
 import json
 from parsers.BibTexParser import BibTexParser
@@ -9,7 +10,6 @@ class DataSet(object):
     
     def convert(self, package):
         self.localfile = package["localfile"]
-        self.url = package["source"]
         self.format = package["format"]
         
         fh = open('store/raw/' + self.localfile, 'r')
@@ -18,24 +18,46 @@ class DataSet(object):
         if self.format == "bibtex":
             d = fh.read()
             parser = BibTexParser()
-            data = parser.parse(d,package)
+            data = parser.parse(d)
         if self.format == "bibjson":
-            data = fh.read()
+            data = json.loads( fh.read() )
         if self.format == "csv" or self.format == "google":
-            data = csv.dictReader( fh )
-            #data = {}
-            #for k,v in d:
-            #    data(k) = v
-            #pass
+            d = csv.DictReader( fh )
+            data = []
+            # do any required conversions
+            for row in d:
+                print row
+                if "author" in row:
+                    row["author"] = row["author"].split(",")
+                data.append(row)
         
         fh.close()
         
         # parse people out of the data
 #        self.parse_people(data)
         
+        data = self.prepare(data,package)
         
         return data
     
+    
+    # check prepare the data in various ways
+    def prepare(self,data,pkg):
+        for index,item in enumerate(data):
+            # if collection name provided, check it is in each record, or add it if not
+            if pkg["collection"] != "":
+                data[index]["collection"] = [pkg["collection"]]
+
+            # give item a uuid
+            if "_id" not in item:
+                data[index]["_id"] = str( uuid.uuid4() )
+
+            # if people names are provided, e.g. in author fields, check for person records for them
+            # if not existing, create one.
+            # append person record details to records
+
+        return data
+
     
     # parse potential people names out of a collection file
     # check if they have a person record in bibsoup

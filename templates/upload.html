@@ -1,7 +1,7 @@
 <%include file="/header.mako"/>
 
 <div id="bibsoup_upload">
-    <form action="/upload" method="GET">
+    <form action="/upload" method="POST" enctype="multipart/form-data">
     <div class="infobubble">
         <div class="style_head"><p>01. file location</p></div>
         <p>web address: <input type="text" name="source" /></p>
@@ -17,7 +17,7 @@
     <div class="infobubble">
         <div class="style_head"><p>03. name your collection</p></div>
         <p>name: <input type="text" name="collection" /></p>
-        <p>(if the records in your file already contain collection information, it will be used automatically and you can ignore this question)</p>
+        <p>(if your records already contain collection information, you can ignore this question. Any value provided here will overwrite that in your records.)</p>
     </div>
     <div class="infobubble">
         <div class="style_head"><p>04. ready to go</p></div>
