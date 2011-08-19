@@ -13,7 +13,7 @@
 
             <div class="list_result_hidden">
             % for record in c['results'].set()[i]:
-                % if record not in c['config'].display_field_order and record not in ["_id","_rev","score"]:
+                % if record not in c['config'].display_field_order and record not in ["_rev","score"]:
                     <div class="list_result_field">${record} - ${c['results'].get_str(c['results'].set()[i], record)}</div>
                 % endif
             % endfor

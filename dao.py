@@ -16,6 +16,24 @@ class dao(object):
         self.es_url = "localhost:9200"
         self.es_path = "/bibsoup/record/_search"
 
+    # get record from the index
+    def record(self,rid):
+        if self.index == "solr":
+            res = json.loads( self.query('?wt=json&q=_id:' + rid) )
+            if len(res["response"]["docs"]) == 0:
+                return {"error":"no match"}
+            if len(res["response"]["docs"]) > 1:
+                return {"error":"multiple match"}
+            return res["response"]["docs"][0]
+        if self.index == "es":
+            res = json.loads( self.query('?q=_id:' + rid) )
+            if len(res["hits"]["hits"]) == 0:
+                return {"error":"no match"}
+            if len(res["hits"]["hits"]) > 1:
+                return {"error":"multiple match"}
+            return res["hits"]["hits"][0]["_source"]
+
+
     # get data from index
     def query(self,get="",data=""):
         self.get = get
@@ -71,9 +89,10 @@ class dao(object):
                 pass
 
     # do deletions
-    # never delete. just remove from collection
+    # however, should never delete. just update and remove from collection
+    # so delete is actually only a super admin function
     # ha ha, ATR
-    def delete(self):
+    def delete(self,rid):
         pass
 
     # do updates

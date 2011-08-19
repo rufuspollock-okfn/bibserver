@@ -3,6 +3,7 @@
 from datetime import datetime
 import web
 import urllib2
+import json
 
 from solreyes import SolrEyesController
 from manager import Manager
@@ -26,7 +27,8 @@ urls = (
     '/query(.*)','query',
     '/content/(.*)','content',
     '/collection','collections',
-    '/person','persons',
+    '/person(.*)','records',
+    '/record(.*)','records',
     '/(.*)','SolrEyesController'
 )
 
@@ -38,12 +40,22 @@ class index:
     def GET(self):
         return render.index()
 
+# show a particular record
+class records:
+    def GET(self,rid):
+        if rid == "" or rid == "/":
+            return render.index(msg="Append an identifier to this URL to view a particular record.")
+        else:
+            rid = rid.replace("/","")
+            db = dao()
+            return render.record( record=db.record(rid) )
+
 class collections:
     def GET(self):
         return "return a list of all collections in HTML or JSON"
 
 class persons:
-    def GET(self):
+    def GET(self,extra):
         return "return a list of all persons in HTML or JSON"
 
 # the admin control

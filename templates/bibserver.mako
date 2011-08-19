@@ -1,24 +1,23 @@
 <html>
 <head>
 
-<link rel="stylesheet" type="text/css" href="/static/bibsoup.css">
-
 <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:300&v2">
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Nova+Square">
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.js"></script>
+<script src="/static/bibsoup.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="/static/solreyes.css"/>
+<link rel="stylesheet" type="text/css" href="/static/bibsoup.css">
+<link rel="stylesheet" type="text/css" href="/static/solreyes.css"/>
 
-    <script src="/static/bibsoup.js"></script>
-
-
-    <title>${c['config'].service_name}</title>
+<title>BibSoup</title>
 
 </head>
 
 <body>
 
 <div id="bibserver_container">
+
 
 <div id="bibserver_header">
     <h1><a href="/">BibSoup</a></h1>

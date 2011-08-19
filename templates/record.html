@@ -1,0 +1,15 @@
+
+<%include file="/header.mako"/>
+
+<div id="infos">
+
+% for item in record:
+
+<p>${item} - ${record[item]}</p>
+
+% endfor
+
+</div>
+
+<%include file="/footer.mako"/>
+
