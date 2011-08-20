@@ -204,8 +204,9 @@ class BibTexParser(object):
                 meta = self.get_meta(btrecord)
                 has_meta = True
             else:
-                bibjson = self.get_bibjson_object(btrecord)
-                self.jsonObj.append(bibjson)
+                if bibtype != "STRING":
+                    bibjson = self.get_bibjson_object(btrecord)
+                    self.jsonObj.append(bibjson)
         
         if meta is not None:
             self.jsonObj = [meta] + self.jsonObj
@@ -226,6 +227,8 @@ class BibTexParser(object):
             if k.lower() == "author":
                 if type(v) is not list:
                     v = v.split(" and ")
+            if k.lower() == "bibtype":
+                v = v.lower()
             bibjson[k.lower()] = v
         return bibjson
 

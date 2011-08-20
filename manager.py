@@ -3,6 +3,8 @@
 import urllib2
 import json
 import re
+import os
+import datetime
 
 from dataset import DataSet
 from dao import dao
@@ -12,11 +14,14 @@ class Manager(object):
     # schedule something
     # for now, does not schedule. just executes.
     def schedule(self,pkg):
+        same = False
         if "upfile" in pkg or "data" in pkg:
             pkg["localfile"] = self.store(pkg)
         if "source" in pkg:
-            pkg["localfile"] = self.retrieve(pkg)
-        self.index(pkg)
+            pkg["localfile"], same = self.retrieve(pkg)
+        if not same:
+            print "indexing"
+            self.index(pkg)
     
     # retrieve from URL into store
     def retrieve(self,pkg):
@@ -32,10 +37,21 @@ class Manager(object):
 
         content = urllib2.urlopen( url )
         tidyname = url.replace("/","___")
+
+        # no need to store if last modified is before time current one was stored
+        if os.path.exists('store/raw/' + tidyname):
+            rmod = content.info().getdate('last-modified')
+            lmod = datetime.datetime.fromtimestamp(os.path.getmtime('store/raw/' + tidyname))
+            # get this to work properly - currently the comparison does not properly succeed
+            # how to get the last-modified into a date format?
+            if rmod < lmod:
+                pass
+                #return tidyname, True
+
         fh = open('store/raw/' + tidyname, 'w')
         fh.write( content.read() )
         fh.close()
-        return tidyname
+        return tidyname, False
     
     # store uploaded file
     def store(self,pkg):

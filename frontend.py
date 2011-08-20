@@ -88,6 +88,8 @@ class query:
 # default upload is a collection, but could also be person or group record
 class upload:
     def GET(self,extra):
+        if web.input().get("source") is not None:
+            return self.POST(extra)
         return render.upload()
 
     def POST(self,extra):
@@ -110,13 +112,21 @@ class upload:
     def package(self,web):
         pkg = dict()
         pkg["format"] = "bibtex"
-        if web.input().get("format") != "": pkg["format"] = web.input().get("format")
+        if web.input().get("format") is not None:
+            if web.input().get("format") != "":
+                pkg["format"] = web.input().get("format")
         if web.input().get("collection") != "": pkg["collection"] = web.input().get("collection")
         if web.input().get("notify") != "": pkg["notify"] = web.input().get("notify")
         # also with source URL / file upload if present
         if web.input().get("source") != "": pkg["source"] = urllib2.unquote(web.input().get("source"))
-        if web.input().get("upfile") != "": pkg["upfile"] = web.input(upfile={})
-        if web.data() != "": pkg["data"] = web.data()
+        if web.input().get("upfile") is not None:
+            if web.input().get("upfile") != "":
+                print "HI"
+                pkg["upfile"] = web.input(upfile={})
+        if web.data() is not None:
+            if web.data() != "":
+                print web.data()
+                pkg["data"] = web.data()
         # get request info
         pkg["ip"] = web.ctx.ip
         pkg["received"] = str(datetime.now())
