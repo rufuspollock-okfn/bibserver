@@ -4,6 +4,7 @@ from datetime import datetime
 import web
 import urllib2
 import json
+import re
 
 from solreyes import SolrEyesController
 from manager import Manager
@@ -23,6 +24,7 @@ urls = (
     '/upload(.*)','upload',
     '/admin(.*)','admin',
     '/processing(.*)','processing',
+    '/redirect(.*)','redirect',
     '/search','SolrEyesController',
     '/query(.*)','query',
     '/content/(.*)','content',
@@ -40,6 +42,19 @@ class index:
     def GET(self):
         return render.index()
 
+# redirect a search for a value from a record to the requested search type
+class redirect:
+    def GET(self,extra):
+        self.target = web.input().get("target")
+        self.value = web.input().get("value")
+        if "XXXX" in self.target:
+            self.target = re.sub(r'XXXX',self.value,self.target)
+        else:
+            self.target = self.target + self.value
+        raise web.seeother(self.target)
+
+        
+
 # show a particular record
 class records:
     def GET(self,rid):
@@ -50,12 +65,18 @@ class records:
             db = dao()
             return render.record( record=db.record(rid) )
 
+# show a list of all collections - not the same as actually seeing the collections
 class collections:
     def GET(self):
+        db = dao()
+        collections = db.query("?wt=json&q=type:collection")
         return "return a list of all collections in HTML or JSON"
 
+# show a list of all persons - not the same as actually seeing the person collections
 class persons:
     def GET(self,extra):
+        db = dao()
+        persons = db.query("?wt=json&q=type:person")
         return "return a list of all persons in HTML or JSON"
 
 # the admin control

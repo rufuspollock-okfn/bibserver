@@ -296,16 +296,32 @@ table {
 .list_result_odd {
     background:#eee;
     padding-left:3px;
-    padding-bottom:3px;
+    padding-bottom:15px;
 }
 
 .list_result_even {
+    background:#ddd;
     padding-left:3px;
-    padding-bottom:3px;
+    padding-bottom:15px;
 }
 
 .list_result_field {
 
+}
+
+.list_result_options{
+    clear:both;
+    padding-top:5px;
+    width:100%;
+    border-top:1px dotted #ccc;
+}
+
+.list_result_options select{
+    width:100px;
+}
+
+.list_result_options form{
+    display:inline;
 }
 
 .list_result_hidden {

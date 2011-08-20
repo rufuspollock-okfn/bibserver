@@ -324,13 +324,6 @@ return this.bind(type, data, cb);
 
         }
 
-/*
-
-<li> <a href="" target = "search_window">[Bing + ResearcherID.com ]</a></li>
-
-*/
-
-
         // list of searchable places
         var searchables = {
             "Google" : "http://www.google.com/search?q=",

@@ -67,11 +67,21 @@ class SolrEyesController(object):
         properties['url_manager'] = UrlManager(config, args, implicit_facets)
         
         # create a solr connection and get the results back
-        s = Solr(config)
-        if initial_request:
-            properties['results'] = ResultManager(s.initial(args), config, args)
-        else:
-            properties['results'] = ResultManager(s.search(args), config, args)
+        if "SOLR" == "SOLR":
+            s = Solr(config)
+            if initial_request:
+                properties['results'] = ResultManager(s.initial(args), config, args)
+            else:
+                properties['results'] = ResultManager(s.search(args), config, args)
+
+        # replace the solr connection with an ES connection object
+        # note also the query should be submitted to the dao query endpoint
+        if ("ES" != "ES"):
+            s = ES(config)
+            if initial_request:
+                properties['results'] = ESResultManager(s.initial(args), config, args)
+            else:
+                properties['results'] = ESResultManager(s.search(args), config, args)
         
         if args.has_key("search"):
             properties['q'] = args['search']
@@ -79,7 +89,7 @@ class SolrEyesController(object):
             properties['q'] = ""
         
         return self.render(config.template, properties)
-    
+
     def render(self, template_name, properties):
         res_path = os.path.join(os.path.dirname(__file__), 'templates')
         fn = os.path.join(res_path, template_name)
@@ -89,6 +99,14 @@ class SolrEyesController(object):
         ctx = Context(buf, c=properties)
         t.render_context(ctx)
         return buf.getvalue()
+
+
+class ESResultManager(object):
+    def __init__(self, results, config, args):
+        self.results = results
+        self.config = config
+        self.args = args if args is not None else self.config.get_default_args()
+
 
 class ResultManager(object):
     def __init__(self, results, config, args):
