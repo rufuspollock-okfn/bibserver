@@ -42,11 +42,14 @@
     #
     "facet_fields" : {
         "collection" : { "display" : "collection" },
+        "type" : { "display" : "type"},
         "journal" : { "display" : "journal"},
         "author" : {"display" : "author"},
         "year" : {"display" : "year"}
     },
     
+    "display_facet_order" : ["collection","type","journal","author","year"],
+
     # The fields which are used for straight ranged faceting (dates should be dealt with
     # separately)
     #
@@ -74,9 +77,7 @@
     
     "facet_queries" : {
     },
-    
-    "display_facet_order" : ["collection","journal","author","year"],
-    
+        
     "sort_fields" : {
     },
     
