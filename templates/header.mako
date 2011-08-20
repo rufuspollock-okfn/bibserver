@@ -20,7 +20,6 @@
 
 <div id="bibserver_header">
     <h1><a href="/">BibSoup</a></h1>
-    <p>all the world's research <span style="font-size:0.8em; padding:0 0 0 10px">(... or, as much as we can find)</span></p>
 </div>
 
 %if msg:

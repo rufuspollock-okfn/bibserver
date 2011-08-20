@@ -77,11 +77,11 @@ class dao(object):
         # as per: http://wiki.apache.org/solr/UpdateJSON
         if "solr" in self.saveto:
             for row in data:
-                insert = '{"add":{"doc":' + json.dumps(row) + '}}'
+                insert = '{"add":{"doc":' + json.dumps(row,encoding="8859") + '}}'
                 c =  httplib.HTTPConnection(self.solr_url)
-                #c.request('POST', self.solr_update_path, insert)
-                #result = c.getresponse()
-                print insert #, result.status, result.reason
+                c.request('POST', self.solr_update_path, insert)
+                result = c.getresponse()
+                #print insert, result.status, result.reason
 
         # save to elasticsearch
         if "es" in self.saveto:

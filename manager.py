@@ -61,7 +61,7 @@ class Manager(object):
 
         # write data to file (maybe just for testing)
         fh = open('store/bibjson/' + pkg["localfile"], 'w')
-        fh.write( json.dumps(data,indent=2) )
+        fh.write( json.dumps(data,indent=2,encoding='8859') )
         fh.close()
 
         db = dao();

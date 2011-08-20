@@ -187,7 +187,7 @@ class BibTexParser(object):
         val = self.strip_quotes(val)
         val = self.strip_braces(val)
         val = self.string_subst(val)
-        return val
+        return unicode(val,'8859')
 
 
 

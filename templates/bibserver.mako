@@ -21,7 +21,6 @@
 
 <div id="bibserver_header">
     <h1><a href="/">BibSoup</a></h1>
-    <p>all the world's research <span style="font-size:0.8em; padding:0 0 0 10px">(... or, as much as we can find)</span></p>
 </div>
 
 <div id="bibserver_search">
@@ -60,23 +59,6 @@
     <p>...</p>
 </div>
 
+<%include file="/footer.mako"/>
 
-<div id="bibserver_footer">
-    <ul>
-    <li>BibSoup runs BibServer</li>
-    <li><a href="http://bibserver.okfn.org">learn more about BibServer</a></li>
-    <li><a href="http://bitbucket.org/okfn/bibserver">Get the code</a></li>
-    </ul>
-    
-    <ul>
-    <li>BibSoup is supported by</li>
-    <li><a href="http://okfn.org">Open Knowledge Foundation</a></li>
-    <li><a href="http://cottagelabs.com">Cottage Labs</a></li>
-    <li></li>
-</div>
 
-</div>
-
-</body>
-
-</html>
