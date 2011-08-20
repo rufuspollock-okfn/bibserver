@@ -2,6 +2,8 @@ BibServer_ is a RESTful bibliographic data server.
 
 .. _BibServer: http://bibserver.okfn.org/
 
+Development is taking place in this repo: http://github.com/okfn/bibserver
+
 
 How It Works
 ============
@@ -30,6 +32,41 @@ ease of installation these have all been included in this repo. We have plans
 to develop further functionality, including being able to parse more source
 formats; installation information and development plans are being detailed on
 our web site at http://bibserver.okfn.org.
+
+
+Install
+=======
+
+1. Install python, pip and virtualenv.
+
+2. [optional] Create a virtualenv and enable it::
+
+    virtualenv {myenv}
+    . {myenv}/bin/activate
+
+3. Get the source::
+
+    # by convention we put it in the virtualenv but you can be put anywhere
+    mkdir {myenv}/src
+    git clone https://github.com/okfn/bibserver {myenv}/src/
+
+3. Install the app::
+
+    cd {myenv}/src/bibserver
+    # do a development install from current directory
+    pip install -e .
+    # alternatively if you do not want a development install you could just do
+    # python setup.py install
+
+4. Run the webserver::
+
+    python frontend.py
+
+
+Developers
+==========
+
+Running the tests. TODO (once we have tests).
 
 
 Copyright and License
