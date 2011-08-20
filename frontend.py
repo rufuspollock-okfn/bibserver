@@ -7,7 +7,7 @@ import json
 
 from solreyes import SolrEyesController
 from manager import Manager
-from dao import dao
+from bibserver.dao import dao
 
 import os
 from web.contrib.template import render_mako
