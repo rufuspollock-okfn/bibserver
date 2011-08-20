@@ -6,6 +6,7 @@ setup(
     packages = find_packages(),
     install_requires = [
         "Flask==0.7.2",
+        "Flask-Mako",
         "solrpy",
         ],
     url = 'http://bibserver.okfn.org/',

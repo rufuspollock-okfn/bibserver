@@ -52,6 +52,10 @@ Install
 
 3. Install the app::
 
+    # install Flask-Mako first (not in PyPI)
+    pip install -e git+https://github.com/tzellman/flask-mako/#egg=Flask-Mako
+
+    # now BibServer
     cd {myenv}/src/bibserver
     # do a development install from current directory
     pip install -e .
@@ -66,7 +70,12 @@ Install
 Developers
 ==========
 
-Running the tests. TODO (once we have tests).
+To run the tests:
+
+1. Install nose (python-nose)
+2. Run the following command::
+
+    nosetests -v test/
 
 
 Copyright and License
