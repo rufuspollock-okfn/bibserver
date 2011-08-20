@@ -1,7 +1,23 @@
 # this is the data access layer
-
 import json
 import httplib
+import pyes
+
+from bibserver.config import config
+
+def init_db():
+    conn, db = get_conn()
+    try:
+        conn.create_index(db)
+    except pyes.exceptions.IndexAlreadyExistsException:
+        pass
+
+def get_conn():
+    host = str(config['ELASTIC_SEARCH_HOST'])
+    db_name = config['ELASTIC_SEARCH_DB']
+    conn = pyes.ES([host])
+    return conn, db_name
+
 
 class dao(object):
 

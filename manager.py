@@ -7,7 +7,7 @@ import os
 import datetime
 
 from dataset import DataSet
-from dao import dao
+from bibserver.dao import dao
 
 class Manager(object):
 

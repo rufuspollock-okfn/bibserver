@@ -1,2 +1,4 @@
 *.pyc
 store/*
+*.egg-info/*
+.*.swp
