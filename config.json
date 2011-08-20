@@ -2,6 +2,9 @@
 # create install scripts and readmes
 {
     "service_name" : "BibSoup",
+
+    "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
+    "ELASTIC_SEARCH_DB" : "bibserver",
     
     # solr service base url
     "solr_url" : "http://localhost:8983/solr",

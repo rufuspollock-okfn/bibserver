@@ -37,7 +37,10 @@ our web site at http://bibserver.okfn.org.
 Install
 =======
 
-1. Install python, pip and virtualenv.
+1. Install pre-requisites:
+   
+   * Python, pip and virtualenv.
+   * ElasticSearch_ (0.17 series)
 
 2. [optional] Create a virtualenv and enable it::
 
@@ -65,6 +68,8 @@ Install
 4. Run the webserver::
 
     python frontend.py
+
+.. _ElasticSearch: http://www.elasticsearch.org/
 
 
 Developers
