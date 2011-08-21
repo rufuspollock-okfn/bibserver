@@ -19,7 +19,7 @@ class TestDAO:
     @classmethod
     def teardown_class(cls):
         conn, db = dao.get_conn()
-        # conn.delete_index(TESTDB)
+        conn.delete_index(TESTDB)
 
     def test_01(self):
         recdict = fixtures['records'][0]
