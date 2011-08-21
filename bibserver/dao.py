@@ -1,6 +1,8 @@
 # this is the data access layer
 import json
-import httplib
+import uuid
+import UserDict
+
 import pyes
 
 from bibserver.config import config
@@ -19,6 +21,74 @@ def get_conn():
     return conn, db_name
 
 
+class DomainObject(UserDict.IterableUserDict):
+    # set __type__ on inheriting class to determinine elasticsearch object
+    __type__ = None
+
+    def __init__(self, **kwargs):
+        '''Initialize a domain object with key/value pairs of attributes.
+        '''
+        # IterableUserDict expects internal dictionary to be on data attribute
+        self.data = dict(kwargs)
+
+    @property
+    def id(self):
+        '''Get id of this object.'''
+        return self.data.get('id', None)
+
+    def save(self):
+        '''Save to backend storage.'''
+        # TODO: refresh object with result of save
+        return self.upsert(self.data)
+
+    @classmethod
+    def get(cls, id_):
+        '''Retrieve object by id.'''
+        conn, db = get_conn()
+        try:
+            out = conn.get(db, cls.__type__, id_)
+            return cls(**out['_source'])
+        except pyes.exceptions.ElasticSearchException, inst:
+            if inst.status == 404:
+                return None
+            else:
+                raise
+
+    @classmethod
+    def upsert(cls, data, state=None):
+        '''Update backend object with a dictionary of data.
+
+        If no id is supplied an uuid id will be created before saving.
+        '''
+        conn, db = get_conn()
+        if 'id' in data:
+            id_ = data['id']
+        else:
+            id_ = uuid.uuid4().hex
+            data['id'] = id_
+        conn.index(data, db, cls.__type__, id_)
+        # TODO: ES >= 0.17 automatically re-indexes on GET so this not needed
+        conn.refresh()
+        # TODO: should we really do a cls.get() ?
+        return cls(**data)
+    
+    @classmethod
+    def query(cls, q, state=None):
+        conn, db = get_conn()
+        if not q:
+            ourq = pyes.query.MatchAllQuery()
+        else:
+            ourq = pyes.query.StringQuery(q, default_operator='AND')
+        out = conn.search(ourq, db, cls.__type__)
+        return out
+
+
+class Record(DomainObject):
+    __type__ = 'record'
+
+
+## DEPRECATED
+## TODO: remove
 class dao(object):
 
     def __init__(self):

@@ -1,0 +1,16 @@
+{
+  "records": [
+    {
+      "citekey":"some ID",
+      "type": "book",
+      "title":"some title",
+      "author": ["Leo Tolstoy","Robert Musil"],
+      "journal": "journal_name",
+      "collection": ["collection_name"],
+      "person": ["leo.tolstoy","robert.musil"],
+      "moreinfo":"some more information about this collection",
+      "ns1:thing":"some thing"
+    }
+  ]
+}
+
