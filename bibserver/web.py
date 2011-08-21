@@ -1,5 +1,7 @@
 import os
 from datetime import datetime
+import urllib2
+
 from flask import Flask, jsonify, json, request, redirect, abort
 from flask.views import View, MethodView
 from flaskext.mako import init_mako, render_template
@@ -37,7 +39,7 @@ def query():
 
 
 class UploadView(MethodView):
-    '''The uploader controller.
+    '''The upload view.
 
     upload from URL provided in source, or from file upload button, or from
     POST default format is bibtex, but accept other format specifications via
@@ -52,13 +54,15 @@ class UploadView(MethodView):
     def post(self):
         from bibserver.manager import Manager
         pkg = self.package()
-        # for source URL, schedule it for grab and save
         if self.validate(pkg):
             manager = Manager()
             manager.schedule(pkg)
-            return render.index(msg='Thanks! Your file ' + 
-                ' has been scheduled for upload. It will soon be available at <a href="/collection/' + 
-                pkg["collection"] + '">http://bibsoup.net/collection/' + pkg["collection"] + '</a>')
+            msg = 'Thanks! Your file has been scheduled for upload. It will' + \
+                'soon be available at <a href="/collection/' + \
+                pkg["collection"] + '">http://bibsoup.net/collection/' + pkg["collection"] + '</a>'
+            return render_template('index.html', msg=msg)
+        else:
+            return 'Failed to validate'
 
     def validate(self, pkg):
         '''validate the submission before proceeding'''
@@ -70,22 +74,18 @@ class UploadView(MethodView):
         '''make package with format of upload, collection name to save as, email to notify
         '''
         pkg = dict()
-        pkg["format"] = "bibtex"
-        if request.values.get("format") is not None:
-            if request.values.get("format") != "":
-                pkg["format"] = request.values.get("format")
-        if request.values.get("collection") != "": pkg["collection"] = request.values.get("collection")
-        if request.values.get("notify") != "": pkg["notify"] = request.values.get("notify")
+        pkg["format"] = request.values.get('format', 'bibtex')
+        pkg["collection"] = request.values.get("collection", '')
+        pkg["notify"] = request.values.get("notify", None)
         # also with source URL / file upload if present
-        if request.values.get("source") != "": pkg["source"] = urllib2.unquote(request.values.get("source"))
-        if request.values.get("upfile") is not None:
-            if request.values.get("upfile") != "":
-                pkg["upfile"] = web.input(upfile={})
+        if request.values.get("source"):
+            pkg["source"] = urllib2.unquote(request.values.get("source"))
+        upfile = request.files.get('upfile', None)
+        if upfile:
+            pkg["upfile"] = upfile 
 
-        # TODO: reinstate this once we know what web.data() is exactly.
-        # if web.data() is not None:
-        #    if web.data() != "":
-        #        pkg["data"] = web.data()
+        if request.values.get('data'):
+            pkg["data"] = request.values['data']
 
         # get request info
         pkg["ip"] = request.remote_addr

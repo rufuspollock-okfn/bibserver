@@ -33,6 +33,15 @@ class TestWeb(object):
         res = self.app.get('/upload')
         assert res.status == '200 OK', res.status
 
+    def test_upload_post(self):
+        bibtex_data = open('test/data/sample.bibtex').read()
+        res = self.app.post('/upload', data=dict(
+            format='bibtex',
+            data=bibtex_data
+            ))
+        assert res.status == '200 OK', res.status
+        assert 'Thanks! Your file has been ' in res.data, res.data
+
     def test_query(self):
         res = self.app.get('/query')
         assert res.status == '200 OK', res.status
