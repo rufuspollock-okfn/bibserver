@@ -72,6 +72,14 @@ Install
 .. _ElasticSearch: http://www.elasticsearch.org/
 
 
+Command Line Usage
+~~~~~~~~~~~~~~~~~~
+
+Command link script in `cli.py`. To see commands do::
+
+  ./cli.py -h
+
+
 Developers
 ==========
 
