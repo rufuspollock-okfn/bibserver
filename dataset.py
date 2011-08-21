@@ -41,10 +41,6 @@ class DataSet(object):
             if collection:
                 data[index]["collection"] = collection
 
-            # give item a uuid
-            if "_id" not in item:
-                data[index]["_id"] = str( uuid.uuid4() )
-
             # if people names are provided, e.g. in author fields, check for person records for them
             # if not existing, create one.
             # append person record details to records
