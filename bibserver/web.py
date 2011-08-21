@@ -50,7 +50,7 @@ class UploadView(MethodView):
         return render_template('upload.html')
 
     def post(self):
-        from manager import Manager
+        from bibserver.manager import Manager
         pkg = self.package()
         # for source URL, schedule it for grab and save
         if self.validate(pkg):
