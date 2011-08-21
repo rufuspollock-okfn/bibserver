@@ -18,9 +18,9 @@ class DataSet(object):
             d = fileobj.read()
             parser = BibTexParser()
             data = parser.parse(d)
-        if format == "bibjson":
+        elif format == "bibjson":
             data = json.load(fileobj)
-        if format == "csv" or format == "google":
+        elif format == "csv" or format == "google":
             d = csv.DictReader(fileobj)
             data = []
             # do any required conversions
@@ -28,6 +28,8 @@ class DataSet(object):
                 if "author" in row:
                     row["author"] = row["author"].split(",")
                 data.append(row)
+        else:
+            raise Exception('Unable to convert from format: %s' % format)
         # parse people out of the data
         # self.parse_people(data)
         data = self.prepare(data, collection)
