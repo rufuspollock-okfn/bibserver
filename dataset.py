@@ -8,45 +8,38 @@ from parsers.BibTexParser import BibTexParser
 
 class DataSet(object):
     
-    def convert(self, package):
-        self.localfile = package["localfile"]
-        self.format = package["format"]
-        
-        fh = open('store/raw/' + self.localfile, 'r')
-        
-        # read source and convert
-        if self.format == "bibtex":
-            d = fh.read()
+    def convert(self, fileobj, format, collection=None):
+        '''Convert a source datastream in fileobj in `format` (e.g. bibtex) to
+        bibjson and add it to `collection`.
+
+        :return: a python dict json-i-fiable to bibjson.
+        '''
+        if format == "bibtex":
+            d = fileobj.read()
             parser = BibTexParser()
             data = parser.parse(d)
-        if self.format == "bibjson":
-            data = json.loads( fh.read() )
-        if self.format == "csv" or self.format == "google":
-            d = csv.DictReader( fh )
+        if format == "bibjson":
+            data = json.load(fileobj)
+        if format == "csv" or format == "google":
+            d = csv.DictReader(fileobj)
             data = []
             # do any required conversions
             for row in d:
-                print row
                 if "author" in row:
                     row["author"] = row["author"].split(",")
                 data.append(row)
-        
-        fh.close()
-        
         # parse people out of the data
-#        self.parse_people(data)
-        
-        data = self.prepare(data,package)
-        
+        # self.parse_people(data)
+        data = self.prepare(data, collection)
         return data
     
     
     # check prepare the data in various ways
-    def prepare(self,data,pkg):
+    def prepare(self,data, collection=None):
         for index,item in enumerate(data):
             # if collection name provided, check it is in each record, or add it if not
-            if pkg["collection"] != "":
-                data[index]["collection"] = [pkg["collection"]]
+            if collection:
+                data[index]["collection"] = collection
 
             # give item a uuid
             if "_id" not in item:
