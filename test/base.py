@@ -13,5 +13,5 @@ fixtures = json.load(open(fixtures_path))
 config['ELASTIC_SEARCH_DB'] = TESTDB
 dao.init_db()
 
-__all__ = ['config', 'fixtures', 'dao', 'TESTDB']
+__all__ = ['config', 'fixtures', 'dao', 'TESTDB', 'json']
 

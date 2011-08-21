@@ -29,11 +29,22 @@ class TestWeb(object):
         assert res.status == '200 OK', res.status
         assert 'id - %s' % self.record.id in res.data, res.data
 
+    def test_upload(self):
+        res = self.app.get('/upload')
+        assert res.status == '200 OK', res.status
+
     def test_search(self):
         res = self.app.get('/search')
         # assert res.status == '200 OK', res.status
 
-    def test_upload(self):
-        res = self.app.get('/upload')
+    def test_query(self):
+        res = self.app.get('/query')
         assert res.status == '200 OK', res.status
+        assert 'Query endpoint' in res.data, res.data
+
+        res = self.app.get('/query?q=title:non-existent')
+        assert res.status == '200 OK', res.status
+        out = json.loads(res.data)
+        assert out['hits']['total'] == 0, out
+        assert False
 

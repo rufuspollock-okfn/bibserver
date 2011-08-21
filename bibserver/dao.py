@@ -2,6 +2,7 @@
 import json
 import uuid
 import UserDict
+import httplib
 
 import pyes
 
@@ -81,6 +82,22 @@ class DomainObject(UserDict.IterableUserDict):
             ourq = pyes.query.StringQuery(q, default_operator='AND')
         out = conn.search(ourq, db, cls.__type__)
         return out
+
+    @classmethod
+    def raw_query(self, query_string):
+        if not query_string:
+            msg = 'Query endpoint. Please provide <a href="%s">query parameters.<?a>' % (
+                    'http://www.elasticsearch.org/guide/reference/api/search/uri-request.html'
+                )
+            return msg
+
+        host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
+        db_name = config['ELASTIC_SEARCH_DB']
+        fullpath = '/' + db_name + '/' + self.__type__ + '/_search' + '?' + query_string
+        c =  httplib.HTTPConnection(host)
+        c.request('GET', fullpath)
+        result = c.getresponse()
+        return result.read()
 
 
 class Record(DomainObject):

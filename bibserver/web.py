@@ -30,6 +30,11 @@ def record(rid):
     return render_template('record.html', record=recorddict)
 
 
+@app.route('/query')
+def query():
+    return bibserver.dao.Record.raw_query(request.query_string)
+
+
 class UploadView(MethodView):
     '''The uploader controller.
 
