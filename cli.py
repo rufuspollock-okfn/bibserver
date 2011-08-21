@@ -14,6 +14,11 @@ def rebuild_db():
     conn.delete_index(db)
     conn.create_index(db)
 
+def fixtures():
+    import test.base
+    for dict_ in test.base.fixtures['records']:
+        dao.Record.upsert(dict_)
+
 def convert(inpath):
     '''Convert from bibtex to bibjson. One argument expected: path to bibtext
     file.
