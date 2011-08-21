@@ -6,8 +6,10 @@ setup(
     packages = find_packages(),
     install_requires = [
         "Flask==0.7.2",
+        # need Flask-Mako from source. See README.rst.
         "Flask-Mako",
         "pyes==0.16",
+        # need solrpy from HEAD. See README.rst.
         "solrpy",
         ],
     url = 'http://bibserver.okfn.org/',

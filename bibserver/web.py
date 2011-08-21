@@ -5,12 +5,13 @@ from flask.views import View, MethodView
 from flaskext.mako import init_mako, render_template
 
 import bibserver.dao
-
+import bibserver.solreyes
 
 app = Flask(__name__)
 app.config['MAKO_DIR'] = 'templates'
 init_mako(app)
 
+app.register_blueprint(bibserver.solreyes.solreyes_app)
 
 @app.route('/')
 def home():

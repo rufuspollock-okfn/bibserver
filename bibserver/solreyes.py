@@ -1,104 +1,116 @@
-import web, solr, os, json, urllib2, operator, re, unicodedata
-from mako.template import Template
-from mako.runtime import Context
-from mako.lookup import TemplateLookup
 from StringIO import StringIO
 from copy import deepcopy
 from pkg_resources import resource_stream
 from datetime import datetime, timedelta
+import os, json, urllib2, operator, re, unicodedata
 
-class SolrEyesController(object):
-    def GET(self, path=None):
-        # get the args (if available) out of the request
-        a = web.input().get("a")
-        args = None
-        if a is not None:
-            a = urllib2.unquote(a)
-            args = json.loads(a)
-        
-        # set up the configuration and the UI properties
-        config = Configuration()
-        properties = {}
-        properties['config'] = config
-        
-        # if the args are none, then get the default ones from the config
-        # FIXME: this is going to generate large URLs, so we probably want
-        # a better approach in the long run
-        
+import solr
+from mako.template import Template
+from mako.runtime import Context
+from mako.lookup import TemplateLookup
+
+from flask.views import View
+from flask import Blueprint, current_app
+from flask import request, url_for, g, send_file
+from flaskext.mako import render_template
+
+import bibserver.config 
+
+solreyes_app = Blueprint('bibserver', __name__)
+
+@solreyes_app.route('/search')
+@solreyes_app.route('/search<path:path>')
+def search(path=''):
+    # get the args (if available) out of the request
+    a = request.values.get("a")
+    args = None
+    if a is not None:
+        a = urllib2.unquote(a)
+        args = json.loads(a)
+    
+    # set up the configuration and the UI properties
+    config = Configuration(bibserver.config.config)
+    properties = {}
+    properties['config'] = config
+    
+    # if the args are none, then get the default ones from the config
+    # FIXME: this is going to generate large URLs, so we probably want
+    # a better approach in the long run
+    
+    initial_request = False
+    if args is None:
+        args = config.get_default_args()
+        initial_request = True
+    
+    # fold in the free text search options if relevant
+    text_search = request.values.get("q")
+    if text_search is not None and text_search != "":
         initial_request = False
-        if args is None:
-            args = config.get_default_args()
-            initial_request = True
-        
-        # fold in the free text search options if relevant
-        text_search = web.input().get("q")
-        if text_search is not None and text_search != "":
+        args["search"] = text_search
+    
+    implicit_facets = {}
+    if path is not None:
+        # split the path by the middle "/"
+        path = path.strip()
+        if path.endswith("/"):
+            path = path[:-1]
+        bits = path.split('/')
+        if len(bits) % 2 == 0:
             initial_request = False
-            args["search"] = text_search
-        
-        implicit_facets = {}
-        if path is not None:
-            # split the path by the middle "/"
-            path = path.strip()
-            if path.endswith("/"):
-                path = path[:-1]
-            bits = path.split('/')
-            if len(bits) % 2 == 0:
-                initial_request = False
-                config.base_url = config.base_url.replace(config.strip_for_implicit_paths,"") + path
-                if not args.has_key('q'):
-                    args['q'] = {}
-                for i in range(0, len(bits), 2):
-                    field = bits[i]
-                    value = bits[i+1]
-                    if args['q'].has_key(field):
-                        args['q'][field].append(value)
-                    else:
-                        args['q'][field] = [value]
-                    if implicit_facets.has_key(field):
-                        implicit_facets[field].append(value)
-                    else:
-                        implicit_facets[field] = [value]
-        
-        # set the implicit facets for the UI to use
-        properties['implicit_facets'] = implicit_facets
-        
-        # set the UrlManager for the UI to use
-        properties['url_manager'] = UrlManager(config, args, implicit_facets)
-        
-        # create a solr connection and get the results back
-        if "SOLR" == "SOLR":
-            s = Solr(config)
-            if initial_request:
-                properties['results'] = ResultManager(s.initial(args), config, args)
-            else:
-                properties['results'] = ResultManager(s.search(args), config, args)
-
-        # replace the solr connection with an ES connection object
-        # note also the query should be submitted to the dao query endpoint
-        if ("ES" != "ES"):
-            s = ES(config)
-            if initial_request:
-                properties['results'] = ESResultManager(s.initial(args), config, args)
-            else:
-                properties['results'] = ESResultManager(s.search(args), config, args)
-        
-        if args.has_key("search"):
-            properties['q'] = args['search']
+            config.base_url = config.base_url.replace(config.strip_for_implicit_paths,"") + path
+            if not args.has_key('q'):
+                args['q'] = {}
+            for i in range(0, len(bits), 2):
+                field = bits[i]
+                value = bits[i+1]
+                if args['q'].has_key(field):
+                    args['q'][field].append(value)
+                else:
+                    args['q'][field] = [value]
+                if implicit_facets.has_key(field):
+                    implicit_facets[field].append(value)
+                else:
+                    implicit_facets[field] = [value]
+    
+    # set the implicit facets for the UI to use
+    properties['implicit_facets'] = implicit_facets
+    
+    # set the UrlManager for the UI to use
+    properties['url_manager'] = UrlManager(config, args, implicit_facets)
+    
+    # create a solr connection and get the results back
+    if "SOLR" == "SOLR":
+        s = Solr(config)
+        if initial_request:
+            properties['results'] = ResultManager(s.initial(args), config, args)
         else:
-            properties['q'] = ""
-        
-        return self.render(config.template, properties)
+            properties['results'] = ResultManager(s.search(args), config, args)
 
-    def render(self, template_name, properties):
-        res_path = os.path.join(os.path.dirname(__file__), 'templates')
-        fn = os.path.join(res_path, template_name)
-        mylookup = TemplateLookup(directories=[res_path])
-        t = Template(filename=fn, lookup=mylookup)
-        buf = StringIO()
-        ctx = Context(buf, c=properties)
-        t.render_context(ctx)
-        return buf.getvalue()
+    # replace the solr connection with an ES connection object
+    # note also the query should be submitted to the dao query endpoint
+    if ("ES" != "ES"):
+        s = ES(config)
+        if initial_request:
+            properties['results'] = ESResultManager(s.initial(args), config, args)
+        else:
+            properties['results'] = ESResultManager(s.search(args), config, args)
+    
+    if args.has_key("search"):
+        properties['q'] = args['search']
+    else:
+        properties['q'] = ""
+    
+    return render(config.template, properties)
+
+def render(template_name, properties):
+    res_path = os.path.join(os.path.dirname(__file__), 'templates')
+    fn = os.path.join(res_path, template_name)
+    mylookup = TemplateLookup(directories=[res_path])
+    t = Template(filename=fn, lookup=mylookup)
+    buf = StringIO()
+    ctx = Context(buf, c=properties)
+    t.render_context(ctx)
+    return buf.getvalue()
 
 
 class ESResultManager(object):
@@ -539,16 +551,9 @@ class Solr(object):
         return solr_field.replace(".", arg_separator)
 
 class Configuration(object):
-    def __init__(self):
-        # extract the configuration from the json object
-        f = resource_stream(__name__, 'config.json')
-        c = ""
-        for line in f:
-            if line.strip().startswith("#"):
-                continue
-            else:
-                c += line
-        self.cfg = json.loads(c)
+    def __init__(self, configuration_dict):
+        '''Create Configuration object from a configuration dictionary.'''
+        self.cfg = configuration_dict
         
         # build a map for display of fields
         self.facet_display_values = {}
