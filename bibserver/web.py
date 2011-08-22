@@ -6,6 +6,7 @@ from flask import Flask, jsonify, json, request, redirect, abort
 from flask.views import View, MethodView
 from flaskext.mako import init_mako, render_template
 
+import bibserver.config
 import bibserver.dao
 import bibserver.solreyes
 
@@ -13,7 +14,7 @@ app = Flask(__name__)
 app.config['MAKO_DIR'] = 'templates'
 init_mako(app)
 
-app.register_blueprint(bibserver.solreyes.solreyes_app)
+# app.register_blueprint(bibserver.solreyes.solreyes_app)
 
 @app.route('/')
 def home():
@@ -94,6 +95,27 @@ class UploadView(MethodView):
         return pkg
 
 app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
+
+
+@app.route('/search')
+@app.route('/search<path:path>')
+def search(path=''):
+    c = {} 
+    config = bibserver.solreyes.Configuration(bibserver.config.config)
+    query = request.args.get('q', '')
+    args = request.args
+    # set to None for the moment ...
+    args = None
+    c['q'] = query
+    c['config'] = config
+    implicit_facets = {}
+    c['url_manager'] = bibserver.solreyes.UrlManager(config, args,
+            implicit_facets)
+    c['implicit_facets'] = implicit_facets
+    results = bibserver.dao.Record.raw_query(request.query_string)
+    c['results'] = bibserver.solreyes.ESResultManager(results, config, args)
+    return render_template('bibserver.mako', c=c)
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True)

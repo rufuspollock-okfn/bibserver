@@ -44,7 +44,7 @@ def search(path=''):
     
     # fold in the free text search options if relevant
     text_search = request.values.get("q")
-    if text_search is not None and text_search != "":
+    if text_search:
         initial_request = False
         args["search"] = text_search
     
@@ -118,7 +118,166 @@ class ESResultManager(object):
         self.results = results
         self.config = config
         self.args = args if args is not None else self.config.get_default_args()
+        # TODO: set from query args properly rather than hardcode
+        self.start = 0
+        self.facet_counts = {
+            'facet_fields': {
+                'collection': {
+                    'mine': 1,
+                    'yours': 1
+                },
+                'type': {},
+                'journal': {},
+                'author': {
+                    'mine': 1
+                },
+                'year': {}
+            }
+        }
 
+    def current_sort_order(self):
+        return self.args.get('sort', [])
+    
+    def current_sort_fields(self):
+        if not self.args.has_key('sort'):
+            return []
+        return [k for k, v in self.args['sort']]
+
+    def get_ordered_facets(self, facet):
+        if facet in self.config.facet_fields:
+            return self._sort_facets_by_count(self.facet_counts['facet_fields'][facet])
+        elif facet in self.config.facet_ranges.keys():
+            dict = self._get_range_dict(facet)
+            return self._sort_facets_by_range(dict)
+        elif facet in self.config.facet_dates.keys():
+            dict = self._get_date_dict(facet)
+            return self._sort_facets_by_range(dict)
+    
+    def in_args(self, facet, value=None):
+        if value is not None:
+            return self.args['q'].has_key(facet) and value in self.args['q'][facet]
+        else:
+            return self.args['q'].has_key(facet)
+            
+    def get_search_constraints(self):
+        return self.args['q']
+            
+    def get_selected_range_start(self, facet):
+        return self.args["q"][facet][0]
+    
+    def get_selected_range_end(self, facet):
+        return self.args["q"][facet][1]
+
+    def has_values(self, facet):
+        if facet in self.config.facet_fields:
+            return len(self.facet_counts['facet_fields'][facet]) > 0
+        elif facet in self.config.facet_ranges.keys():
+            return len(self.facet_counts['facet_ranges'][facet]["counts"]) > 0
+        elif facet in self.config.facet_dates.keys():
+            return len(self.facet_counts['facet_dates'][facet]) > 0
+        return False
+
+    def is_start(self):
+        return True
+        
+    def is_end(self):
+        return True
+
+    def set_size(self):
+        return len(self.results['hits']['hits'])
+
+    def numFound(self):
+        return int(self.results['hits']['total'])
+
+    def set(self):
+        '''Return list of search result items'''
+        return [rec['_source'] for rec in self.results['hits']['hits']]
+
+    def start_offset(self, off):
+        return self.start + off
+
+    def finish(self):
+        return self.start + self.set_size()
+
+    def page_size(self):
+        return self.args['rows']
+
+    def get_str(self, result, field):
+        if field in self.config.dynamic_fields.keys():
+            return self.config.get_dynamic_value(self.args, result, field)
+        
+        if result.get(field) is None and field not in self.config.dynamic_fields.keys():
+            return ""
+        
+        if hasattr(result.get(field), "append"):
+            return ", ".join([self.asciify(self.config.get_field_display(field, val)) for val in result.get(field)])
+        else:
+            return self.asciify(self.config.get_field_display(field, result.get(field)))
+    
+    def asciify(self, string):
+        return unicodedata.normalize('NFKD', unicode(string)).encode('ascii','ignore')
+    
+    def first_page_end(self):
+        return self.args['rows']
+    
+    def last_page_start(self):
+        return self.results.numFound - (self.results.numFound % self.args['rows'])
+        
+    def get_previous(self, num):
+        pairs = []
+        for i in range(num + 1, 0, -1):
+            first = self.start - (self.args['rows'] * i)
+            if first >= self.args['rows']: # i.e. greater than the first page
+                pairs.append((first, first + self.args['rows']))
+        return sorted(pairs, key=operator.itemgetter(0))
+        
+    def get_next(self, num):
+        pairs = []
+        for i in range(1, num + 1):
+            first = self.start + (self.args['rows'] * i)
+            last_page_size = self.numFound() % self.args['rows']
+            if first + self.args['rows'] <= self.numFound() - last_page_size: # i.e. less than the last page
+                pairs.append((first, first + self.args['rows']))
+        return sorted(pairs, key=operator.itemgetter(0))
+
+        
+    def _get_range_dict(self, facet):
+        dict = self.facet_counts['facet_ranges'][facet]["counts"]
+        keys = [int(key) for key in dict.keys()]
+        keys.sort()
+        rdict = {}
+        for i in range(len(keys)):
+            lower = int(keys[i])
+            upper = -1
+            if i < len(keys) - 1:
+                upper = int(keys[i+1] - 1)
+            r = (lower, upper)
+            rdict[r] = dict[str(lower)]
+        return rdict
+        
+    def _get_date_dict(self, facet):
+        dict = self.facet_counts['facet_dates'][facet]
+        keys = [(datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ"), d) for d in dict.keys() if d[0:2].isdigit()]
+        keys = sorted(keys, key=operator.itemgetter(0))
+        rdict = {}
+        for i in range(len(keys)):
+            lower, sl = keys[i]
+            upper = -1
+            if i < len(keys) - 1:
+                upper, su = keys[i+1]
+                upper = upper - timedelta(seconds=1)
+            r = (lower, upper)
+            rdict[r] = dict[sl]
+        return rdict
+    
+    def _sort_facets_by_count(self, dict):
+        return sorted(dict.iteritems(), key=operator.itemgetter(1), reverse=True)
+        
+    def _sort_facets_by_range(self, dict):
+        # dict = {(a, b) : c, ....} ; we want to sort by a
+        # first, cast the dict to tuples
+        tups = [(a, b, dict[(a, b)]) for a, b in dict.keys()]
+        return sorted(tups, key=operator.itemgetter(0))
 
 class ResultManager(object):
     def __init__(self, results, config, args):
