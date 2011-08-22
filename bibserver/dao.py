@@ -74,12 +74,29 @@ class DomainObject(UserDict.IterableUserDict):
         return cls(**data)
     
     @classmethod
-    def query(cls, q, state=None):
+    def query(cls, q='', terms=None, facet_fields=None, **kwargs):
+        '''Perform a query on backend.
+
+        :param q: maps to query_string parameter.
+        :param terms: dictionary of terms to filter on. values should be lists.
+        :param kwargs: any keyword args as per
+            http://www.elasticsearch.org/guide/reference/api/search/uri-request.html
+        '''
         conn, db = get_conn()
+        default_operator = kwargs.get('default_operator', 'AND')
         if not q:
             ourq = pyes.query.MatchAllQuery()
         else:
-            ourq = pyes.query.StringQuery(q, default_operator='AND')
+            ourq = pyes.query.StringQuery(q, default_operator=default_operator,
+                    **kwargs)
+        if terms:
+            for term in terms:
+                termq = pyes.query.TermQuery(term, terms[term])
+                ourq = pyes.query.BoolQuery(must=[ourq,termq])
+        ourq = ourq.search()
+        if facet_fields:
+            for field in facet_fields:
+                ourq.facet.add_term_facet(field)
         out = conn.search(ourq, db, cls.__type__)
         return out
 
