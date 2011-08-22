@@ -17,7 +17,7 @@
     "result_view" : "list-view.mako",
     
     # Solreyes base URL
-    "base_url" : "http://bibsoup.net/search",
+    "base_url" : "/search",
     "strip_for_implicit_paths" : "search",
     
     # default results per page (integer)
