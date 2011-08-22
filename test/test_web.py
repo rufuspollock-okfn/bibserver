@@ -1,3 +1,5 @@
+from nose.tools import assert_equal
+
 from base import *
 from bibserver import web
 
@@ -56,4 +58,19 @@ class TestWeb(object):
         res = self.app.get('/search?q=tolstoy')
         assert res.status == '200 OK', res.status
         assert 'Tolstoy' in res.data, res.data
+
+    def test_queryobject(self):
+        indata = {
+            'search': u'pitman',
+            'rows': 10,
+            'q': {u'collection': [u'pitman2']},
+            'facet_date': {},
+            'facet_range': {},
+            'facet_field': [u'author', u'journal',
+                u'collection', u'subjects', u'year', u'type']
+        }
+        outdata = web.convert_query_dict_for_es(indata)
+        assert_equal(outdata['size'], 10)
+        assert_equal(outdata['terms'], {'collection': 'pitman2'})
+
 

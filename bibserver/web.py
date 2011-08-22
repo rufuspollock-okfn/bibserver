@@ -112,15 +112,30 @@ def search(path=''):
     else:
         args = config.get_default_args()
 
+    args['search'] = query
     c['q'] = query
     c['config'] = config
     implicit_facets = {}
     c['url_manager'] = bibserver.solreyes.UrlManager(config, args,
             implicit_facets)
     c['implicit_facets'] = implicit_facets
-    results = bibserver.dao.Record.raw_query(request.query_string)
+    querydict = convert_query_dict_for_es(args)
+    results = bibserver.dao.Record.query(**querydict)
     c['results'] = bibserver.solreyes.ESResultManager(results, config, args)
     return render_template('bibserver.mako', c=c)
+
+
+def convert_query_dict_for_es(querydict):
+    outdict = {}
+    outdict['q'] = querydict['search']
+    outdict['facet_fields'] = querydict.get('facet_field', None)
+    outdict['terms'] = {}
+    for term, values in querydict.get('q', {}).items():
+        # only use first value (TODO: can one ever have multi-values?)
+        outdict['terms'][term] = values[0]
+    outdict['size'] = querydict.get('rows', 10)
+    outdict['start'] = querydict.get('start', 0)
+    return outdict
 
 
 if __name__ == "__main__":

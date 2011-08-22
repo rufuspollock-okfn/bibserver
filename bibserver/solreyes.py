@@ -121,19 +121,12 @@ class ESResultManager(object):
         # TODO: set from query args properly rather than hardcode
         self.start = 0
         self.facet_counts = {
-            'facet_fields': {
-                'collection': {
-                    'mine': 1,
-                    'yours': 1
-                },
-                'type': {},
-                'journal': {},
-                'author': {
-                    'mine': 1
-                },
-                'year': {}
+            'facet_fields': {}
             }
-        }
+        for facet,data in self.results['facets'].items():
+            self.facet_counts['facet_fields'][facet] = {}
+            for termdict in data['terms']:
+                self.facet_counts['facet_fields'][facet][termdict['term']] = termdict['count']
 
     def current_sort_order(self):
         return self.args.get('sort', [])
