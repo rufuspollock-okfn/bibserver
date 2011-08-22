@@ -97,7 +97,7 @@ class DomainObject(UserDict.IterableUserDict):
         c =  httplib.HTTPConnection(host)
         c.request('GET', fullpath)
         result = c.getresponse()
-        return result.read()
+        return json.loads(result.read())
 
 
 class Record(DomainObject):
