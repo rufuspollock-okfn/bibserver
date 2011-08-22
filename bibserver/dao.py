@@ -86,9 +86,10 @@ class DomainObject(UserDict.IterableUserDict):
     @classmethod
     def raw_query(self, query_string):
         if not query_string:
-            msg = 'Query endpoint. Please provide <a href="%s">query parameters.<?a>' % (
+            msg = {
+                'error': 'Query endpoint. Please provide <a href="%s">query parameters.<?a>' % (
                     'http://www.elasticsearch.org/guide/reference/api/search/uri-request.html'
-                )
+                )}
             return msg
 
         host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
