@@ -40,6 +40,11 @@ class TestDAOQuery:
         out = dao.Record.query()
         assert out['hits']['total'] == 2
 
+    def test_query_size(self):
+        out = dao.Record.query(size=1)
+        assert out['hits']['total'] == 2
+        assert_equal(len(out['hits']['hits']), 1)
+
     def test_query_facet(self):
         facet_fields = ['type']
         out = dao.Record.query(facet_fields=facet_fields)

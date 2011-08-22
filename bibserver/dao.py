@@ -83,17 +83,15 @@ class DomainObject(UserDict.IterableUserDict):
             http://www.elasticsearch.org/guide/reference/api/search/uri-request.html
         '''
         conn, db = get_conn()
-        default_operator = kwargs.get('default_operator', 'AND')
         if not q:
             ourq = pyes.query.MatchAllQuery()
         else:
-            ourq = pyes.query.StringQuery(q, default_operator=default_operator,
-                    **kwargs)
+            ourq = pyes.query.StringQuery(q, default_operator='AND')
         if terms:
             for term in terms:
                 termq = pyes.query.TermQuery(term, terms[term])
                 ourq = pyes.query.BoolQuery(must=[ourq,termq])
-        ourq = ourq.search()
+        ourq = ourq.search(**kwargs)
         if facet_fields:
             for field in facet_fields:
                 ourq.facet.add_term_facet(field)
