@@ -103,9 +103,15 @@ def search(path=''):
     c = {} 
     config = bibserver.solreyes.Configuration(bibserver.config.config)
     query = request.args.get('q', '')
-    args = request.args
-    # set to None for the moment ...
-    args = None
+
+    # get the args (if available) out of the request
+    a = request.values.get("a")
+    if a is not None:
+        a = urllib2.unquote(a)
+        args = json.loads(a)
+    else:
+        args = config.get_default_args()
+
     c['q'] = query
     c['config'] = config
     implicit_facets = {}

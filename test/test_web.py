@@ -53,7 +53,7 @@ class TestWeb(object):
         assert out['hits']['total'] == 0, out
 
     def test_search(self):
-        # res = self.app.get('/search')
-        # assert res.status == '200 OK', res.status
-        pass
+        res = self.app.get('/search?q=tolstoy')
+        assert res.status == '200 OK', res.status
+        assert 'Tolstoy' in res.data, res.data
 
