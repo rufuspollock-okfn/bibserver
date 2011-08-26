@@ -18,7 +18,9 @@ class TestESResultManager:
 
     def test_01(self):
         config = bibserver.solreyes.Configuration(bibserver.config.config)
-        results = bibserver.dao.Record.raw_query('q=tolstoy')
+        facet_fields = config.get_default_args()['facet_field']
+        results = bibserver.dao.Record.query('tolstoy',
+                facet_fields=facet_fields)
         args = None
         manager = bibserver.solreyes.ESResultManager(results, config, args)
 
@@ -30,7 +32,7 @@ class TestESResultManager:
         assert_equal(manager.page_size(), 10)
 
         out = manager.get_ordered_facets('collection')
-        assert_equal(out, [('mine',1), ('yours',1)])
+        assert_equal(out, [('great',1), ('novels',1)])
 
         recorddicts = manager.set()
         print recorddicts
