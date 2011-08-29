@@ -57,8 +57,6 @@ Install
 
     # install Flask-Mako first (not in PyPI)
     pip install -e git+https://github.com/tzellman/flask-mako/#egg=Flask-Mako
-    # install solrpy from source as we need a recent version
-    pip install -e hg+https://code.google.com/p/solrpy/#egg=solrpy
 
     # now BibServer
     cd {myenv}/src/bibserver

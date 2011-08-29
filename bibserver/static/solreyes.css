@@ -60,6 +60,11 @@ table {
     float:left;
 }
 
+.spacer{
+    clear:both;
+    width:100%;
+}
+
 .paging {
     float:left;
 }

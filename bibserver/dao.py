@@ -23,7 +23,7 @@ def get_conn():
 
 
 class DomainObject(UserDict.IterableUserDict):
-    # set __type__ on inheriting class to determinine elasticsearch object
+    # set __type__ on inheriting class to determine elasticsearch object
     __type__ = None
 
     def __init__(self, **kwargs):

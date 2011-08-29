@@ -1,0 +1,22 @@
+curl _X PUT 'http://localhost:9200/bibserver/record
+
+curl -X PUT 'http://localhost:9200/bibserver/record/_mapping' -d '
+{
+    "record" : {
+        "dynamic_templates" : [
+            {
+                "default" : {
+                    "match" : "*",
+                    "mapping" : {
+                        "type" : "multi_field",
+                        "fields" : {
+                            "{name}" : {"type" : "{dynamic_type}", "index" : "analyzed", "store" : "yes"},
+                            "raw" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "yes"}
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
+'

@@ -2,9 +2,10 @@
 
 import urllib2
 import uuid
-import csv
-import json
+
 from parsers.BibTexParser import BibTexParser
+from parsers.JSONParser import JSONParser
+from parsers.CSVParser import CSVParser
 
 class DataSet(object):
     
@@ -19,24 +20,19 @@ class DataSet(object):
             parser = BibTexParser()
             data = parser.parse(d)
         elif format == "bibjson":
-            data = json.load(fileobj)
+            parser = JSONParser()
+            data = parser.parse(fileobj)
         elif format == "csv" or format == "google":
-            d = csv.DictReader(fileobj)
-            data = []
-            # do any required conversions
-            for row in d:
-                if "author" in row:
-                    row["author"] = row["author"].split(",")
-                data.append(row)
+            parser = CSVParser()
+            data = parser.parse(fileobj)
         else:
             raise Exception('Unable to convert from format: %s' % format)
-        # parse people out of the data
-        # self.parse_people(data)
+
         data = self.prepare(data, collection)
         return data
     
     
-    # check prepare the data in various ways
+    # prepare the data in various ways
     def prepare(self,data, collection=None):
         for index,item in enumerate(data):
             # if collection name provided, check it is in each record, or add it if not

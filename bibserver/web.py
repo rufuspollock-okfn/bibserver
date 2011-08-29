@@ -99,6 +99,7 @@ app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
 
 @app.route('/search')
 @app.route('/search<path:path>')
+@app.route('/<path:path>')
 def search(path=''):
     c = {} 
     config = bibserver.solreyes.Configuration(bibserver.config.config)
@@ -115,7 +116,31 @@ def search(path=''):
     args['search'] = query
     c['q'] = query
     c['config'] = config
+    
+    # get implicit facets
     implicit_facets = {}
+    if path is not None and not path.startswith("/search"):
+        path = path.strip()
+        if path.endswith("/"):
+            path = path[:-1]
+        bits = path.split('/')
+        if len(bits) % 2 == 0:
+            config.base_url = config.base_url.replace(config.strip_for_implicit_paths,"") + path
+            if not args.has_key('q'):
+                args['q'] = {}
+            for i in range(0, len(bits), 2):
+                field = bits[i]
+                value = bits[i+1]
+                if args['q'].has_key(field):
+                    args['q'][field].append(value)
+                else:
+                    args['q'][field] = [value]
+                if implicit_facets.has_key(field):
+                    implicit_facets[field].append(value)
+                else:
+                    implicit_facets[field] = [value]
+
+    # get results and render
     c['url_manager'] = bibserver.solreyes.UrlManager(config, args,
             implicit_facets)
     c['implicit_facets'] = implicit_facets

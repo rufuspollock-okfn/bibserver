@@ -45,10 +45,10 @@
         
         <!-- sorting and result sizes -->
         <%include file="/resultsperpage.mako"/>
-        <%include file="/sort-options.mako"/>
-        
-        <!-- finally, the result set itself -->
-        
+
+        <div class="spacer"></div>        
+
+        <!-- finally, the result set itself -->        
         <%include file="/list-view.mako"/>
     
     % endif

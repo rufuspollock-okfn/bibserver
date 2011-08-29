@@ -1,36 +1,31 @@
-# create range facets for previous RAE periods
-# create install scripts and readmes
 {
+    # name of service
     "service_name" : "BibSoup",
 
+    # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     "ELASTIC_SEARCH_DB" : "bibserver",
     
-    # solr service base url
+    # solr settings
     "solr_url" : "http://localhost:8983/solr",
-    
-    # solr request handler
     "request_handler" : "/select",
     
-    # UI template
+    # UI template and result view type
     "template" : "bibserver.mako",
     "result_view" : "list-view.mako",
     
-    # Solreyes base URL
+    # base URL of search service
     "base_url" : "/search",
     "strip_for_implicit_paths" : "search",
     
-    # default results per page (integer)
+    # default results and paging options (integer - array of integers)
     "default_results_per_page" : 10,
-    
-    # page size options to offer to the user (an array of integers)
     "results_per_page_options" : [10, 20, 50, 100],
     
     # default minimum number of results required to trigger a facet being included (integer)
     "facet_mincount" : 1,
     
-    "allow_text_search" : true,
-    
+    "allow_text_search" : true,    
     "text_search_field" : "text",
     
     "always_visible" : 5,
@@ -41,52 +36,15 @@
     # "facet_fields" : { "<facet_name>" : { "display" : "<Display Name>" } ... }
     #
     "facet_fields" : {
-        "collection" : { "display" : "collection" },
-        "type" : { "display" : "type"},
-        "journal" : { "display" : "journal"},
-        "author" : {"display" : "author"},
-        "year" : {"display" : "year"}
-    },
-    
-    "display_facet_order" : ["collection","type","journal","author","year"],
+        "collection.raw" : { "display" : "collection" },
+        "type.raw" : { "display" : "type"},
+        "journal.raw" : { "display" : "journal"},
+        "author.raw" : {"display" : "author"},
+        "year.raw" : {"display" : "year"}
+    },    
+    "display_facet_order" : ["collection.raw","type.raw","journal.raw","author.raw","year.raw"],
 
-    # The fields which are used for straight ranged faceting (dates should be dealt with
-    # separately)
-    #
-    # Each facet identified can have the following attributes:
-    #   display - the Display Name of the facet in the UI
-    #   min - the lower boundary of the total range
-    #   max - the upper boundary of the total range
-    #   gap - the minimum gap between upper and lower bounds of a particular range
-    #   mincount - the minimum number of hits in a range required to trigger a result.  If this
-    #               is not met, the increment will be increased by <gap> until the mincount is
-    #               met
-    #   infinity - for searches above the <max> this is the effective infinity which will cap 
-    #               the search.  It should just be set higher than the highest possible/likely
-    #               value
-    #
-    # "facet_ranges" : { "<facet_name>" : { "display" : "<Display Name>", "min" : "<Lower Boundary>",
-    #                                       "max" : "<Upper Boundary>", "gap" : "<Minimum Gap>",
-    #                                       "mincount" : "<Minimum number per Gap>",
-    #                                       "infinity" : "<Effective Infinity>"}
-    "facet_ranges" : {
-    },
-    
-    "facet_dates" : {
-    },
-    
-    "facet_queries" : {
-    },
-        
-    "sort_fields" : {
-    },
-    
-    "facet_value_functions" : {
-    },
-    
-    "upper_display_functions" : {
-    },
-    
+    # fields to display as headers in search results
     "display_fields" : {
         "title" : "title",
         "journal" : "journal",
@@ -94,6 +52,9 @@
         "doi" : "doi",
         "url" : "url"
     },
+    "display_field_order" : ["title","journal","author","doi","url"],
+    
+    # functions to perform on particular result fields on display
     "display_value_functions" : {
         "title" : {"wrap" : {"start" : "<a class=\"list_result_field_showall\" href=\"\" alt=\"show more info\" title=\"show more info\"><strong>", "end" : "</strong></a>"}},
         "journal" : {"wrap" : {"start" : "<em>", "end" : "</em>"}},
@@ -101,9 +62,6 @@
         "url" : {"linkify" : {}},
         "author": {"searchify":{}},
         "collection": {"implicify":{}}
-    },
-    "display_field_order" : ["title","journal","author","doi","url"],
-    
-    "dynamic_fields" :{
     }
+    
 }
