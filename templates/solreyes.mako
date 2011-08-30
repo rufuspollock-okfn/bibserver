@@ -3,9 +3,7 @@
     <link rel="stylesheet" type="text/css" href="/static/styless.css"/>
     <script type="text/javascript" src="/static/jquery.js"></script>
     <script>
-    
-    <%include file="/facets.js.mako"/>
-    
+        
     </script>
     <title>${c['config'].service_name}</title>
 </head>

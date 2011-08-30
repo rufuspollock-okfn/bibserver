@@ -1,4 +1,4 @@
-curl _X PUT 'http://localhost:9200/bibserver/record
+curl -X PUT 'http://localhost:9200/bibserver'
 
 curl -X PUT 'http://localhost:9200/bibserver/record/_mapping' -d '
 {

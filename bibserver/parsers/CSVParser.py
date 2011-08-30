@@ -6,8 +6,10 @@ class CSVParser(object):
         pass
         
     def parse(self, fileobj):
+        #dialect = csv.Sniffer().sniff(fileobj.read(1024))
         d = csv.DictReader(fileobj)
         data = []
+
         # do any required conversions
         for row in d:
             if "author" in row:

@@ -223,23 +223,26 @@ class BibTexParser(object):
     def get_bibjson_object(self, btrecord):
         bibjson = {}
         
+        # do any tidying required
         for k, v in btrecord.iteritems():
             if k.lower() == "author":
                 if type(v) is not list:
                     v = v.split(" and ")
+            if k.lower() == "editor":
+                if type(v) is not list:
+                    v = v.split(" and ")
+            if k.lower() == "pages":
+                if " -- " in v:
+                    v = v.replace(" -- "," to ")
+                elif " - " in v:
+                    v = v.replace(" - "," to ")
+                elif "--" in v:
+                    v = v.replace("--"," to ")
+                elif "-" in v:
+                    v = v.replace("-"," to ")
             if k.lower() == "bibtype":
                 v = v.lower()
             bibjson[k.lower()] = v
         return bibjson
 
 
-
-#if __name__ == "__main__":
-#    f = open("test/bibserver.bib")
-#    instring = f.read()
-#    f.close()
-#    btp = BibTexParser()
-#    blist = btp.parse(instring)
-#    f = open("test/bib.json", "w")
-#    f.write( json.dumps(blist,indent=2) )
-#    f.close()

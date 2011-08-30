@@ -8,13 +8,13 @@ from flaskext.mako import init_mako, render_template
 
 import bibserver.config
 import bibserver.dao
-import bibserver.solreyes
+import bibserver.setconfig
+import bibserver.resultmanager
+import bibserver.urlmanager
 
 app = Flask(__name__)
 app.config['MAKO_DIR'] = 'templates'
 init_mako(app)
-
-# app.register_blueprint(bibserver.solreyes.solreyes_app)
 
 @app.route('/')
 def home():
@@ -102,7 +102,7 @@ app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
 @app.route('/<path:path>')
 def search(path=''):
     c = {} 
-    config = bibserver.solreyes.Configuration(bibserver.config.config)
+    config = bibserver.setconfig.Configuration(bibserver.config.config)
     query = request.args.get('q', '')
 
     # get the args (if available) out of the request
@@ -141,12 +141,12 @@ def search(path=''):
                     implicit_facets[field] = [value]
 
     # get results and render
-    c['url_manager'] = bibserver.solreyes.UrlManager(config, args,
+    c['url_manager'] = bibserver.urlmanager.UrlManager(config, args,
             implicit_facets)
     c['implicit_facets'] = implicit_facets
     querydict = convert_query_dict_for_es(args)
     results = bibserver.dao.Record.query(**querydict)
-    c['results'] = bibserver.solreyes.ESResultManager(results, config, args)
+    c['results'] = bibserver.resultmanager.ResultManager(results, config, args)
     return render_template('bibserver.mako', c=c)
 
 
