@@ -1,21 +1,16 @@
-# the new data upload manager
+# the data import manager
 
 import urllib2
-import json
 import re
-import os
-import datetime
 from cStringIO import StringIO
 
-from bibserver.dataset import DataSet
+from bibserver.parser import Parser
 import bibserver.dao
 
-class Manager(object):
-    def schedule(self, pkg):
-        '''schedule something to be imported.
+class Importer(object):
+    def upload(self, pkg):
+        '''upload content and index it'''
 
-        For now, does not schedule. just executes.
-        '''
         if "upfile" in pkg:
             fileobj = pkg["upfile"]
         elif "data" in pkg:
@@ -23,8 +18,10 @@ class Manager(object):
         elif "source" in pkg:
             fileobj = self.retrieve(pkg)
         created_records = self.index(fileobj, pkg)
+
         return created_records
     
+
     # retrieve from URL into store
     def retrieve(self,pkg):
         url = pkg["source"]
@@ -37,11 +34,12 @@ class Manager(object):
         content = urllib2.urlopen( url )
         return content
     
+    # index the content
     def index(self, fileobj, pkg):
         '''index a file in the store'''
-        ds = DataSet()
+        parser = Parser()
         collection = pkg.get('collection', None)
-        data = ds.convert(fileobj, pkg['format'], collection)
+        data = parser.parse(fileobj, pkg['format'], collection)
         for record in data:
             bibserver.dao.Record.upsert(record)
         return data

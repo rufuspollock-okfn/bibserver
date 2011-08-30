@@ -1,24 +1,20 @@
 # convert a source file to bibjson
 
-import urllib2
-import uuid
-
 from parsers.BibTexParser import BibTexParser
 from parsers.JSONParser import JSONParser
 from parsers.CSVParser import CSVParser
 
-class DataSet(object):
+class Parser(object):
     
-    def convert(self, fileobj, format, collection=None):
+    def parse(self, fileobj, format, collection=None):
         '''Convert a source datastream in fileobj in `format` (e.g. bibtex) to
         bibjson and add it to `collection`.
 
         :return: a python dict json-i-fiable to bibjson.
         '''
         if format == "bibtex":
-            d = fileobj.read()
             parser = BibTexParser()
-            data = parser.parse(d)
+            data = parser.parse(fileobj)
         elif format == "bibjson":
             parser = JSONParser()
             data = parser.parse(fileobj)
@@ -29,6 +25,7 @@ class DataSet(object):
             raise Exception('Unable to convert from format: %s' % format)
 
         data = self.prepare(data, collection)
+
         return data
     
     
@@ -39,13 +36,13 @@ class DataSet(object):
             if collection:
                 data[index]["collection"] = collection
 
-            # if people names are provided, e.g. in author fields, check for person records for them
-            # if not existing, create one.
-            # append person record details to records
-
         return data
 
+    # other things that should be called by prepare.
+    # some are below
+    # maybe should not be defined here in the parser tho.
     
+
     # parse potential people names out of a collection file
     # check if they have a person record in bibsoup
     # if not create one

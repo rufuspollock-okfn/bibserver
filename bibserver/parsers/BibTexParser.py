@@ -11,7 +11,8 @@ class BibTexParser(object):
         self.keys_dict['AUTHORS'] = 'AUTHOR'
         self.keys_dict['BIBTEX'] = 'URL_BIB'
 
-    def parse(self, instring):
+    def parse(self, fileobj):
+        instring = fileobj.read()
         d = self.read_bibstring(instring)
         j = self.list2bibjson(d)
         return j

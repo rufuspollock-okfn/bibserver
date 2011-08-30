@@ -11,6 +11,7 @@ import bibserver.dao
 import bibserver.setconfig
 import bibserver.resultmanager
 import bibserver.urlmanager
+import bibserver.importer
 
 app = Flask(__name__)
 app.config['MAKO_DIR'] = 'templates'
@@ -54,11 +55,10 @@ class UploadView(MethodView):
         return render_template('upload.html')
 
     def post(self):
-        from bibserver.manager import Manager
         pkg = self.package()
         if self.validate(pkg):
-            manager = Manager()
-            manager.schedule(pkg)
+            importer = bibserver.importer.Importer()
+            importer.upload(pkg)
             msg = 'Thanks! Your file has been scheduled for upload. It will' + \
                 'soon be available at <a href="/collection/' + \
                 pkg["collection"] + '">http://bibsoup.net/collection/' + pkg["collection"] + '</a>'
