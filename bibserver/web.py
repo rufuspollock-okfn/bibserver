@@ -59,8 +59,8 @@ class UploadView(MethodView):
         if self.validate(pkg):
             importer = bibserver.importer.Importer()
             importer.upload(pkg)
-            msg = 'Thanks! Your file has been scheduled for upload. It will' + \
-                'soon be available at <a href="/collection/' + \
+            msg = 'Thanks! Your collection has been uploaded. It is' + \
+                'available at <a href="/collection/' + \
                 pkg["collection"] + '">http://bibsoup.net/collection/' + pkg["collection"] + '</a>'
             return render_template('index.html', msg=msg)
         else:

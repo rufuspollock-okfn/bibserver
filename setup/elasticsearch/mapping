@@ -11,7 +11,7 @@ curl -X PUT 'http://localhost:9200/bibserver/record/_mapping' -d '
                         "type" : "multi_field",
                         "fields" : {
                             "{name}" : {"type" : "{dynamic_type}", "index" : "analyzed", "store" : "yes"},
-                            "raw" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "yes"}
+                            "exact" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "yes"}
                         }
                     }
                 }

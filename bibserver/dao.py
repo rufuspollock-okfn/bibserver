@@ -102,7 +102,7 @@ class DomainObject(UserDict.IterableUserDict):
     def raw_query(self, query_string):
         if not query_string:
             msg = {
-                'error': 'Query endpoint. Please provide <a href="%s">query parameters.<?a>' % (
+                'error': 'Query endpoint. Please provide <a href="%s">query parameters.</a>' % (
                     'http://www.elasticsearch.org/guide/reference/api/search/uri-request.html'
                 )}
             return msg

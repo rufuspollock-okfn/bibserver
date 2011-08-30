@@ -42,7 +42,7 @@ class TestWeb(object):
             data=bibtex_data
             ))
         assert res.status == '200 OK', res.status
-        assert 'Thanks! Your file has been ' in res.data, res.data
+        assert 'Thanks!' in res.data, res.data
 
     def test_query(self):
         res = self.app.get('/query')
