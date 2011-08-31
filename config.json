@@ -41,7 +41,7 @@
         "journal.exact" : { "display" : "journal"},
         "author.exact" : {"display" : "author"},
         "year.exact" : {"display" : "year"}
-    },    
+    },
     "display_facet_order" : ["collection.exact","type.exact","journal.exact","author.exact","year.exact"],
 
     # fields to display as headers in search results

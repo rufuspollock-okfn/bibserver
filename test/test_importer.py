@@ -5,7 +5,7 @@ import bibserver.dao
 
 
 class TestImporter:
-    def test_schedule(self):
+    def test_upload(self):
         m = Importer()
         bibtex = open('test/data/sample.bibtex').read()
         pkg = {

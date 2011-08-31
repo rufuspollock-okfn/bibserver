@@ -19,7 +19,10 @@ init_mako(app)
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # get list of available collections
+    result = bibserver.dao.Record.query(q="*:*",facet_fields=["collection"],size=1)
+    colls = result.get("facets").get("collection").get("terms")
+    return render_template('index.html', colls=colls)
 
 
 @app.route('/content/<path:path>')
@@ -58,13 +61,16 @@ class UploadView(MethodView):
         pkg = self.package()
         if self.validate(pkg):
             importer = bibserver.importer.Importer()
-            importer.upload(pkg)
-            msg = 'Thanks! Your collection has been uploaded. It is' + \
-                'available at <a href="/collection/' + \
-                pkg["collection"] + '">http://bibsoup.net/collection/' + pkg["collection"] + '</a>'
-            return render_template('index.html', msg=msg)
+            result = importer.upload(pkg)
+            if result:
+                msg = 'Thanks! Your collection has been uploaded. It is' + \
+                    'available at <a href="/collection/' + \
+                    pkg["collection"] + '">http://bibsoup.net/collection/' + pkg["collection"] + '</a>'
+            else:
+                msg = 'Sorry! There was an error indexing your collection. Please try again.'
         else:
-            return 'Failed to validate'
+            msg = 'Your upload failed to validate. Please try again.'
+        return render_template('index.html', msg=msg, colls=[])
 
     def validate(self, pkg):
         '''validate the submission before proceeding'''

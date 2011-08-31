@@ -28,7 +28,18 @@
     <li><a href="/upload">upload new collection</a></li>
     <li><a href="">create new collection</a></li>
     </ul>
+    
     <ul id="collections">
+    % for count,item in enumerate(colls):
+    
+    % if count == 0:
+    <li><strong>Recent collections</strong></li>    
+    % endif
+
+    <li><a href="/collection/${item.get("term")}">${item.get("term")} (${item.get("count")})</a></li>
+
+    % endfor
+    
     </ul>
 </div>
 

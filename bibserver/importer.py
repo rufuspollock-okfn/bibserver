@@ -1,4 +1,7 @@
 # the data import manager
+# gets an uploaded file or retrieves a file from a URL
+# Uses the parser manager to parse the file
+# indexes the records found in the file by upserting via the DAO
 
 import urllib2
 import re
@@ -40,7 +43,7 @@ class Importer(object):
         parser = Parser()
         collection = pkg.get('collection', None)
         data = parser.parse(fileobj, pkg['format'], collection)
-        for record in data:
-            bibserver.dao.Record.upsert(record)
-        return data
+        # send the data list for bulk upsert
+        result = bibserver.dao.Record.bulk_upsert(data)
+        return result
 

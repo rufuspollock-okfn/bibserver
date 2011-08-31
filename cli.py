@@ -23,7 +23,7 @@ def convert(inpath):
     '''Convert from bibtex to bibjson. One argument expected: path to bibtext
     file.
     '''
-    import parsers.BibTexParser
+    import bibserver.parsers.BibTexParser
     import json
     parser = parsers.BibTexParser.BibTexParser()
     bibtex = open(inpath).read()
