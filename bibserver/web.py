@@ -63,9 +63,11 @@ class UploadView(MethodView):
             importer = bibserver.importer.Importer()
             result = importer.upload(pkg)
             if result:
-                msg = 'Thanks! Your collection has been uploaded. It is' + \
-                    'available at <a href="/collection/' + \
-                    pkg["collection"] + '">http://bibsoup.net/collection/' + pkg["collection"] + '</a>'
+                #msg = 'Thanks! Your collection has been uploaded. It is' + \
+                #    'available at <a href="/collection/' + \
+                #    pkg["collection"] + '">http://bibsoup.net/collection/' + pkg["collection"] + '</a>'
+                # on successful upload just reroute to collection
+                return redirect('/collection/' + pkg["collection"])
             else:
                 msg = 'Sorry! There was an error indexing your collection. Please try again.'
         else:
