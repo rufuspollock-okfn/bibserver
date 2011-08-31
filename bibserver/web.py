@@ -70,7 +70,7 @@ class UploadView(MethodView):
                 msg = 'Sorry! There was an error indexing your collection. Please try again.'
         else:
             msg = 'Your upload failed to validate. Please try again.'
-        return render_template('index.html', msg=msg, colls=[])
+        return render_template('index.html', msg=msg)
 
     def validate(self, pkg):
         '''validate the submission before proceeding'''
