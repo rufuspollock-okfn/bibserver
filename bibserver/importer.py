@@ -19,30 +19,36 @@ class Importer(object):
         elif "data" in pkg:
             fileobj = StringIO(pkg['data'])
         elif "source" in pkg:
-            fileobj = self.retrieve(pkg)
-        created_records = self.index(fileobj, pkg)
+            fileobj = urllib2.urlopen( pkg["source"] )
+        
+        created_records = self.index(fileobj, pkg["format"], pkg.get("collection",None))
 
         return created_records
     
+    def bulk_upload(self, colls_list):
+        '''upload a list of collections from provided file locations
+        colls_list looks like
+        {
+            collections: [
+                {
+                    source: "sample.bibtex",
+                    format: "bibtex",
+                    collection: "coll1"
+                },
+                ...
+            ]
+        }
+        '''
 
-    # retrieve from URL into store
-    def retrieve(self,pkg):
-        url = pkg["source"]
-        # grab a google spreadsheet as csv
-        # https://spreadsheets.google.com/spreadsheet/ccc?key=0AnCtSdb7ZFJ3dEEzWmR4QzM5YW5OYlVHdV81UW90cXc&hl=en_GB
-        if pkg["format"] == "google":
-            key = re.sub(r'.*key=',"",url)
-            key2 = re.sub(r'&.*',"",key)
-            url = "http://spreadsheets.google.com/tq?tqx=out:csv&tq=select *&key=" + key2
-        content = urllib2.urlopen( url )
-        return content
+        for coll in colls_list["collections"]:
+            self.upload(coll)
+    
     
     # index the content
-    def index(self, fileobj, pkg):
-        '''index a file in the store'''
+    def index(self, fileobj, format, collection=None):
+        '''index a file'''
         parser = Parser()
-        collection = pkg.get('collection', None)
-        data = parser.parse(fileobj, pkg['format'], collection)
+        data = parser.parse(fileobj, format, collection)
         # send the data list for bulk upsert
         result = bibserver.dao.Record.bulk_upsert(data)
         return result
