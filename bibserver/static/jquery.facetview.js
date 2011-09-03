@@ -83,12 +83,9 @@ return this.bind(type, data, cb);
             "header_content":"",
             "footer_content":"",
             "show_advanced":false,
-            "search_url":"http://bibsoup.net/query?",
-            "search_index":"solr",
-            "default_url_params":{
-                            "wt":"json",
-                            "facet.mincount":1,
-                            },
+            "search_url":"http://elastic.cottagelabs.com/bibserver/record/_search?",
+            "search_index":"elasticsearch",
+            "default_url_params":{},
             "freetext_submit_delay":"700",
             "query_parameter":"q",
             "q":"*:*",
@@ -316,7 +313,7 @@ return this.bind(type, data, cb);
         var putmetadata = function(data) {
             var meta = "";
             meta += '<a id="facetview_decrement" href="' + options.default_paging.from + '">--</a> ';
-            meta += 'results ' + options.default_paging.from + ' to ' + (options.default_paging.from + 10) + ' of ' + data.found;
+            meta += 'results ' + (options.default_paging.from + 1) + ' to ' + (options.default_paging.from + 10) + ' of ' + data.found;
             meta += '<a id="facetview_increment" href="' + (options.default_paging.from + 10) + '">++</a>';
             jQuery('#facetview_metadata').html("").append(meta);
             jQuery('#facetview_decrement').bind('click',decrement);
@@ -511,7 +508,7 @@ return this.bind(type, data, cb);
             }
             querystring += '"query":{"query_string":{"query":"' + query + '"}},"facets":{';
             for (var item in options.default_filters) {
-                querystring += '"' + options.default_filters[item] + '":{"terms":{"field":"' + options.default_filters[item] + '.raw","size":200,"order":"term"}},';
+                querystring += '"' + options.default_filters[item] + '":{"terms":{"field":"' + options.default_filters[item] + '.exact","size":200,"order":"term"}},';
             }
             querystring = querystring.replace(/\,$/,"");
             querystring += '}}';

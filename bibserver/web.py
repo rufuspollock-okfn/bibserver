@@ -38,7 +38,7 @@ def record(rid):
     return render_template('record.html', record=recorddict)
 
 
-@app.route('/query')
+@app.route('/query', methods=['GET', 'POST'])
 def query():
     out = bibserver.dao.Record.raw_query(request.query_string)
     return jsonify(out)

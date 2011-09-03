@@ -1,5 +1,5 @@
 #facetview{
-    font-size:11px;
+    font-size:0.8em;
     background:#fff;
     border:2px solid #c9d2d4;
     margin:10px;
@@ -38,7 +38,7 @@
     background:#fff;
     border:1px solid #a1a1a1;
     color:#a1a1a1;
-    font-size:11px;
+    font-size:1em;
     -moz-border-radius: 2px;
     -webkit-border-radius: 2px;
     border-radius: 2px;
@@ -189,7 +189,7 @@ a.facetview_clear{
     text-decoration:none;
     color:red;
     font-weight:bold;
-    font-size:12px;
+    font-size:1.1em;
     padding:0 0 0 5px;
 }
 a.facetview_more{
@@ -205,7 +205,7 @@ a.facetview_more{
 }
 .facetview_moreinfo{
     display:none;
-    font-size:11px;
+    font-size:1em;
 }
 .facetview_searchthis{
     display:none;
@@ -234,10 +234,6 @@ a.facetview_more{
     display:none;
 }
 
-td.facetview_fixed{
-    width:340px;
-    overflow:hidden;
-}
 
 
 
