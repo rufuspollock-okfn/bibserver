@@ -67,7 +67,8 @@ Install
 
 4. Run the webserver::
 
-    python frontend.py
+    # in the bibserver folder:
+    python bibserver/web.py
 
 .. _ElasticSearch: http://www.elasticsearch.org/
 

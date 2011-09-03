@@ -3,3 +3,4 @@ store/*
 *.egg-info/*
 .*.swp
 sandbox/*
+src*
