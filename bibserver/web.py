@@ -172,5 +172,6 @@ def convert_query_dict_for_es(querydict):
 
 
 if __name__ == "__main__":
+    bibserver.dao.init_db()
     app.run(host='0.0.0.0', debug=True)
 
