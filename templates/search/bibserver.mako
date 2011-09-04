@@ -75,6 +75,6 @@
     <p>...</p>
 </div>
 
-<%include file="/footer.mako"/>
+<%include file="/footer.html"/>
 
 
