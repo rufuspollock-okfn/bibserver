@@ -34,14 +34,14 @@
 </div>
 
     <div id="navigation">
-        <%include file="/facet-extra.mako"/>
+        <%include file="facet-extra.mako"/>
     </div>
     
     <div id="panel">
     
     % if c['results'].set_size() != 0:
         <span class="results_total">${c['results'].numFound()} results</span>
-        <%include file="/paging.mako"/>
+        <%include file="paging.mako"/>
     % endif
 
     
@@ -65,7 +65,7 @@
         <div class="spacer"></div>        
 
         <!-- finally, the result set itself -->        
-        <%include file="/list-view.mako"/>
+        <%include file="list-view.mako"/>
     
     % endif
 
