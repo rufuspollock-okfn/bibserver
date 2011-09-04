@@ -1,28 +1,3 @@
-table {
-    font-size: 10pt;
-}
-
-#header {
-    width: 100%
-    clear: both;
-    background: #000000;
-    color: #ffffff;
-    padding: 8px;
-}
-
-#logo {
-    width: 17%
-    float: left;
-}
-
-#title {
-    width: 80%;
-    text-align: center;
-    font-weight: bold;
-    font-size: 180%;
-    float: right;
-}
-
 #navigation {
     padding-left:0;
     padding-top: 20px;
@@ -68,14 +43,6 @@ table {
 
 .paging {
     float:left;
-}
-
-#footer {
-    margin-top: 20px;
-    clear: both;
-    border-top: 1px solid;
-    padding-left: 10px;
-    padding-top: 10px;
 }
 
 .current_sort_option {
@@ -256,43 +223,6 @@ table {
     font-weight: bold;
     text-align: center;
     font-size: 140%;
-}
-
-.search_box {
-    margin: -5px;
-}
-
-.search_box form {
-    float: left;
-    padding: 3px;
-    margin-left: 0px;
-    margin-right: 5px;
-    margin-top: 10px;
-    margin-bottom: 0px;
-}
-
-.search_box form input[type="submit"] {
-    border: 2px solid #4444aa;
-    color:#4444aa;
-    cursor:pointer;
-    padding: 2px;
-    background: #ddd;
-    margin-left: -7px;
-    font-size:1.4em;
-   -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
-}
-
-.search_box form input[type="text"] {
-    border: 2px solid #4444aa;
-    padding: 3px;
-    background: #eeeeff;
-    width:465px;
-   -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
-    font-size:1.4em;
 }
 
 .list_view {
