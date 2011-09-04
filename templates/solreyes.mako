@@ -14,7 +14,6 @@
     
     <div id="navigation">
         <%include file="/facet-extra.mako"/>
-        <%include file="/branding.mako"/>
     </div>
     
     <div id="panel">
