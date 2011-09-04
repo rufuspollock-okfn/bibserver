@@ -152,7 +152,7 @@ def search(path=''):
     querydict = convert_query_dict_for_es(args)
     results = bibserver.dao.Record.query(**querydict)
     c['results'] = bibserver.resultmanager.ResultManager(results, config, args)
-    return render_template('search/bibserver.mako', c=c)
+    return render_template('search/index.html', c=c)
 
 
 def convert_query_dict_for_es(querydict):
