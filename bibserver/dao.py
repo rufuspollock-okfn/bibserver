@@ -11,12 +11,12 @@ from bibserver.config import config
 def init_db():
     conn, db = get_conn()
     try:
-    conn.create_index(db)
-    mappings = config["mappings"]
-    for mapping in mappings:
-        # this currently fails. Cannot get pyes to put a dynamic mapping properly,
-        # will need to find out how
-        conn.put_mapping("record",{"properties":mappings},[db])
+        conn.create_index(db)
+        mappings = config["mappings"]
+        for mapping in mappings:
+            # this currently fails. Cannot get pyes to put a dynamic mapping properly,
+            # will need to find out how
+            conn.put_mapping("record",{"properties":mappings},[db])
     except pyes.exceptions.IndexAlreadyExistsException:
         pass
 
