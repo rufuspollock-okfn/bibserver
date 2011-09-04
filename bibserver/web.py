@@ -22,12 +22,12 @@ def home():
     # get list of available collections
     result = bibserver.dao.Record.query(q="*:*",facet_fields=["collection"],size=1)
     colls = result.get("facets").get("collection").get("terms")
-    return render_template('index.html', colls=colls)
+    return render_template('home/index.html', colls=colls)
 
 
 @app.route('/content/<path:path>')
 def content(path):
-    return render_template('content.html', page=path)
+    return render_template('home/content.html', page=path)
 
 
 @app.route('/record/<rid>')
@@ -152,7 +152,7 @@ def search(path=''):
     querydict = convert_query_dict_for_es(args)
     results = bibserver.dao.Record.query(**querydict)
     c['results'] = bibserver.resultmanager.ResultManager(results, config, args)
-    return render_template('bibserver.mako', c=c)
+    return render_template('search/bibserver.mako', c=c)
 
 
 def convert_query_dict_for_es(querydict):

@@ -24,18 +24,24 @@
 </div>
 
 <div id="bibserver_search">
-    <%include file="/search-box.mako"/>
+  <div class="search_box">
+      <form method="get" action="${c['url_manager'].get_search_form_action()}">
+          <input type="text" name="q" value="${c['q']}"/>
+          <input type="hidden" name="a" value="${c['url_manager'].get_form_field_args()}"/>
+          <input type="submit" name="submit_search" value="Search"/>
+      </form>
+  </div>
 </div>
 
     <div id="navigation">
-        <%include file="/facet-extra.mako"/>
+        <%include file="facet-extra.mako"/>
     </div>
     
     <div id="panel">
     
     % if c['results'].set_size() != 0:
         <span class="results_total">${c['results'].numFound()} results</span>
-        <%include file="/paging.mako"/>
+        <%include file="paging.mako"/>
     % endif
 
     
@@ -44,12 +50,22 @@
     % else:
         
         <!-- sorting and result sizes -->
-        <%include file="/resultsperpage.mako"/>
+        <div class="results_per_page">
+
+          <div class="rpp_label">Show</div>
+          % for rpp in c['config'].results_per_page_options:
+          %   if rpp == c['results'].page_size():
+              <div class="current_rpp">${rpp}</div>
+          %   else:
+              <div class="potential_rpp"><a href="${c['url_manager'].get_rpp_url(rpp)}">${rpp}</a></div>
+          %   endif
+          % endfor
+        </div>
 
         <div class="spacer"></div>        
 
         <!-- finally, the result set itself -->        
-        <%include file="/list-view.mako"/>
+        <%include file="list-view.mako"/>
     
     % endif
 
