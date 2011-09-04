@@ -127,10 +127,10 @@ class DomainObject(UserDict.IterableUserDict):
     @classmethod
     def raw_query(self, query_string):
         if not query_string:
-            msg = {
-                'error': 'Query endpoint. Please provide <a href="%s">query parameters.</a>' % (
+            msg = json.dumps({
+                'error': "Query endpoint. Please provide elastic search <a href='%s'>query parameters.</a>" % (
                     'http://www.elasticsearch.org/guide/reference/api/search/uri-request.html'
-                )}
+                )})
             return msg
 
         host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
@@ -139,7 +139,8 @@ class DomainObject(UserDict.IterableUserDict):
         c =  httplib.HTTPConnection(host)
         c.request('GET', fullpath)
         result = c.getresponse()
-        return json.loads(result.read())
+        # pass through the result raw
+        return result.read()
 
 
 class Record(DomainObject):
