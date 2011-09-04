@@ -10,10 +10,15 @@ from bibserver.config import config
 
 def init_db():
     conn, db = get_conn()
-    try:
-        conn.create_index(db)
-    except pyes.exceptions.IndexAlreadyExistsException:
-        pass
+#    try:
+#    conn.create_index(db)
+    mappings = config["mappings"]
+#    for mapping in mappings:
+#        print mapping
+    print mappings
+    conn.put_mapping("record",{"properties":mappings},[db])
+#    except pyes.exceptions.IndexAlreadyExistsException:
+#        pass
 
 def get_conn():
     host = str(config['ELASTIC_SEARCH_HOST'])
