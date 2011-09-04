@@ -23,8 +23,8 @@ class TestWeb(object):
         assert 'BibSoup' in res.data, res.data
 
     def test_content(self):
-        res = self.app.get('/content/caveat')
-        assert 'this service is alpha' in res.data, res.data
+        res = self.app.get('/content/howto')
+        assert 'This website is an example' in res.data, res.data
 
     def test_record(self):
         res = self.app.get('/record/%s' % self.record.id)
