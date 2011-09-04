@@ -41,7 +41,8 @@ def record(rid):
 @app.route('/query', methods=['GET', 'POST'])
 def query():
     out = bibserver.dao.Record.raw_query(request.query_string)
-    return jsonify(out)
+    # data returned will be json or jsonp
+    return out
 
 
 class UploadView(MethodView):
