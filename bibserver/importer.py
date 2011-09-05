@@ -14,6 +14,8 @@ class Importer(object):
     def upload(self, pkg):
         '''upload content and index it'''
 
+        print pkg
+        
         if "upfile" in pkg:
             fileobj = pkg["upfile"]
         elif "data" in pkg:
@@ -21,13 +23,13 @@ class Importer(object):
         elif "source" in pkg:
             fileobj = urllib2.urlopen( pkg["source"] )
         
-        created_records = self.index(fileobj, pkg["format"], pkg.get("collection",None))
+        return self.index(fileobj, pkg["format"], pkg.get("collection",None))
 
-        return created_records
     
     def bulk_upload(self, colls_list):
         '''upload a list of collections from provided file locations
-        colls_list looks like
+        colls_list looks like the pkg.
+        So should have source for a URL, or upfile for a local file
         {
             collections: [
                 {
@@ -39,9 +41,12 @@ class Importer(object):
             ]
         }
         '''
-
-        for coll in colls_list["collections"]:
-            self.upload(coll)
+        try:
+            for coll in colls_list["collections"]:
+                self.upload(coll)
+            return True
+        except:
+            return False
     
     
     # index the content
@@ -50,6 +55,5 @@ class Importer(object):
         parser = Parser()
         data = parser.parse(fileobj, format, collection)
         # send the data list for bulk upsert
-        result = bibserver.dao.Record.bulk_upsert(data)
-        return result
+        return bibserver.dao.Record.bulk_upsert(data)
 

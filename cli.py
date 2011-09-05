@@ -29,6 +29,13 @@ def convert(inpath):
     bibtex = open(inpath).read()
     print json.dumps(parser.parse(bibtex), indent=2, sort_keys=True)
 
+def bulk_upload(colls_list):
+    '''Take a collections list in a JSON file and use the bulk_upload importer.
+    colls_list described in importer.py
+    '''
+    import bibserver.importer
+    return bibserver.importer.bulk_upload(colls_list)
+    
 
 ## ==================================================
 ## Misc stuff for setting up a command line interface

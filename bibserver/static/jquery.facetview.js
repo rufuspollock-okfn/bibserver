@@ -83,7 +83,7 @@ return this.bind(type, data, cb);
             "header_content":"",
             "footer_content":"",
             "show_advanced":false,
-            "search_url":"http://elastic.cottagelabs.com/bibserver/record/_search?",
+            "search_url":"http://bibsoup.net/query?",
             "search_index":"elasticsearch",
             "default_url_params":{},
             "freetext_submit_delay":"700",

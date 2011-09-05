@@ -16,18 +16,17 @@ class TestImporter:
         recid = records[0]['id']
         out = bibserver.dao.Record.get(recid)
         assert out['year'] == '2008', out
-'''
+
     def test_bulkupload(self):
         i = Importer()
-        toupload = json.load('test/data/bulk_import.json')
+        colls = open('test/data/bulk_upload.json').read()
+        toupload = json.loads(colls)
         
         # fix upload collection relative to test
-        toupload["collections"][0]["source"] = fixtures_path = os.path.join(os.path.dirname(__file__), '/data/', toupload["collections"][0]["source"])
-        toupload["collections"][1]["source"] = fixtures_path = os.path.join(os.path.dirname(__file__), '/data/', toupload["collections"][1]["source"])
+        toupload["collections"][0]["source"] = 'file://' + os.path.join(os.path.dirname(__file__), toupload["collections"][0]["source"])
+        toupload["collections"][1]["source"] = 'file://' + os.path.join(os.path.dirname(__file__), toupload["collections"][1]["source"])
 
         # do the bulk upload
         records = i.bulk_upload(toupload)
-        recid = records[0]['id']
-        out = bibserver.dao.Record.get(recid)
-        assert out['year'] == '2008', out
-'''
+        assert records == True, records
+
