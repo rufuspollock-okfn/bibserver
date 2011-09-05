@@ -70,7 +70,7 @@ class UploadView(MethodView):
                 msg = 'Sorry! There was an error indexing your collection. Please try again.'
         else:
             msg = 'Your upload failed to validate. Please try again.'
-        return render_template('index.html', msg=msg)
+        return render_template('upload.html', msg=msg)
 
     def validate(self, pkg):
         '''validate the submission before proceeding'''
@@ -79,25 +79,31 @@ class UploadView(MethodView):
         return False
     
     def package(self):
-        '''make package with format of upload, collection name to save as, email to notify
+        '''make package with: 
+            format of upload (default to bibtex)
+            collection name (default to version of filename)
+            email address (for a file upload)
+            source, upfile, or data, depending on if URL, upload, or POST
+            date received
         '''
         pkg = dict()
-        pkg["format"] = request.values.get('format', 'bibtex')
-        pkg["collection"] = request.values.get("collection", '')
-        pkg["notify"] = request.values.get("notify", None)
-        # also with source URL / file upload if present
+
         if request.values.get("source"):
             pkg["source"] = urllib2.unquote(request.values.get("source"))
-        upfile = request.files.get('upfile', None)
-        if upfile:
-            pkg["upfile"] = upfile 
-
+            collection = pkg["source"]
+        if request.files.get('upfile'):
+            pkg["upfile"] = request.files.get('upfile')
+            collection = pkg["upfile"]
         if request.values.get('data'):
             pkg["data"] = request.values['data']
+            collection = None
 
-        # get request info
-        pkg["ip"] = request.remote_addr
+        pkg["collection"] = request.values.get("collection", collection)
+        pkg["format"] = request.values.get('format', 'bibtex')
+        pkg["notify"] = request.values.get("notify", None)
+
         pkg["received"] = str(datetime.now())
+
         return pkg
 
 # enable upload unless not allowed in config

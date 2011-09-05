@@ -13,7 +13,7 @@ class TestImporter:
             'data': bibtex
             }
         records = i.upload(pkg)
-        recid = records[0]['id']
+        recid = records[1]['id']
         out = bibserver.dao.Record.get(recid)
         assert out['year'] == '2008', out
 
