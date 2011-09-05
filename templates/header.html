@@ -14,8 +14,8 @@
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
-    <!-- Le styles -->
-    <link rel="stylesheet" href="http://twitter.github.com/bootstrap/assets/css/bootstrap-1.2.0.min.css">
+    <!-- Bootstrap styles -->
+    <link rel="stylesheet" href="/static/bootstrap-1.2.0.min.css">
 
     <!-- our styles -->
     <link rel="stylesheet" type="text/css" href="/static/bibsoup.css">
@@ -30,14 +30,18 @@
     <div class="topbar">
       <div class="fill">
         <div class="container">
-          <h3><a href="/">BibServer</a></h3>
+          <h3><a href="/">BibSoup</a></h3>
           <ul class="nav">
             <li class="active"><a href="/">Home</a></li>
             <li><a href="/content/howto">FAQ</a></li>
           </ul>
-          <form action="/search" method="GET">
-            <input type="text" name="q" placeholder="search" />
-          </form>
+          <ul class="nav secondary-nav">
+            <li>
+              <form action="/search" method="GET">
+                <input type="text" name="q" placeholder="search" />
+              </form>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
