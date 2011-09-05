@@ -2,6 +2,10 @@ body {
   padding-top: 40px;
 }
 
+.content {
+  margin-top: 20px;
+}
+
 /************************************
   * Flash notifications / messages
   ***********************************/
@@ -122,7 +126,7 @@ body {
 
 .search_box {
   padding: 20px;
-  padding-top: 50px;
+  padding-top: 20px;
   width: 600px;
   margin-left: auto;
   margin-right: auto;

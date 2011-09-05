@@ -1,52 +1,35 @@
 <%include file="/header.html"/>
 
-<div id="infos">
-<!--
-    <div class="infobubble">
-        <h3>Discover publications</h3>
-        <p>Search all our shared collections. Find work relevant to your interests</p>
-        <p><a href="/content/howto">learn more...</a></p>
-    </div>
-    <div class="infobubble">
-        <h3>Create your collection</h3>
-        <p>Build and manage a collection, then use it in your own online publications</p>
-        <p><a href="/content/howto">learn more...</a></p>
-    </div>
--->
-    <div class="infobubble">
-        <h3>Upload your collection</h3>
-        <p>Manage your collection from your own files, such as BibTex, and upload for extra functionality</p>
-        <p><a href="/content/howto">learn more...</a></p>
-    </div>
-    <div class="infobubble">
-        <h3>Manage bibliographies</h3>
-        <p>Build collections for your group, for your research, for your students; share them with everyone</p>
-        <p><a href="/content/howto">learn more...</a></p>
-    </div>
-</div>
+      <div class="hero-unit">
+        <h1>Welcome to BibSoup!</h1>
+        <p>BibSoup makes it easy to find, manage and share bibliographies.</p>
+        <p><a class="btn primary large" href="/content/howto">Learn more &raquo;</a></p>
+      </div>
 
-<div id="bibsoup_collections">
-    <ul>
-    <li><a href="/upload">upload new collection</a></li>
-    <li><a href="">create new collection</a></li>
-    </ul>
-    
-    % if colls:
-    <ul id="collections">
-    % for count,item in enumerate(colls):
-    % if count == 0:
-    <li><strong>Recent collections</strong></li>    
-    % endif
-    <li><a href="/collection/${item.get("term")}">${item.get("term")} (${item.get("count")})</a></li>
-    % endfor
-    </ul>
-    % endif
-
-</div>
-
-<div id="bibserver_vis">
-<!--visualisations coming soon-->
-</div>
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="span-one-third column">
+          <h2>Search collections</h3>
+          <p>Search shared collections and records. Find material relevant to your interests.</p>
+          <p><a href="/search" class="btn">Search now &raquo;</a></p>
+        </div>
+        <div class="span-one-third column">
+          <h2>Upload your collection</h2>
+          <p>Build collections for your group, for your research, for your students; share them with everyone or just a select few. Collections can be created from your own files, such as BibTex, and then be managed online or re-exported.</p>
+          <p><a href="/upload" class="btn">Upload now &raquo;</a></p>
+       </div>
+        <div class="span-one-third column">
+          <h2>Recent Collections</h2>
+          % if colls:
+          <ul id="collections">
+          % for count,item in enumerate(colls):
+          <li><a href="/collection/${item.get("term")}">${item.get("term")} (${item.get("count")})</a></li>
+          % endfor
+          </ul>
+          % endif
+          <p><a href="/collection" class="btn">See more &raquo;</a></p>
+       </div>
+      </div>
 
 <%include file="/footer.html"/>
 
