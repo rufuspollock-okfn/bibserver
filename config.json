@@ -2,6 +2,9 @@
     # name of service
     "service_name" : "BibSoup",
 
+    # noupload - set to "NO" if you dont want frontend upload to your bibserver install
+    "allow_upload" : "YES",
+
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     "ELASTIC_SEARCH_DB" : "bibserver",
@@ -37,14 +40,6 @@
     # default results and paging options (integer - array of integers)
     "default_results_per_page" : 10,
     "results_per_page_options" : [10, 20, 50, 100],
-    
-    # default minimum number of results required to trigger a facet being included (integer)
-    "facet_mincount" : 1,
-    
-    "allow_text_search" : true,    
-    "text_search_field" : "text",
-    
-    "always_visible" : 5,
     
     # The fields which are plain text/value facets, and their display names
     # (object with keys representing facet names, and values as objects containing

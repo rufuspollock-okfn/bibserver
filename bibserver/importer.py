@@ -23,6 +23,11 @@ class Importer(object):
         elif "source" in pkg:
             fileobj = urllib2.urlopen( pkg["source"] )
         
+        # look for a collection like this already existing
+        # if the source location is the same, delete and reupload
+        # if not the same, refuse
+        # if a file upload as opposed to URL provision, check email addr?
+        
         return self.index(fileobj, pkg["format"], pkg.get("collection",None))
 
     

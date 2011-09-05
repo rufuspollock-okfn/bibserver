@@ -22,7 +22,8 @@ def home():
     # get list of available collections
     result = bibserver.dao.Record.query(q="*:*",facet_fields=["collection"],size=1)
     colls = result.get("facets").get("collection").get("terms")
-    return render_template('home/index.html', colls=colls)
+    upload = False
+    return render_template('home/index.html', colls=colls, upload=bibserver.config.config["allow_upload"])
 
 
 @app.route('/content/<path:path>')
@@ -99,7 +100,9 @@ class UploadView(MethodView):
         pkg["received"] = str(datetime.now())
         return pkg
 
-app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
+# enable upload unless not allowed in config
+if bibserver.config.config["allow_upload"] == "YES":
+    app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
 
 
 @app.route('/search')
