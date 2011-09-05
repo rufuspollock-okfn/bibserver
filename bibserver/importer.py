@@ -20,12 +20,7 @@ class Importer(object):
             pkg["fileobj"] = StringIO(pkg['data'])
         elif "source" in pkg:
             pkg["fileobj"] = urllib2.urlopen( pkg["source"] )
-        
-        # look for a collection like this already existing
-        # if the source location is the same, delete and reupload
-        # if not the same, refuse
-        # if a file upload as opposed to URL provision, check email addr?
-        
+                
         return self.index(pkg)
 
     
@@ -59,7 +54,11 @@ class Importer(object):
         data = parser.parse(pkg["fileobj"], pkg["format"])
 
         # prepare the data as required
-        data = self.prepare(data,pkg)
+        data, pkg = self.prepare(data,pkg)
+        
+        # delete any previous version of this collection
+        if "collection" in pkg:
+            bibserver.dao.Record.delete_by_query("collection:" + pkg["collection"])
         
         # send the data list for bulk upsert
         return bibserver.dao.Record.bulk_upsert(data)
@@ -67,6 +66,20 @@ class Importer(object):
 
     # prepare the data in various ways
     def prepare(self,data,pkg):
+    
+        # if no collection name provided, build a collection name if possible
+        if "collection" not in pkg:
+            # build collection name from source URL
+            if "source" in pkg:
+                derived_name = pkg["source"].replace("http://","").replace("https://","").replace("/","").replace(".","").replace("~","")
+                pkg["collection"] = derived_name
+
+            # build collection name from source URL
+            elif "email" in pkg and pkg["email"] is not None:
+                derived_name = pkg["email"].replace("@","").replace(".","")
+                pkg["collection"] = derived_name
+
+        
         for index,item in enumerate(data):
             
             # strip the bibtex record for now
@@ -90,16 +103,22 @@ class Importer(object):
                     pkg["collection"] = data[index]["collection"]
 
         # add the package info to the collection
+        if "collection" not in pkg:
+            pkg["collection"] = ''
         pkg["type"] = "bibserver_pkg_metadata"
-        if "data" in pkg:
-            del pkg["data"]
-        if "fileobj" in pkg:
-            del pkg["fileobj"]
-        if "upfile" in pkg:
-            del pkg["upfile"]
-        data.insert(0,pkg)
+        metadata= pkg
+        if "data" in metadata:
+            del metadata["data"]
+        if "fileobj" in metadata:
+            del metadata["fileobj"]
+        if "upfile" in metadata:
+            del metadata["upfile"]
+        data.insert(0,metadata)
         
-        return data    
+        return data, pkg
+
+
+    # THE FOLLOWING ARE NOT USED USED
 
     # parse potential people names out of a collection file
     # check if they have a person record in bibsoup

@@ -101,6 +101,21 @@ class DomainObject(UserDict.IterableUserDict):
             return False
     
     @classmethod
+    def delete_by_query(cls, query):
+        try:
+        
+            # how to do this using PYES?
+            url = str(config['ELASTIC_SEARCH_HOST'])
+            loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + query
+            import httplib 
+            conn = httplib.HTTPConnection(url)
+            conn.request('DELETE', loc)
+            resp = conn.getresponse()
+            return resp.read()
+        except:
+            return False
+        
+    @classmethod
     def query(cls, q='', terms=None, facet_fields=None, **kwargs):
         '''Perform a query on backend.
 

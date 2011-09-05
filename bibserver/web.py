@@ -63,11 +63,11 @@ class UploadView(MethodView):
         pkg = self.package()
         if self.validate(pkg):
             importer = bibserver.importer.Importer()
-            try:
-                importer.upload(pkg)
-                return redirect('/collection/' + pkg["collection"])
-            except:
-                msg = 'Sorry! There was an error indexing your collection. Please try again.'
+#            try:
+            importer.upload(pkg)
+            return redirect('/collection/' + pkg["collection"])
+#            except:
+#                msg = 'Sorry! There was an error indexing your collection. Please try again.'
         else:
             msg = 'Your upload failed to validate. Please try again.'
         return render_template('upload.html', msg=msg)
@@ -90,17 +90,15 @@ class UploadView(MethodView):
 
         if request.values.get("source"):
             pkg["source"] = urllib2.unquote(request.values.get("source"))
-            collection = pkg["source"]
         if request.files.get('upfile'):
             pkg["upfile"] = request.files.get('upfile')
-            collection = pkg["upfile"]
         if request.values.get('data'):
             pkg["data"] = request.values['data']
-            collection = None
 
-        pkg["collection"] = request.values.get("collection", collection)
+        if request.values.get("collection"):
+            pkg["collection"] = request.values.get("collection")
         pkg["format"] = request.values.get('format', 'bibtex')
-        pkg["notify"] = request.values.get("notify", None)
+        pkg["email"] = request.values.get("email", None)
 
         pkg["received"] = str(datetime.now())
 
