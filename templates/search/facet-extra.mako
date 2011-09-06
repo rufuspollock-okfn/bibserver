@@ -1,5 +1,5 @@
 % for facet in c['config'].display_facet_order:
-    % if facet not in c['implicit_facets']:
+    % if c['config'].get_facet_display(facet) not in c['implicit_facets']:
         <div class="facet">
         % if c['results'].has_values(facet):
             <div class="facet_heading">

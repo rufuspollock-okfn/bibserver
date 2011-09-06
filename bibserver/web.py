@@ -167,6 +167,7 @@ def search(path=''):
     c['url_manager'] = bibserver.urlmanager.UrlManager(config, args,
             implicit_facets)
     c['implicit_facets'] = implicit_facets
+    print c['implicit_facets']
     querydict = convert_query_dict_for_es(args)
     results = bibserver.dao.Record.query(**querydict)
     c['results'] = bibserver.resultmanager.ResultManager(results, config, args)

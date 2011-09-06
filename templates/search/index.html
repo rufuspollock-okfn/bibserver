@@ -10,6 +10,10 @@
   </div>
 </div>
 
+% for facet in c['implicit_facets']:
+    <h3>${facet} : ${c['implicit_facets'][facet][0]}</h3>
+% endfor
+
     <div id="navigation">
         <%include file="facet-extra.mako"/>
     </div>
