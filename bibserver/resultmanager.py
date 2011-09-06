@@ -1,6 +1,6 @@
 import operator, unicodedata
 import bibserver.config 
-
+import bibserver.dao
 
 class ResultManager(object):
     def __init__(self, results, config, args):
@@ -72,6 +72,28 @@ class ResultManager(object):
             return ", ".join([self.config.get_field_display(field, val) for val in result.get(field)])
         else:
             return self.config.get_field_display(field, result.get(field))
+        
+    def get_meta(self):
+        try:
+            coll = self.results['hits']['hits'][0]["_source"]["collection"]
+            if isinstance(coll,list):
+                coll = coll[0]
+            res = bibserver.dao.Record.query(q='collection:' + coll + ' AND type:collection')
+            rec = res["hits"]["hits"][0]["_source"]
+            meta = "<p>"
+            if "source" in rec:
+                meta = 'The source of this collection is <a href="'
+                meta += rec["source"] + '">' + rec["source"] + '</a>. '
+            if "received" in rec:
+                meta += 'This collection was last updated on ' + rec["received"] + '. '
+            if "source" in rec:
+                meta += '<br />If changes have been made to the source file since then, '
+                meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["collection"]
+                meta += '">refresh this collection</a>.'
+            meta += '</p>'
+            return meta
+        except:
+            return ""
         
     def first_page_end(self):
         return self.args['rows']
