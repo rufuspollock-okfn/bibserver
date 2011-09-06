@@ -51,8 +51,8 @@ class Importer(object):
                 bibserver.dao.Record.delete_by_query("collection:" + pkg["collection"])
             # send the data list for bulk upsert
             return bibserver.dao.Record.bulk_upsert(data)
-
-        return False
+        else:
+            return "DUPLICATE"
 
 
     def can_index(self,pkg):
@@ -64,9 +64,13 @@ class Importer(object):
             if "source" in res["hits"]["hits"][0]["_source"]:
                 if pkg["source"] == res["hits"]["hits"][0]["_source"]["source"]:
                     return True
+                else:
+                    return False
             elif "email" in res["hits"]["hits"][0]["_source"]:
                 if pkg["email"] == res["hits"]["hits"][0]["_source"]["email"]:
                     return True
+                else:
+                    return False
             else:
                 return False
         except:
