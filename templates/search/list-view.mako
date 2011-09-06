@@ -20,7 +20,7 @@
             </div>
 
         <div class="list_result_options list_result_hidden">
-            <a href="/record/${c['results'].get_str(c['results'].set()[i], "id")}">View record</a> or search 
+            <a href="/collection/${c['results'].get_str(c['results'].set()[i], "collection", True)}/${c['results'].get_str(c['results'].set()[i], "citekey")}">View record</a> or search 
             <form action="/redirect" method="get">
             <select name="target">
                 <option value="http://www.google.com/search?q=">Google</option>

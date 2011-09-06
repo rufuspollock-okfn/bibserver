@@ -60,19 +60,19 @@ class ResultManager(object):
     def page_size(self):
         return self.args['rows']
 
-    def get_str(self, result, field):
+    def get_str(self, result, field, raw=False):
         if result.get(field) is None:
             return ""
+        if raw:
+            if hasattr(result.get(field), "append"):
+                return ", ".join([val for val in result.get(field)])
+            else:
+                return result.get(field)
         if hasattr(result.get(field), "append"):
-            return ", ".join([self.asciify(self.config.get_field_display(field, val)) for val in result.get(field)])
+            return ", ".join([self.config.get_field_display(field, val) for val in result.get(field)])
         else:
-            return self.asciify(self.config.get_field_display(field, result.get(field)))
-    
-    def asciify(self, string):
-        # this causes errors
-        decoded = string.decode('latin-1')
-        return unicodedata.normalize('NFKD', unicode(decoded)).encode('ascii','ignore')
-    
+            return self.config.get_field_display(field, result.get(field))
+        
     def first_page_end(self):
         return self.args['rows']
     

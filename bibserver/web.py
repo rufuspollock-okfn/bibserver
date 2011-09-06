@@ -31,11 +31,14 @@ def content(path):
     return render_template('home/content.html', page=path)
 
 
-@app.route('/record/<rid>')
-def record(rid):
-    recorddict = bibserver.dao.Record.get(rid)
-    if recorddict is None:
+@app.route('/collection/<collid>/<rid>')
+def record(collid,rid):
+    res = bibserver.dao.Record.query(q='collection:"' + collid + '" AND citekey:"' + rid + '"')
+    if res["hits"]["total"] == 0:
         abort(404)
+    if res["hits"]["total"] > 1:
+        return render_template('record.html', msg="hmmm... there is more than one record in this collection with that id...")
+    recorddict = res["hits"]["hits"][0]["_source"]
     return render_template('record.html', record=recorddict)
 
 
