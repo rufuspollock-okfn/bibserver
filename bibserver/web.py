@@ -73,8 +73,8 @@ class UploadView(MethodView):
                         return redirect('/collection/' + pkg["collection"])
                     msg = "Your records were uploaded but no collection name could be discerned."
                 elif res == "DUPLICATE":
-                    msg = "The collection name you specified is already in use for a collection "
-                    msg += "from a different source URL. Please use another collection name."
+                    msg = "The collection name you specified is already in use."
+                    msg += "<br />Please use another collection name."
                 else:
                     msg = "Sorry! There was an indexing error. Please try again."                    
             except:
