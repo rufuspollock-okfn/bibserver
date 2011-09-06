@@ -36,34 +36,9 @@ body {
 
 #bibsoup_upload{
     clear:both;
-    margin:10px 0 0 30px;
-    width:100%;
-}
-.style_head{
-    font-family: 'Nova Square', cursive;
-    font-size:1.6em;
-    margin:0;
-    padding:0 0 10px 0;
-    width:100%;
-    background:#eeeeff;
-}
-
-/************************************
-  * Frontpage
-  ***********************************/
-
-#infos{
-    clear:both;
-    float:left;
-    width:70%;
-    padding:30px 0 0 0;
-}
-.infobubble{
-    width:44%;
-    height:200px;
-    float:left;
-    padding:0;
-    margin:0 15px 15px 0;
+    margin:100px 0 100px 0;
+    padding:20px;
+    width:600px;
     border:2px solid #4444aa;
    -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
@@ -72,48 +47,22 @@ body {
     -webkit-box-shadow: 3px 3px 10px #4444aa;
     box-shadow: 3px 3px 10px #4444aa;
 }
-.infobubble h3{
-    margin:0;
-    padding:5px;
-}
-.infobubble p{
-    margin:0;
-    padding:5px;
-}
-.infobubble input[type="submit"]{
-    font-size:1.6em;
-    border:0px solid #ccc;
-   -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    -moz-box-shadow: 3px 3px 10px #4444aa;
-    -webkit-box-shadow: 3px 3px 10px #4444aa;
-    box-shadow: 3px 3px 10px #4444aa;
-    margin:10px 0 20px 120px;
-    padding:2px 4px 2px 4px;
-    cursor:pointer;
-    background:#4444aa;
-    color:white;
+
+#bibsoup_upload h2{
+    padding:0 0 10px 0;
 }
 
-#bibsoup_collections{
-    padding:30px 0 0 0;
+#bibsoup_upload p{
+    padding:20px 0 20px 0;
+}
+
+span.upload_label{
+    width:150px;
+    display:block;
     float:left;
-    width:30%;
+    padding:5px 10px 0 0;
     text-align:right;
 }
-#bibsoup_collections ul{
-    list-style-type:none;
-    padding:0;
-    margin:0 0 20px 0;
-}
-
-#bibserver_vis{
-    clear:both;
-    width:100%;
-    padding:30px 0 0 0;
-}
-
 
 /************************************
   * Search page (see also solreyes.css)

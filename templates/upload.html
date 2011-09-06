@@ -2,28 +2,47 @@
 
 <div id="bibsoup_upload">
     <form action="/upload" method="POST" enctype="multipart/form-data">
-    <div class="infobubble">
-        <div class="style_head"><p>01. file location</p></div>
-        <p>web address: <input type="text" name="source" /></p>
-        <p>or upload from PC: <input type="file" name="upfile" /></p>
-    </div>
-    <div class="infobubble">
-        <div class="style_head"><p>02. choose format</p></div>
+    
+        <h2>Upload your collection</h2>
+
+        <div id="frompc">
+        
+        <p>Browse for the file you want to upload.<br />
+        Provide your email address so you can confirm you created the collection.<br />
+        (If you don't, anyone could overwrite it. But it's up to you!)<br />
+        Finally, give your collection a name, so we can give it a URL.</p>
+        <span class="upload_label">your file:</span> <input class="sourcefile" type="file" name="upfile" /><br /><br />
+        <span class="upload_label">your email address:</span> <input type="text" name="email" />
+        </div>
+
+        <div id="fromurl">
+        
+        <p>Provide the location where your file is available online, and optionally a name for your new collection.
+        <br />The name will become part of the URL of your collection, so choose one you like.
+        <br />(if you don't provide a name, we will make one up from the web address)</p>
+
+        <span class="upload_label">web address:</span> <input class="sourcefile" type="text" name="source" />
+
+        </div>
+
+        <br /><span class="upload_label">name your collection:</span> <input type="text" name="collection" />
+
+        <p>
+        (or <a class="frompc" href="">upload from your PC</a>)
+        </p>
+
+        
+        <div id="fileformat">
+        <p>We could not identify the file format, please specify:</p>
         <input name="format" type="radio" value="bibtex" /> bibtex <br />
         <input name="format" type="radio" value="bibjson" /> bibjson <br />
         <input name="format" type="radio" value="csv" /> csv <br />
 <!--        <input name="format" type="radio" value="google" /> google spreadsheet <br />-->
-    </div>
-    <div class="infobubble">
-        <div class="style_head"><p>03. name your collection</p></div>
-        <p>name: <input type="text" name="collection" /></p>
-        <p>(if your records already contain collection information, you can ignore this question. Any value provided here will overwrite that in your records.)</p>
-    </div>
-    <div class="infobubble">
-        <div class="style_head"><p>04. ready to go</p></div>
-        <p><input type="submit" name="submit" value="upload" /></p>
-        <p>small uploads will be available really quick!</p>
-    </div>
+        <p></p>
+        </div>
+
+        <input class="btn primary large" type="submit" name="submit" value="upload" />
+
     </form>
 </div>
 

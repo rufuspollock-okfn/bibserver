@@ -63,11 +63,13 @@ class UploadView(MethodView):
         pkg = self.package()
         if self.validate(pkg):
             importer = bibserver.importer.Importer()
-#            try:
-            importer.upload(pkg)
-            return redirect('/collection/' + pkg["collection"])
-#            except:
-#                msg = 'Sorry! There was an error indexing your collection. Please try again.'
+            try:
+                importer.upload(pkg)
+                if "collection" in pkg:
+                    return redirect('/collection/' + pkg["collection"])
+                msg = "Your records were uploaded but no collection name could be discerned."
+            except:
+                msg = 'Sorry! There was an error indexing your collection. Please try again.'
         else:
             msg = 'Your upload failed to validate. Please try again.'
         return render_template('upload.html', msg=msg)

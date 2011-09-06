@@ -20,25 +20,14 @@ class Importer(object):
             pkg["fileobj"] = StringIO(pkg['data'])
         elif "source" in pkg:
             pkg["fileobj"] = urllib2.urlopen( pkg["source"] )
-                
+
         return self.index(pkg)
 
     
     def bulk_upload(self, colls_list):
         '''upload a list of collections from provided file locations
-        colls_list looks like the pkg.
-        So should have source for a URL, or upfile for a local file
-        {
-            collections: [
-                {
-                    source: "sample.bibtex",
-                    format: "bibtex",
-                    collection: "coll1"
-                },
-                ...
-            ]
-        }
-        '''
+        colls_list looks like the pkg, so should have source for a URL, 
+        or upfile for a local file'''
         try:
             for coll in colls_list["collections"]:
                 self.upload(coll)
@@ -56,16 +45,40 @@ class Importer(object):
         # prepare the data as required
         data, pkg = self.prepare(data,pkg)
         
-        # delete any previous version of this collection
-        if "collection" in pkg:
-            bibserver.dao.Record.delete_by_query("collection:" + pkg["collection"])
-        
-        # send the data list for bulk upsert
-        return bibserver.dao.Record.bulk_upsert(data)
+        # if allowed to index, then index (match source or email)
+        if self.can_index(pkg):
+            if "collection" in pkg:
+                bibserver.dao.Record.delete_by_query("collection:" + pkg["collection"])
+            # send the data list for bulk upsert
+            return bibserver.dao.Record.bulk_upsert(data)
+
+        return False
+
+
+    def can_index(self,pkg):
+        '''check if a pre-existing collection of same name exists.
+        If so, only allow re-index if either source or email match.
+        '''
+        try:
+            res = bibserver.dao.Record.query(q='collection:' + pkg["collection"] + ' AND type:collection')
+            if "source" in res["hits"]["hits"][0]["_source"]:
+                if pkg["source"] == res["hits"]["hits"][0]["_source"]["source"]:
+                    return True
+            elif "email" in res["hits"]["hits"][0]["_source"]:
+                if pkg["email"] == res["hits"]["hits"][0]["_source"]["email"]:
+                    return True
+            else:
+                return False
+        except:
+            return True
 
 
     # prepare the data in various ways
     def prepare(self,data,pkg):
+    
+        # replace white space in collection name with _
+        if "collection" in pkg:
+            pkg["collection"] = pkg["collection"].replace(" ","_")
     
         # if no collection name provided, build a collection name if possible
         if "collection" not in pkg:
@@ -98,15 +111,13 @@ class Importer(object):
                 else:
                     data[index]["collection"] = pkg["collection"]
             else:
-                # if no package collection name, read it out of the provided records
+                # if no package collection name, try to find one in the provided records
                 if "collection" in data[index]:
                     pkg["collection"] = data[index]["collection"]
 
         # add the package info to the collection
-        if "collection" not in pkg:
-            pkg["collection"] = ''
-        pkg["type"] = "bibserver_pkg_metadata"
-        metadata= pkg
+        pkg["type"] = "collection"
+        metadata = pkg
         if "data" in metadata:
             del metadata["data"]
         if "fileobj" in metadata:
@@ -118,7 +129,7 @@ class Importer(object):
         return data, pkg
 
 
-    # THE FOLLOWING ARE NOT USED USED
+    # THE FOLLOWING ARE NOT USED
 
     # parse potential people names out of a collection file
     # check if they have a person record in bibsoup

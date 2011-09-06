@@ -1,16 +1,46 @@
 
 jQuery(document).ready(function() {
 
-    // on the front page, focus on the searchbox
-    jQuery(window).load(function () {
-        jQuery('#bibsoup_searchbox').focus();
-    });
+    // enable show of upload from PC on upload page
+    jQuery('#frompc').hide();
+    var showfrompc = function(event) {
+        event.preventDefault();
+        if ( $(this).hasClass('opened') ) {
+            $('#frompc').hide();
+            $('#fromurl').show();
+            $(this).removeClass('opened');
+            $(this).html("upload from your PC");
+        } else {
+            $('#fileformat').hide();
+            $('#fromurl').hide();
+            $('#frompc').show();
+            $(this).addClass('opened');
+            $(this).html("upload from URL");
+        }
+    }
+    jQuery('.frompc').bind('click',showfrompc);
     
+    // enable request for format type, when format type is unknown, on upload page
+    jQuery('#fileformat').hide();
+    var checkformat = function(event) {
+        event.preventDefault();
+        $('#fileformat').hide();
+        var value = $(this).val();
+        if (    value.substr(-4) != ".bib" && 
+                value.substr(-4) != ".csv" && 
+                value.substr(-8) != ".bibjson" && 
+                value.substr(-5) != ".json"
+                ) {
+            $('#fileformat').show('fast');
+        }
+    }
+    jQuery('.sourcefile').bind('change',checkformat)
+    
+
     // if there is a msg, display and then hide after delay
     if ( jQuery('#bibserver_msg').length ) {
         setTimeout( function() { jQuery('#bibserver_msg').hide('slow'); jQuery('#bibserver_msg').remove(); }, 20000 )
     }
-
 
     // show full result content on title click
     var showall = function(event) {
