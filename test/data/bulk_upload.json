@@ -1,0 +1,14 @@
+{
+    "collections" : [
+        {
+            "source" : "data/sample.bibtex",
+            "format" : "bibtex",
+            "collection" : "coll1"
+        },
+        {
+            "source" : "data/sample.bibtex",
+            "format" : "bibtex",
+            "collection" : "coll2"
+        }
+    ]
+}
