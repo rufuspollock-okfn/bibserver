@@ -1,27 +1,52 @@
 <div class="paging">
 
-    <div class="paging_label">Results</div>
+    % if int(c['config'].start) > int(c['results'].page_size()):
+    <a class="btn small" alt="previous" title="previous" href="">prev</a>
+    % endif
+
+    <form action="" method="get">
+    <select class="small" name="from" id="page_select">
+
+% for i in range(0, ( c['results'].numFound() / c['config'].default_results_per_page ) + 1):
+    % if (i * c['config'].default_results_per_page) == int(c['config'].start):
+    <option value="${i * c['config'].default_results_per_page}" selected>
+    % else:
+    <option value="${i * c['config'].default_results_per_page}">
+    % endif
+    ${i * c['config'].default_results_per_page + 1} - 
+    % if i * c['config'].default_results_per_page + 1 + c['config'].default_results_per_page < c['results'].numFound():
+        ${i * c['config'].default_results_per_page + c['config'].default_results_per_page}
+    % else:
+        ${c['results'].numFound()}
+    % endif
+    </option>
+% endfor
     
-    <!-- Paging -->
-    
-%   if not c['results'].is_start():
-        <div class="potential_page"><a href="${c['url_manager'].get_position_url(0)}">1 - ${c['results'].first_page_end()}</a></div>
-        <div class="paging_label">...</div>
-%   endif
+    </select>
 
-%       for start, finish in c['results'].get_previous(10):
-            <div class="potential_page"><a href="${c['url_manager'].get_position_url(start)}">${start + 1} - ${finish}</a></div>
-%       endfor
-            <div class="current_page">${c['results'].start_offset(1)} - ${c['results'].finish()}</div>
+    <span class="results_total">of ${c['results'].numFound()} results. Show </span>
 
-%       for start, finish in c['results'].get_next(10):
-            <div class="potential_page"><a href="${c['url_manager'].get_position_url(start)}">${start + 1} - ${finish}</a></div>
-%       endfor
+    <select class="small" name="size" id="rpp_select">
 
-%   if not c['results'].is_end():
-        <div class="paging_label">...</div>
-        <div class="potential_page"><a href="${c['url_manager'].get_position_url(c['results'].last_page_start())}">
-        ${c['results'].last_page_start() + 1} - 
-        ${c['results'].numFound()}</a></div>
-%   endif
+    % for rpp in c['config'].results_per_page_options:
+    %   if rpp == int(c['results'].page_size()):
+        <option selected>${rpp}</div>
+    %   else:
+        <option value="${rpp}">${rpp}</option>
+    %   endif
+    % endfor
+
+    </select>
+
+    <input type="submit" name="submit" value="update" id="paging_trigger" />
+    </form>
+
+
+    % if ( int(c['config'].start) + int(c['results'].page_size()) ) < c['results'].numFound():
+    <a class="btn small" title="next" alt="next" href="">next</a>
+    % endif
+
 </div>
+
+<div class="spacer"></div>        
+

@@ -1,21 +1,21 @@
 import os
 from datetime import datetime
 import urllib2
+from copy import deepcopy
 
 from flask import Flask, jsonify, json, request, redirect, abort
 from flask.views import View, MethodView
 from flaskext.mako import init_mako, render_template
 
-import bibserver.config
 import bibserver.dao
-import bibserver.setconfig
-import bibserver.resultmanager
-import bibserver.urlmanager
+from bibserver.config import config
+import bibserver.iomanager
 import bibserver.importer
 
 app = Flask(__name__)
 app.config['MAKO_DIR'] = 'templates'
 init_mako(app)
+
 
 @app.route('/')
 def home():
@@ -23,7 +23,7 @@ def home():
     result = bibserver.dao.Record.query(q="*:*",facet_fields=["collection"],size=1)
     colls = result.get("facets").get("collection").get("terms")
     upload = False
-    return render_template('home/index.html', colls=colls, upload=bibserver.config.config["allow_upload"])
+    return render_template('home/index.html', colls=colls, upload=config["allow_upload"] )
 
 
 @app.route('/content/<path:path>')
@@ -116,7 +116,7 @@ class UploadView(MethodView):
         return pkg
 
 # enable upload unless not allowed in config
-if bibserver.config.config["allow_upload"] == "YES":
+if config["allow_upload"] == "YES":
     app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
 
 
@@ -124,66 +124,61 @@ if bibserver.config.config["allow_upload"] == "YES":
 @app.route('/search<path:path>')
 @app.route('/<path:path>')
 def search(path=''):
-    c = {} 
-    config = bibserver.setconfig.Configuration(bibserver.config.config)
-    query = request.args.get('q', '')
-
+    c = {}
+    
+    # get query params
+    params = request.values.items()
+    print params
+    
     # get the args (if available) out of the request
     a = request.values.get("a")
     if a is not None:
         a = urllib2.unquote(a)
+        c['a'] = urllib2.quote(a)
         args = json.loads(a)
     else:
-        args = config.get_default_args()
+        args = {
+            "terms" : {},
+            "facet_fields" : config["facet_fields"],
+            "size" : config["default_results_per_page"],
+            "start" : 0
+        }
 
-    args['search'] = query
-    c['q'] = query
-    c['config'] = config
+    c['config'] = bibserver.config.Config(config)
     
-    # get implicit facets
-    implicit_facets = {}
+    if 'from' in request.values:
+        args['start'] = request.values.get('from')
+        c['config'].start = request.values.get('from')
+    else:
+        c['config'].start = 0
+
+    if 'size' in request.values:
+        args['size'] = request.values.get('size')
+        c['config'].default_results_per_page = int(request.values.get('size'))
+    
+    if 'q' in request.values:
+        args['q'] = request.values.get('q')
+    if 'q' in args:
+        c['q'] = args['q']
+    
+    # get implicit facet
+    c['implicit_facet'] = {}
     if path is not None and not path.startswith("/search"):
         path = path.strip()
         if path.endswith("/"):
             path = path[:-1]
         bits = path.split('/')
-        if len(bits) % 2 == 0:
-            config.base_url = config.base_url.replace(config.strip_for_implicit_paths,"") + path
-            if not args.has_key('q'):
-                args['q'] = {}
-            for i in range(0, len(bits), 2):
-                field = bits[i]
-                value = bits[i+1]
-                if args['q'].has_key(field):
-                    args['q'][field].append(value)
-                else:
-                    args['q'][field] = [value]
-                if implicit_facets.has_key(field):
-                    implicit_facets[field].append(value)
-                else:
-                    implicit_facets[field] = [value]
+        if len(bits) == 2:
+            c['config'].base_url = '/' + path
+            if not args.has_key('terms'):
+                args['terms'] = {}
+            args['terms'][bits[0]] = [bits[1]]
+            c['implicit_facet'][bits[0]] = bits[1]
 
     # get results and render
-    c['url_manager'] = bibserver.urlmanager.UrlManager(config, args,
-            implicit_facets)
-    c['implicit_facets'] = implicit_facets
-    querydict = convert_query_dict_for_es(args)
-    results = bibserver.dao.Record.query(**querydict)
-    c['results'] = bibserver.resultmanager.ResultManager(results, config, args)
+    results = bibserver.dao.Record.query(**args)
+    c['results'] = bibserver.iomanager.IOManager(results, c['config'], args)
     return render_template('search/index.html', c=c)
-
-
-def convert_query_dict_for_es(querydict):
-    outdict = {}
-    outdict['q'] = querydict['search']
-    outdict['facet_fields'] = querydict.get('facet_field', None)
-    outdict['terms'] = {}
-    for term, values in querydict.get('q', {}).items():
-        # only use first value (TODO: can one ever have multi-values?)
-        outdict['terms'][term] = values[0]
-    outdict['size'] = querydict.get('rows', 10)
-    outdict['start'] = querydict.get('start', 0)
-    return outdict
 
 
 if __name__ == "__main__":

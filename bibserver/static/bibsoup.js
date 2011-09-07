@@ -70,77 +70,14 @@ jQuery(document).ready(function() {
     }
     jQuery(".facet_heading").bind('click',showfacets);
 
-    // redesign results per page
-    // build a list of acceptable rpp and the links to enable them
-    var rpp = new Object();
-    var rpp_label = jQuery('.rpp_label').html();
-    var current_rpp = "";
-    jQuery('.results_per_page').children().each(function() {
-        if ( !jQuery(this).hasClass('rpp_label') ) {
-            if ( jQuery(this).hasClass('current_rpp') ) {
-                rpp[ jQuery(this).html() ] = "";
-                current_rpp = jQuery(this).html();
-            } else {
-                rpp[ jQuery(this).children('a').html() ] = jQuery(this).children('a').attr('href');
-            }
-        }
-    });
-    // replace the rpp div with a selector
-    var new_rpp = rpp_label + ' <select id="rpp_selector">';
-    for (var item in rpp) {
-        new_rpp += '<option value="' + rpp[item] + '"';
-        if ( item == current_rpp ) {
-            new_rpp += ' "selected"';
-        }
-        new_rpp += '>' + item + '</option>';
-    }
-    new_rpp += '</select> per page.';
-    jQuery('.results_per_page').html(new_rpp);
-    // attach functionality to trigger rpp selections
+    // attach functionality to trigger rpp and page selections
+    /*jQuery('#paging_trigger').hide();
     var rpp_select = function(event) {
-        event.preventDefault();
-        if ( jQuery(this).val() != "" ) {
-            window.location = jQuery(this).val();
-        }
+        $(this).closest("form").submit();
     }
-    jQuery('#rpp_selector').bind('change',rpp_select);
-    
-    // redesign paging
-    // build a list of paging options and links to enable them
-    var paging = new Object();
-    var paging_label = jQuery('.paging_label').html();
-    var current_page = "";
-    jQuery('.paging').children().each(function() {
-        if ( !jQuery(this).hasClass('paging_label') ) {
-            if ( jQuery(this).hasClass('current_page') ) {
-                paging[ jQuery(this).html() ] = "";
-                current_page = jQuery(this).html();
-            } else {
-                paging[ jQuery(this).children('a').html() ] = jQuery(this).children('a').attr('href');
-            }
-        }
-    });
-    // replace the paging div with a selector
-    var new_paging = paging_label + " " + '<select id="paging_selector">';
-    for (var item in paging) {
-        new_paging += '<option value="' + paging[item] + '"';
-        if ( item == current_page ) {
-            new_paging += "selected";
-        }
-        new_paging += '>' + item + '</option>';
-    }
-    new_paging += '</select> of ' + jQuery('.results_total').html().replace(" results",". &nbsp;&nbsp;&nbsp;&nbsp;");
-    jQuery('.results_total').remove();
-    jQuery('.paging').html(new_paging);
-    // attach functionality to trigger paging selections
-    var page_select = function(event) {
-        event.preventDefault();
-        if ( jQuery(this).val() != "" ) {
-            window.location = jQuery(this).val();
-        }
-    }
-    jQuery('#paging_selector').bind('change',page_select);
-    
+    jQuery('#rpp_select').bind('change',rpp_select);
+    jQuery('#page_select').bind('change',rpp_select);*/
+
     // redesign facet headers if they have no further options
     jQuery('.facet').each(function() {
         if ( jQuery(this).children().last().children().size() < 1 ) {

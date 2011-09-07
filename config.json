@@ -2,12 +2,15 @@
     # name of service
     "service_name" : "BibSoup",
 
-    # noupload - set to "NO" if you dont want frontend upload to your bibserver install
+    # allow_upload - set to "NO" if you dont want frontend upload to your bibserver install
     "allow_upload" : "YES",
 
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     "ELASTIC_SEARCH_DB" : "bibserver",
+    
+    # identify how non-analyzed fields for faceting are differenetiated in the mappings
+    "facet_field" : ".exact",
 
     "mappings" : {
         "record" : {
@@ -35,35 +38,16 @@
     
     # base URL of search service
     "base_url" : "/search",
-    "strip_for_implicit_paths" : "search",
     
     # default results and paging options (integer - array of integers)
     "default_results_per_page" : 10,
     "results_per_page_options" : [10, 20, 50, 100],
     
-    # The fields which are plain text/value facets, and their display names
-    # (object with keys representing facet names, and values as objects containing
-    # a single key/value pair for the display name)
-    # "facet_fields" : { "<facet_name>" : { "display" : "<Display Name>" } ... }
-    #
-    "facet_fields" : {
-        "collection.exact" : { "display" : "collection" },
-        "type.exact" : { "display" : "type"},
-        "journal.exact" : { "display" : "journal"},
-        "author.exact" : {"display" : "author"},
-        "year.exact" : {"display" : "year"}
-    },
-    "display_facet_order" : ["collection.exact","type.exact","journal.exact","author.exact","year.exact"],
+    # The fields for faceting on
+    "facet_fields" : ["collection","type","journal","author","year"],
 
     # fields to display as headers in search results
-    "display_fields" : {
-        "title" : "title",
-        "journal" : "journal",
-        "author" : "author",
-        "doi" : "doi",
-        "url" : "url"
-    },
-    "display_field_order" : ["title","journal","author","doi","url"],
+    "display_fields" : ["title","journal","author","doi","url"],
     
     # functions to perform on particular result fields on display
     "display_value_functions" : {

@@ -55,6 +55,6 @@ class TestDAOQuery:
         assert facetterms[0]['count'] == 1
 
     def test_query_term(self):
-        out = dao.Record.query(terms={'type': 'book'})
+        out = dao.Record.query(terms={'type': ['book']})
         assert_equal(out['hits']['total'], 1)
 

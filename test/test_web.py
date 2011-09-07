@@ -58,6 +58,7 @@ class TestWeb(object):
         assert res.status == '200 OK', res.status
         assert 'Tolstoy' in res.data, res.data
 
+    '''query converter does not exist anymore
     def test_queryobject(self):
         indata = {
             'search': u'pitman',
@@ -71,5 +72,6 @@ class TestWeb(object):
         outdata = web.convert_query_dict_for_es(indata)
         assert_equal(outdata['size'], 10)
         assert_equal(outdata['terms'], {'collection': 'pitman2'})
+    '''
 
 

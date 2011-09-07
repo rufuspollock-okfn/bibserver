@@ -6,6 +6,10 @@ body {
   margin-top: 20px;
 }
 
+form{
+    display:inline;
+}
+
 /************************************
   * Flash notifications / messages
   ***********************************/
@@ -76,7 +80,7 @@ span.upload_label{
 .search_box {
   padding: 20px;
   padding-top: 20px;
-  width: 600px;
+  width: 650px;
   margin-left: auto;
   margin-right: auto;
 }

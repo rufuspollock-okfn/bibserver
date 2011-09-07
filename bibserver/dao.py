@@ -22,8 +22,8 @@ def init_db():
         pass
 
 def get_conn():
-    host = str(config['ELASTIC_SEARCH_HOST'])
-    db_name = config['ELASTIC_SEARCH_DB']
+    host = str(config["ELASTIC_SEARCH_HOST"])
+    db_name = config["ELASTIC_SEARCH_DB"]
     conn = pyes.ES([host])
     return conn, db_name
 
@@ -131,12 +131,14 @@ class DomainObject(UserDict.IterableUserDict):
             ourq = pyes.query.StringQuery(q, default_operator='AND')
         if terms:
             for term in terms:
-                termq = pyes.query.TermQuery(term, terms[term])
-                ourq = pyes.query.BoolQuery(must=[ourq,termq])
+                for val in terms[term]:
+                    termq = pyes.query.TermQuery(term, val)
+                    ourq = pyes.query.BoolQuery(must=[ourq,termq])
+
         ourq = ourq.search(**kwargs)
         if facet_fields:
             for field in facet_fields:
-                ourq.facet.add_term_facet(field)
+                ourq.facet.add_term_facet(field, size=100)
         out = conn.search(ourq, db, cls.__type__)
         return out
 
@@ -144,9 +146,8 @@ class DomainObject(UserDict.IterableUserDict):
     def raw_query(self, query_string):
         if not query_string:
             msg = json.dumps({
-                'error': "Query endpoint. Please provide elastic search <a href='%s'>query parameters.</a>" % (
-                    'http://www.elasticsearch.org/guide/reference/api/search/uri-request.html'
-                )})
+                'error': "Query endpoint. Please provide elastic search query parameters - see http://www.elasticsearch.org/guide/reference/api/search/uri-request.html"
+                })
             return msg
 
         host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
