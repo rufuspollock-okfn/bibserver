@@ -12,8 +12,11 @@
               <input type="hidden" name="a" value="${c['a']}" />
           % endif
           <input type="submit" name="submit_search" value="Search" />
-          <a class="btn" href="${c['config'].base_url}">clear</a>
       </form>
+      <form method="get" action="${c['config'].base_url}">
+            <input type="submit" name="submit" value="clear" />
+      </form>
+
   </div>
 </div>
 

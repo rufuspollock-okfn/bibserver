@@ -71,12 +71,16 @@ jQuery(document).ready(function() {
     jQuery(".facet_heading").bind('click',showfacets);
 
     // attach functionality to trigger rpp and page selections
-    /*jQuery('#paging_trigger').hide();
+    jQuery('#paging_trigger').remove();
     var rpp_select = function(event) {
-        $(this).closest("form").submit();
+        jQuery('#page_select').val($("#page_select option:first").val());
+        jQuery(this).closest('form').trigger('submit');
+    }
+    var page_select = function(event) {
+        jQuery(this).closest('form').trigger('submit');
     }
     jQuery('#rpp_select').bind('change',rpp_select);
-    jQuery('#page_select').bind('change',rpp_select);*/
+    jQuery('#page_select').bind('change',page_select);
 
     // redesign facet headers if they have no further options
     jQuery('.facet').each(function() {

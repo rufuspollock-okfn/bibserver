@@ -3,7 +3,7 @@ from datetime import datetime
 import urllib2
 from copy import deepcopy
 
-from flask import Flask, jsonify, json, request, redirect, abort
+from flask import Flask, jsonify, json, request, redirect, abort, make_response
 from flask.views import View, MethodView
 from flaskext.mako import init_mako, render_template
 
@@ -44,9 +44,9 @@ def record(collid,path):
 
 @app.route('/query', methods=['GET', 'POST'])
 def query():
-    out = bibserver.dao.Record.raw_query(request.query_string)
-    # data returned will be json or jsonp
-    return out
+    resp = make_response( bibserver.dao.Record.raw_query(request.query_string) )
+    resp.mimetype = "application/json"
+    return resp
 
 
 class UploadView(MethodView):

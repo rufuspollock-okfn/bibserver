@@ -44,6 +44,15 @@
 .paging {
     float:left;
 }
+.paging_submit_left{
+    margin:0 50px 0 0;
+}
+.paging_submit_right{
+    margin:0 0 0 50px;
+}
+.results_total{
+    padding:0 50px 0 0;
+}
 
 .current_sort_option {
     float: left;

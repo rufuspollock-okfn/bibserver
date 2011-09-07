@@ -27,6 +27,8 @@ class IOManager(object):
             myargs['terms'][field] = [value]
         if myargs.has_key('start'):
             del myargs['start']
+        if myargs.has_key('size'):
+            del myargs['size']
         j = json.dumps(myargs)
         return self.config.base_url + "?a=" + urllib2.quote(j)
         
