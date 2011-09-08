@@ -12,10 +12,9 @@ def load_config(path):
             c += line
     out = json.loads(c)
 
-    out["facet_fields_display"] = {}
-    for item in out["facet_fields"]:
-        out["facet_fields_display"][item + out["facet_field"]] = item
-    out["facet_fields"] = [field + out["facet_field"] for field in out["facet_fields"]]
+    # add some critical defaults if necessary
+    if 'facet_field' not in out:
+        out['facet_field'] = ''
 
     return out
 

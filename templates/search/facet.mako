@@ -1,9 +1,9 @@
 % for facet in c['io'].get_facet_fields():
-    % if c['io'].get_facet_display(facet) not in c['implicit_facet']:
+    % if facet not in c['implicit_facet']:
         <div class="facet">
         % if c['io'].has_values(facet):
             <div class="facet_heading">
-                <a href="" class="facet_heading" id="fh_${facet}"><span class="facet_pm">+&nbsp;</span>${c['io'].get_facet_display(facet)}</a>
+                <a href="" class="facet_heading" id="fh_${facet}"><span class="facet_pm">+&nbsp;</span>${facet}</a>
             </div>
             <div id="selected_${facet}" class="facet_value">
                         
@@ -33,7 +33,7 @@
                 
         % else:
             <div class="empty_facet">
-                <strong>${c['io'].get_facet_display(facet)}</strong>
+                <strong>${facet}</strong>
             </div>
         % endif
         </div>

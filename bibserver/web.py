@@ -125,7 +125,7 @@ if config["allow_upload"] == "YES":
 def search(path=''):
 
     # read args from config and params    
-    args = {"terms":{},"facet_fields" : config["facet_fields"]}
+    args = {"terms":{},"facet_fields" : [i + config["facet_field"] for i in config["facet_fields"]]}
     if 'from' in request.values:
         args['start'] = request.values.get('from')
     if 'size' in request.values:
@@ -136,7 +136,7 @@ def search(path=''):
     for param in request.values:
         if param in config["facet_fields"]:
             vals = json.loads(urllib2.unquote(request.values.get(param)))
-            args["terms"][param] = vals
+            args["terms"][param + config["facet_field"]] = vals
     
     # get implicit facet
     c = {'implicit_facet': {}}

@@ -13,6 +13,7 @@ class IOManager(object):
             'facet_fields': {}
             }
         for facet,data in self.results['facets'].items():
+            facet = facet.replace(self.config.facet_field,'')
             self.facet_counts['facet_fields'][facet] = {}
             for termdict in data['terms']:
                 self.facet_counts['facet_fields'][facet][termdict['term']] = termdict['count']
@@ -23,10 +24,9 @@ class IOManager(object):
     def get_safe_terms_object(self):
         terms = {}
         for term in self.args["terms"]:
-            terms[term] = '[' + ','.join('"{0}"'.format(i) for i in self.args['terms'][term]) + ']'                                
-        return terms
-        #return str(self.args["terms"]).replace('"','%22')
-    
+            if term.replace(self.config.facet_field,'') not in self.args["path"]:
+                terms[term.replace(self.config.facet_field,'')] = '[' + ','.join('"{0}"'.format(i) for i in self.args['terms'][term]) + ']'                                
+        return terms    
 
     
     def get_display_fields(self):
@@ -36,10 +36,7 @@ class IOManager(object):
         return self.config.facet_fields
 
     def get_facet_display(self, facet_name):
-        if self.config.facet_fields_display.has_key(facet_name):
-            return self.config.facet_fields_display[facet_name]
-        else:
-            return facet_name
+        return facet_name
     
     # run the desired method on a field content, to alter it for display
     def get_field_display(self, field, value):
@@ -62,12 +59,14 @@ class IOManager(object):
             param += 'q=' + myargs['q'] + '&'
         if 'terms' in myargs:
             for term in myargs['terms']:
-                val = '[' + ",".join(urllib2.quote('"{0}"'.format(i)) for i in myargs['terms'][term]) + ']'
-                param += term + '=' + val + '&'
+                if term.replace(self.config.facet_field,'') not in self.args["path"]:
+                    val = '[' + ",".join(urllib2.quote('"{0}"'.format(i)) for i in myargs['terms'][term]) + ']'
+                    param += term.replace(self.config.facet_field,'') + '=' + val + '&'
         return param
 
     def get_add_url(self, field, value):
         myargs = deepcopy(self.args)
+        field += self.config.facet_field
         if myargs['terms'].has_key(field):
             if value not in myargs['terms'][field]:
                 myargs['terms'][field].append(value)
@@ -78,6 +77,7 @@ class IOManager(object):
     def get_delete_url(self, field, value=None):
         myargs = deepcopy(self.args)
         if value is not None:
+            field  += self.config.facet_field
             myargs['terms'][field].remove(value)
             if len(myargs['terms'][field]) == 0:
                 del myargs['terms'][field]
@@ -92,12 +92,13 @@ class IOManager(object):
 
     def in_args(self, facet, value=None):
         if value is not None:
-            return self.args['terms'].has_key(facet) and value in self.args['terms'][facet]
+            return self.args['terms'].has_key(facet + self.config.facet_field) and value in self.args['terms'][facet + self.config.facet_field]
         else:
             return self.args['terms'].has_key(facet)
             
     def has_values(self, facet):
         if facet in self.config.facet_fields:
+            print len(self.facet_counts['facet_fields'][facet])
             return len(self.facet_counts['facet_fields'][facet]) > 0
         return False
 
