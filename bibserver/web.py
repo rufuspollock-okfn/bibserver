@@ -125,41 +125,24 @@ if config["allow_upload"] == "YES":
 @app.route('/<path:path>')
 def search(path=''):
     c = {}
-    
-    # get query params
-    params = request.values.items()
-    print params
-    
-    # get the args (if available) out of the request
-    a = request.values.get("a")
-    if a is not None:
-        a = urllib2.unquote(a)
-        c['a'] = urllib2.quote(a)
-        args = json.loads(a)
-    else:
-        args = {
-            "terms" : {},
-            "facet_fields" : config["facet_fields"],
-            "size" : config["default_results_per_page"],
-            "start" : 0
-        }
 
     c['config'] = bibserver.config.Config(config)
-    
+
+    # read args from config and params    
+    args = {"terms":{},"facet_fields" : config["facet_fields"]}
     if 'from' in request.values:
         args['start'] = request.values.get('from')
-        c['config'].start = request.values.get('from')
-    else:
-        c['config'].start = 0
-
     if 'size' in request.values:
         args['size'] = request.values.get('size')
-        c['config'].default_results_per_page = int(request.values.get('size'))
-    
     if 'q' in request.values:
-        args['q'] = request.values.get('q')
-    if 'q' in args:
-        c['q'] = args['q']
+        if len(request.values.get('q')) > 0:
+            args['q'] = request.values.get('q')
+            c['q'] = request.values.get('q')
+    for param in request.values:
+        if param in config["facet_fields"]:
+            vals = json.loads(request.values.get(param))
+            vals = [urllib2.unquote(i) for i in vals]
+            args["terms"][param] = vals
     
     # get implicit facet
     c['implicit_facet'] = {}
@@ -170,8 +153,6 @@ def search(path=''):
         bits = path.split('/')
         if len(bits) == 2:
             c['config'].base_url = '/' + path
-            if not args.has_key('terms'):
-                args['terms'] = {}
             args['terms'][bits[0]] = [bits[1]]
             c['implicit_facet'][bits[0]] = bits[1]
 

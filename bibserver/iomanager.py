@@ -8,8 +8,6 @@ class IOManager(object):
         self.results = results
         self.config = config
         self.args = args if args is not None else {}
-        # TODO: set from query args properly rather than hardcode
-        self.start = 0
         self.facet_counts = {
             'facet_fields': {}
             }
@@ -18,6 +16,16 @@ class IOManager(object):
             for termdict in data['terms']:
                 self.facet_counts['facet_fields'][facet][termdict['term']] = termdict['count']
 
+    def get_param(self,myargs):
+        param = '?'
+        if 'q' in myargs:
+            param += 'q=' + myargs['q'] + '&'
+        if 'terms' in myargs:
+            for term in myargs['terms']:
+                val = '[' + ",".join(urllib2.quote('"{0}"'.format(i)) for i in myargs['terms'][term]) + ']'
+                param += term + '=' + val + '&'
+        return param
+
     def get_add_url(self, field, value):
         myargs = deepcopy(self.args)
         if myargs['terms'].has_key(field):
@@ -25,12 +33,7 @@ class IOManager(object):
                 myargs['terms'][field].append(value)
         else:
             myargs['terms'][field] = [value]
-        if myargs.has_key('start'):
-            del myargs['start']
-        if myargs.has_key('size'):
-            del myargs['size']
-        j = json.dumps(myargs)
-        return self.config.base_url + "?a=" + urllib2.quote(j)
+        return self.config.base_url + self.get_param(myargs)
         
     def get_delete_url(self, field, value=None):
         myargs = deepcopy(self.args)
@@ -40,10 +43,7 @@ class IOManager(object):
                 del myargs['terms'][field]
         else:
             del myargs['terms'][field]
-        if myargs.has_key('start'):
-            del myargs['start']
-        j = json.dumps(myargs)
-        return self.config.base_url + "?a=" + urllib2.quote(j)
+        return self.config.base_url + self.get_param(myargs)
 
 
     def get_ordered_facets(self, facet):
@@ -69,10 +69,10 @@ class IOManager(object):
         return [rec['_source'] for rec in self.results['hits']['hits']]
 
     def page_size(self):
-        if "size" in self.args:
-            return self.args['size']
-        else:
-            return 10
+        return int(self.args.get("size",10))
+
+    def start(self):
+        return int(self.args.get('start',0))
 
     def get_str(self, result, field, raw=False):
         if result.get(field) is None:

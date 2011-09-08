@@ -1,37 +1,31 @@
 <div class="paging">
 
-    % if int(c['config'].start) >= int(c['results'].page_size()):
-    <form method="get" action="${c['config'].base_url}">
-          % if 'a' in c:
-              <input type="hidden" name="a" value="${c['a']}" />
-          % endif
+    % if int(c['results'].start()) >= c['results'].page_size():
+    <form method="get" action="">
           % if 'q' in c:
               <input type="hidden" name="q" value="${c['q']}" />
           % endif
-    <input type="hidden" name="from" value="${int(c['config'].start) - int(c['results'].page_size())}" />
-    <input type="hidden" name="size" value="${int(c['results'].page_size())}" />
+    <input type="hidden" name="from" value="${int(c['results'].start()) - c['results'].page_size()}" />
+    <input type="hidden" name="size" value="${c['results'].page_size()}" />
     <input type="submit" class="paging_submit_left" name="submit" value="previous" />
     </form>
     % endif
 
-    <form method="get" action="${c['config'].base_url}">
-          % if 'a' in c:
-              <input type="hidden" name="a" value="${c['a']}" />
-          % endif
+    <form method="get" action="">
           % if 'q' in c:
               <input type="hidden" name="q" value="${c['q']}" />
           % endif
     <select class="small" name="from" id="page_select">
 
-% for i in range(0, ( c['results'].numFound() / c['config'].default_results_per_page ) + 1):
-    % if (i * c['config'].default_results_per_page) == int(c['config'].start):
-    <option value="${i * c['config'].default_results_per_page}" selected>
+% for i in range(0, ( c['results'].numFound() / c['results'].page_size() ) + 1):
+    % if (i * c['results'].page_size()) == int(c['results'].start()):
+    <option value="${i * c['results'].page_size()}" selected>
     % else:
-    <option value="${i * c['config'].default_results_per_page}">
+    <option value="${i * c['results'].page_size()}">
     % endif
-    ${i * c['config'].default_results_per_page + 1} - 
-    % if i * c['config'].default_results_per_page + 1 + c['config'].default_results_per_page < c['results'].numFound():
-        ${i * c['config'].default_results_per_page + c['config'].default_results_per_page}
+    ${i * c['results'].page_size() + 1} - 
+    % if i * c['results'].page_size() + 1 + c['results'].page_size() < c['results'].numFound():
+        ${i * c['results'].page_size() + c['results'].page_size()}
     % else:
         ${c['results'].numFound()}
     % endif
@@ -58,15 +52,12 @@
     </form>
 
 
-    % if ( int(c['config'].start) + int(c['results'].page_size()) ) < c['results'].numFound():
-    <form method="get" action="${c['config'].base_url}">
-          % if 'a' in c:
-              <input type="hidden" name="a" value="${c['a']}" />
-          % endif
+    % if ( int(c['results'].start()) + int(c['results'].page_size()) ) < c['results'].numFound():
+    <form method="get" action="">
           % if 'q' in c:
               <input type="hidden" name="q" value="${c['q']}" />
           % endif
-    <input type="hidden" name="from" value="${int(c['config'].start) + int(c['results'].page_size())}" />
+    <input type="hidden" name="from" value="${int(c['results'].start()) + int(c['results'].page_size())}" />
     <input type="hidden" name="size" value="${int(c['results'].page_size())}" />
     <input type="submit" class="paging_submit_right" name="submit" value="next" />
     </form>

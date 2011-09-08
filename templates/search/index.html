@@ -2,18 +2,15 @@
 
 <div id="bibserver_search">
   <div class="search_box">
-      <form method="get" action="${c['config'].base_url}">
+      <form method="get" action="">
           % if 'q' in c:
-          <input type="text" name="q" value="${c['q']}" />
+          <input type="text" name="q" value='${c['q']}' />
           % else:
           <input type="text" name="q" />
-          % endif 
-          % if 'a' in c:
-              <input type="hidden" name="a" value="${c['a']}" />
           % endif
-          <input type="submit" name="submit_search" value="Search" />
+          <input type="submit" name="search" value="Search" />
       </form>
-      <form method="get" action="${c['config'].base_url}">
+      <form method="get" action="">
             <input type="submit" name="submit" value="clear" />
       </form>
 
