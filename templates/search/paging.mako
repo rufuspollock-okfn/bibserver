@@ -1,45 +1,47 @@
 <div class="paging">
 
-    % if int(c['results'].start()) >= c['results'].page_size():
+    % if int(c['io'].start()) >= c['io'].page_size():
     <form method="get" action="">
-          % if 'q' in c:
-              <input type="hidden" name="q" value="${c['q']}" />
-          % endif
-    <input type="hidden" name="from" value="${int(c['results'].start()) - c['results'].page_size()}" />
-    <input type="hidden" name="size" value="${c['results'].page_size()}" />
+          % for item in c['io'].get_safe_terms_object():
+          <input type="hidden" name="${item}" value='${c['io'].get_safe_terms_object()[item]}' />
+          % endfor
+          <input type="hidden" name="q" value="${c['io'].get_q()}" />
+    <input type="hidden" name="from" value="${int(c['io'].start()) - c['io'].page_size()}" />
+    <input type="hidden" name="size" value="${c['io'].page_size()}" />
     <input type="submit" class="paging_submit_left" name="submit" value="previous" />
     </form>
     % endif
 
     <form method="get" action="">
-          % if 'q' in c:
-              <input type="hidden" name="q" value="${c['q']}" />
-          % endif
+          % for item in c['io'].get_safe_terms_object():
+          <input type="hidden" name="${item}" value='${c['io'].get_safe_terms_object()[item]}' />
+          % endfor
+          <input type="hidden" name="q" value="${c['io'].get_q()}" />
     <select class="small" name="from" id="page_select">
 
-% for i in range(0, ( c['results'].numFound() / c['results'].page_size() ) + 1):
-    % if (i * c['results'].page_size()) == int(c['results'].start()):
-    <option value="${i * c['results'].page_size()}" selected>
+% for i in range(0, ( c['io'].numFound() / c['io'].page_size() ) + 1):
+    % if (i * c['io'].page_size()) == int(c['io'].start()):
+    <option value="${i * c['io'].page_size()}" selected>
     % else:
-    <option value="${i * c['results'].page_size()}">
+    <option value="${i * c['io'].page_size()}">
     % endif
-    ${i * c['results'].page_size() + 1} - 
-    % if i * c['results'].page_size() + 1 + c['results'].page_size() < c['results'].numFound():
-        ${i * c['results'].page_size() + c['results'].page_size()}
+    ${i * c['io'].page_size() + 1} - 
+    % if i * c['io'].page_size() + 1 + c['io'].page_size() < c['io'].numFound():
+        ${i * c['io'].page_size() + c['io'].page_size()}
     % else:
-        ${c['results'].numFound()}
+        ${c['io'].numFound()}
     % endif
     </option>
 % endfor
     
     </select>
 
-    <span class="results_total">of ${c['results'].numFound()} results. </span><span>Show </span>
+    <span class="io_total">of ${c['io'].numFound()} results. </span><span>Show </span>
 
     <select class="small" name="size" id="rpp_select">
 
-    % for rpp in c['config'].results_per_page_options:
-    %   if rpp == int(c['results'].page_size()):
+    % for rpp in c['io'].get_rpp_options():
+    %   if rpp == int(c['io'].page_size()):
         <option selected>${rpp}</option>
     %   else:
         <option value="${rpp}">${rpp}</option>
@@ -52,13 +54,14 @@
     </form>
 
 
-    % if ( int(c['results'].start()) + int(c['results'].page_size()) ) < c['results'].numFound():
+    % if ( int(c['io'].start()) + int(c['io'].page_size()) ) < c['io'].numFound():
     <form method="get" action="">
-          % if 'q' in c:
-              <input type="hidden" name="q" value="${c['q']}" />
-          % endif
-    <input type="hidden" name="from" value="${int(c['results'].start()) + int(c['results'].page_size())}" />
-    <input type="hidden" name="size" value="${int(c['results'].page_size())}" />
+          % for item in c['io'].get_safe_terms_object():
+          <input type="hidden" name="${item}" value='${c['io'].get_safe_terms_object()[item]}' />
+          % endfor
+          <input type="hidden" name="q" value="${c['io'].get_q()}" />
+    <input type="hidden" name="from" value="${int(c['io'].start()) + int(c['io'].page_size())}" />
+    <input type="hidden" name="size" value="${int(c['io'].page_size())}" />
     <input type="submit" class="paging_submit_right" name="submit" value="next" />
     </form>
     % endif

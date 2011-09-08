@@ -29,7 +29,7 @@ class TestWeb(object):
     def test_record(self):
         res = self.app.get('/collection/' + self.record["collection"][0] + '/' + self.record["citekey"])
         assert res.status == '200 OK', res.status
-        assert 'id - %s' % self.record.id in res.data, res.data
+        assert '%s' % self.record["citekey"] in res.data, res.data
 
     def test_upload(self):
         res = self.app.get('/upload')

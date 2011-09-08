@@ -1,26 +1,26 @@
-<% if c['results'].numFound() == 0:
+<% if c['io'].numFound() == 0:
     return
 %>
 
 <div class="list_view">
-    % for i in range(len(c['results'].set())):
+    % for i in range(len(c['io'].set())):
         <div class="list_result_${'odd' if i % 2 == 0 else 'even'}">
-            % for field in c['config'].display_fields:
-                % if c['results'].get_str(c['results'].set()[i], field) != "":
-                    <div class="list_result_field">${c['results'].get_str(c['results'].set()[i], field)}</div>
+            % for field in c['io'].get_display_fields():
+                % if c['io'].get_str(c['io'].set()[i], field) != "":
+                    <div class="list_result_field">${c['io'].get_str(c['io'].set()[i], field)}</div>
                 % endif
             % endfor
 
             <div class="list_result_hidden">
-            % for record in c['results'].set()[i]:
-                % if record not in c['config'].display_fields:
-                    <div class="list_result_field">${record} - ${c['results'].get_str(c['results'].set()[i], record)}</div>
+            % for record in c['io'].set()[i]:
+                % if record not in c['io'].get_display_fields():
+                    <div class="list_result_field">${record} - ${c['io'].get_str(c['io'].set()[i], record)}</div>
                 % endif
             % endfor
             </div>
 
         <div class="list_result_options list_result_hidden">
-            <a href="/collection/${c['results'].get_str(c['results'].set()[i], "collection", True)}/${c['results'].get_str(c['results'].set()[i], "citekey")}">View record</a> or search 
+            <a href="/collection/${c['io'].get_str(c['io'].set()[i], "collection", True)}/${c['io'].get_str(c['io'].set()[i], "citekey")}">View record</a> or search 
             <form action="/redirect" method="get">
             <select name="target">
                 <option value="http://www.google.com/search?q=">Google</option>
@@ -45,9 +45,9 @@
             </select>
              for 
             <select name="value">
-            % for record in c['results'].set()[i]:
+            % for record in c['io'].set()[i]:
                 % if record not in ["_rev","_id","score","collection"]:
-                    <option>${c['results'].get_str(c['results'].set()[i], record)}</option>
+                    <option>${c['io'].get_str(c['io'].set()[i], record)}</option>
                 % endif
             % endfor
             </select>

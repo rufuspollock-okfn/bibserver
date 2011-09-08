@@ -3,11 +3,10 @@
 <div id="bibserver_search">
   <div class="search_box">
       <form method="get" action="">
-          % if 'q' in c:
-          <input type="text" name="q" value='${c['q']}' />
-          % else:
-          <input type="text" name="q" />
-          % endif
+          <input type="text" name="q" value='${c['io'].get_q()}' />
+          % for item in c['io'].get_safe_terms_object():
+          <input type="hidden" name="${item}" value='${c['io'].get_safe_terms_object()[item]}' />
+          % endfor
           <input type="submit" name="search" value="Search" />
       </form>
       <form method="get" action="">
@@ -22,17 +21,17 @@
 % endfor
 
     <div id="navigation">
-        <%include file="facet-extra.mako"/>
+        <%include file="facet.mako"/>
     </div>
     
     <div id="panel">
     
-    % if c['results'].numFound() != 0:
+    % if c['io'].numFound() != 0:
         <%include file="paging.mako"/>
     % endif
 
     
-    % if c['results'].numFound() == 0:
+    % if c['io'].numFound() == 0:
         No results
     % else:
         
@@ -44,7 +43,7 @@
     </div>
 
     <div id="resultstrap">
-    ${c['results'].get_meta()}
+    ${c['io'].get_meta()}
     </div>
 
 <%include file="/footer.html"/>

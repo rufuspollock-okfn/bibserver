@@ -38,7 +38,7 @@ form{
   * Upload
   ***********************************/
 
-#bibsoup_upload{
+#bibsoup_box{
     clear:both;
     margin:100px 0 100px 0;
     padding:20px;
@@ -52,11 +52,11 @@ form{
     box-shadow: 3px 3px 10px #4444aa;
 }
 
-#bibsoup_upload h2{
+#bibsoup_box h2{
     padding:0 0 10px 0;
 }
 
-#bibsoup_upload p{
+#bibsoup_box p{
     padding:20px 0 20px 0;
 }
 

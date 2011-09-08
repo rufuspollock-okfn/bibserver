@@ -121,12 +121,8 @@ if config["allow_upload"] == "YES":
 
 
 @app.route('/search')
-@app.route('/search<path:path>')
 @app.route('/<path:path>')
 def search(path=''):
-    c = {}
-
-    c['config'] = bibserver.config.Config(config)
 
     # read args from config and params    
     args = {"terms":{},"facet_fields" : config["facet_fields"]}
@@ -137,28 +133,26 @@ def search(path=''):
     if 'q' in request.values:
         if len(request.values.get('q')) > 0:
             args['q'] = request.values.get('q')
-            c['q'] = request.values.get('q')
     for param in request.values:
         if param in config["facet_fields"]:
-            vals = json.loads(request.values.get(param))
-            vals = [urllib2.unquote(i) for i in vals]
+            vals = json.loads(urllib2.unquote(request.values.get(param)))
             args["terms"][param] = vals
     
     # get implicit facet
-    c['implicit_facet'] = {}
+    c = {'implicit_facet': {}}
     if path is not None and not path.startswith("/search"):
         path = path.strip()
         if path.endswith("/"):
             path = path[:-1]
         bits = path.split('/')
         if len(bits) == 2:
-            c['config'].base_url = '/' + path
             args['terms'][bits[0]] = [bits[1]]
             c['implicit_facet'][bits[0]] = bits[1]
 
     # get results and render
     results = bibserver.dao.Record.query(**args)
-    c['results'] = bibserver.iomanager.IOManager(results, c['config'], args)
+    args['path'] = path
+    c['io'] = bibserver.iomanager.IOManager(results, args)
     return render_template('search/index.html', c=c)
 
 
