@@ -20,9 +20,8 @@ init_mako(app)
 @app.route('/')
 def home():
     # get list of available collections
-    result = bibserver.dao.Record.query(q="*:*",facet_fields=["collection"],size=1)
-    colls = result.get("facets").get("collection").get("terms")
-    upload = False
+    result = bibserver.dao.Record.query(q="*:*",facet_fields=["collection"+config["facet_field"]],size=1)
+    colls = result["facets"]["collection"+config["facet_field"]]["terms"]
     return render_template('home/index.html', colls=colls, upload=config["allow_upload"] )
 
 

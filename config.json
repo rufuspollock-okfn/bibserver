@@ -9,28 +9,30 @@
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     "ELASTIC_SEARCH_DB" : "bibserver",
     
-    # identify how non-analyzed fields for faceting are differenetiated in the mappings
-    "facet_field" : ".exact",
-
+    # a dict of the ES mappings. identify by name, and include name as first object name
     "mappings" : {
         "record" : {
-            "dynamic_templates" : [
-                {
-                    "default" : {
-                        "match" : "*",
-                        "mapping" : {
-                            "type" : "multi_field",
-                            "fields" : {
-                                "{name}" : {"type" : "{dynamic_type}", "index" : "analyzed", "store" : "yes"},
-                                "exact" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "yes"}
+            "record" : {
+                "dynamic_templates" : [
+                    {
+                        "default" : {
+                            "match" : "*",
+                            "mapping" : {
+                                "type" : "multi_field",
+                                "fields" : {
+                                    "{name}" : {"type" : "{dynamic_type}", "index" : "analyzed", "store" : "yes"},
+                                    "exact" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "yes"}
+                                }
                             }
                         }
                     }
-                }
-            ]
+                ]
+            }
         }
     },
 
+    # identify how non-analyzed fields for faceting are differenetiated in the mappings
+    "facet_field" : ".exact",
     
     # UI template and result view type
     "template" : "bibserver.mako",
