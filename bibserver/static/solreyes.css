@@ -192,9 +192,8 @@
 }
 
 .facet_sorting{
-    text-decoration:underline;
-    color:#000;
-    margin:0 0 0 100px;
+    padding:0 3px 1px 3px;
+    margin:5px 0 5px 22px;
 }
 
 .facet_selected {

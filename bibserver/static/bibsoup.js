@@ -97,7 +97,7 @@ jQuery(document).ready(function() {
     });
     
     // add in-page sorting to the facet selections
-    var sorts = '<a class="facet_sorting" href="">sort</a>';
+    var sorts = '<a class="facet_sorting btn info" href="">a-z | hi-lo</a>';
     jQuery('div.facet_selected').after(sorts);
     jQuery('.facet_sorting').hide();
     var dosort = function(event) {

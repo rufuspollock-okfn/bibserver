@@ -146,7 +146,7 @@ def search(path=''):
             path = path[:-1]
         bits = path.split('/')
         if len(bits) == 2:
-            args['terms'][bits[0]] = [bits[1]]
+            args['terms'][bits[0]+config["facet_field"]] = [bits[1]]
             c['implicit_facet'][bits[0]] = bits[1]
 
     # get results and render
