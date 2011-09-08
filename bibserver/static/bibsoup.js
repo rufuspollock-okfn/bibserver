@@ -54,21 +54,6 @@ jQuery(document).ready(function() {
         }
     }
     jQuery('.list_result_field_showall').bind('click',showall);
-    
-    // do the facet list toggling
-    var showfacets = function(event) {
-        event.preventDefault();
-        if ( $(this).hasClass('opened') ) {
-            $(this).removeClass('opened');
-            $(this).parent().siblings('.facet_value').hide('slow');
-            $(this).children('.facet_pm').html('+&nbsp;');
-        } else {
-            $(this).addClass('opened');
-            $(this).parent().siblings('.facet_value').show('slow');
-            $(this).children('.facet_pm').html('-&nbsp;');
-        }
-    }
-    jQuery(".facet_heading").bind('click',showfacets);
 
     // attach functionality to trigger rpp and page selections
     jQuery('#paging_trigger').remove();
@@ -82,6 +67,25 @@ jQuery(document).ready(function() {
     jQuery('#rpp_select').bind('change',rpp_select);
     jQuery('#page_select').bind('change',page_select);
 
+    
+    // do the facet list toggling
+    jQuery('.facet_value').hide();
+    var showfacets = function(event) {
+        event.preventDefault();
+        if ( $(this).hasClass('opened') ) {
+            $(this).removeClass('opened');
+            $(this).parent().siblings('.facet_value').hide('slow');
+            $(this).siblings().next('.facet_sorting').hide('slow');
+            $(this).children('.facet_pm').html('+&nbsp;');
+        } else {
+            $(this).addClass('opened');
+            $(this).parent().siblings('.facet_value').show('slow');
+            $(this).siblings().next('.facet_sorting').show('slow');
+            $(this).children('.facet_pm').html('-&nbsp;');
+        }
+    }
+    jQuery(".facet_heading").bind('click',showfacets);
+
     // redesign facet headers if they have no further options
     jQuery('.facet').each(function() {
         if ( jQuery(this).children().last().children().size() < 1 ) {
@@ -91,6 +95,35 @@ jQuery(document).ready(function() {
             jQuery(this).children('.facet_heading').html(standard)
         }
     });
+    
+    // add in-page sorting to the facet selections
+    var sorts = '<a class="facet_sorting" href="">sort</a>';
+    jQuery('div.facet_selected').after(sorts);
+    jQuery('.facet_sorting').hide();
+    var dosort = function(event) {
+        event.preventDefault();
+        if (jQuery(this).hasClass('sorted')) {
+            if (jQuery(this).hasClass('reversed')) {
+                if (jQuery(this).hasClass('numbered')) {
+                    jQuery(this).next('ul.facet_value').children().tsort("span.count",{order:'desc'});
+                    jQuery(this).removeClass('numbered');
+                    jQuery(this).removeClass('reversed');
+                    jQuery(this).removeClass('sorted');
+                } else {
+                    jQuery(this).next('ul.facet_value').children().tsort("span.count");
+                    jQuery(this).addClass('numbered');
+                }
+            } else {
+                jQuery(this).next('ul.facet_value').children().tsort({order:'desc'});
+                jQuery(this).addClass('reversed');
+            }
+        } else {
+            jQuery(this).next('ul.facet_value').children().tsort();
+            jQuery(this).addClass('sorted');
+        }
+    }
+    jQuery('.facet_sorting').bind('click',dosort);
+
     
 });
 

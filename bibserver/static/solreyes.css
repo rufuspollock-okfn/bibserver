@@ -187,6 +187,17 @@
 }
 
 .facet_value {
+    padding-left: 0;
+    list-style-type:none;
+}
+
+.facet_sorting{
+    text-decoration:underline;
+    color:#000;
+    margin:0 0 0 100px;
+}
+
+.facet_selected {
     padding-left: 20px;
 }
 

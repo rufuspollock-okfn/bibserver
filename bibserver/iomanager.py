@@ -9,14 +9,14 @@ class IOManager(object):
         self.results = results
         self.config = bibserver.config.Config()
         self.args = args if args is not None else {}
-        self.facet_counts = {
-            'facet_fields': {}
-            }
+        self.facet_fields = {}
+        #print self.results['facets']
         for facet,data in self.results['facets'].items():
-            facet = facet.replace(self.config.facet_field,'')
-            self.facet_counts['facet_fields'][facet] = {}
-            for termdict in data['terms']:
-                self.facet_counts['facet_fields'][facet][termdict['term']] = termdict['count']
+            self.facet_fields[facet.replace(self.config.facet_field,'')] = data["terms"]
+            #facet = facet.replace(self.config.facet_field,'')
+            #self.facet_fields[facet] = {}
+            #for termdict in data['terms']:
+            #    self.facet_fields[facet][termdict['term']] = termdict['count']
 
     def get_q(self):
         return self.args.get('q','')
@@ -28,17 +28,9 @@ class IOManager(object):
                 terms[term.replace(self.config.facet_field,'')] = '[' + ','.join('"{0}"'.format(i) for i in self.args['terms'][term]) + ']'                                
         return terms    
 
-    
-    def get_display_fields(self):
-        return self.config.display_fields
 
-    def get_facet_fields(self):
-        return self.config.facet_fields
-
-    def get_facet_display(self, facet_name):
-        return facet_name
-    
     # run the desired method on a field content, to alter it for display
+    # see the bottom of this file for the collection of methods to run
     def get_field_display(self, field, value):
         if self.config.display_value_functions.has_key(field):
             d = self.config.display_value_functions[field]
@@ -49,9 +41,6 @@ class IOManager(object):
             return func(str(value), args)
         else:
             return value
-
-    def get_rpp_options(self):
-        return self.config.results_per_page_options
 
     def get_path_params(self,myargs):
         param = '/' + myargs["path"] + '?' if (myargs["path"] != '') else self.config.base_url + '?'
@@ -77,7 +66,7 @@ class IOManager(object):
     def get_delete_url(self, field, value=None):
         myargs = deepcopy(self.args)
         if value is not None:
-            field  += self.config.facet_field
+            field += self.config.facet_field
             myargs['terms'][field].remove(value)
             if len(myargs['terms'][field]) == 0:
                 del myargs['terms'][field]
@@ -86,34 +75,33 @@ class IOManager(object):
         return self.get_path_params(myargs)
 
 
-    def get_ordered_facets(self, facet):
-        if facet in self.config.facet_fields:
-            return sorted(self.facet_counts['facet_fields'][facet].iteritems(), key=operator.itemgetter(1), reverse=True)
-
-    def in_args(self, facet, value=None):
-        if value is not None:
-            return self.args['terms'].has_key(facet + self.config.facet_field) and value in self.args['terms'][facet + self.config.facet_field]
-        else:
-            return self.args['terms'].has_key(facet)
+    def in_args(self, facet, value):
+        return self.args['terms'].has_key(facet + self.config.facet_field) and value in self.args['terms'][facet + self.config.facet_field]
             
     def has_values(self, facet):
-        if facet in self.config.facet_fields:
-            print len(self.facet_counts['facet_fields'][facet])
-            return len(self.facet_counts['facet_fields'][facet]) > 0
-        return False
+        return facet in self.config.facet_fields and facet in self.facet_fields
+
+    def get_display_fields(self):
+        return self.config.display_fields
+
+    def get_facet_fields(self):
+        return self.config.facet_fields
+
+    def get_rpp_options(self):
+        return self.config.results_per_page_options
 
     def numFound(self):
         return int(self.results['hits']['total'])
-
-    def set(self):
-        '''Return list of search result items'''
-        return [rec['_source'] for rec in self.results['hits']['hits']]
 
     def page_size(self):
         return int(self.args.get("size",10))
 
     def start(self):
         return int(self.args.get('start',0))
+
+    def set(self):
+        '''Return list of search result items'''
+        return [rec['_source'] for rec in self.results['hits']['hits']]
 
     def get_str(self, result, field, raw=False):
         if result.get(field) is None:

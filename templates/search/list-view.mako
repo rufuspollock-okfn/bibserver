@@ -11,6 +11,12 @@
                 % endif
             % endfor
 
+            % if "type" in c['io'].set()[i]:
+            % for record in c['io'].set()[i]:
+                <div class="list_result_field">${record} - ${c['io'].get_str(c['io'].set()[i], record)}</div>
+            % endfor
+            % endif
+
             <div class="list_result_hidden">
             % for record in c['io'].set()[i]:
                 % if record not in c['io'].get_display_fields():
