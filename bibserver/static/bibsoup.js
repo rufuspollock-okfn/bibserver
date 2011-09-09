@@ -88,7 +88,7 @@ jQuery(document).ready(function() {
 
     // redesign facet headers if they have no further options
     jQuery('.facet').each(function() {
-        if ( jQuery(this).children().last().children().size() < 1 ) {
+        if ( jQuery(this).children().last().children().size() < 2 ) {
             jQuery(this).children('.facet_heading').children('a').children('.facet_pm').remove();
             var title = jQuery(this).children('.facet_heading').children('a').html();
             var standard = '<strong>' + title + '</strong>';

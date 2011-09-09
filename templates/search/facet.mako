@@ -1,3 +1,4 @@
+
 % for facet in c['io'].get_facet_fields():
     % if facet not in c['implicit_facet']:
         <div class="facet">

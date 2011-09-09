@@ -34,10 +34,6 @@
     # identify how non-analyzed fields for faceting are differenetiated in the mappings
     "facet_field" : ".exact",
     
-    # UI template and result view type
-    "template" : "bibserver.mako",
-    "result_view" : "list-view.mako",
-    
     # base URL of search service
     "base_url" : "/search",
     

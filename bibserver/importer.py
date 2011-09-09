@@ -28,12 +28,12 @@ class Importer(object):
         '''upload a list of collections from provided file locations
         colls_list looks like the pkg, so should have source for a URL, 
         or upfile for a local file'''
-        try:
-            for coll in colls_list["collections"]:
-                self.upload(coll)
-            return True
-        except:
-            return False
+#        try:
+        for coll in colls_list["collections"]:
+            self.upload(coll)
+        return True
+#        except:
+#            return False
     
     
     # index the content

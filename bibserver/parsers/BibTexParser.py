@@ -40,13 +40,13 @@ class BibTexParser(object):
     def read_bibitem(self, item):     ### returns a python dict
         d = {} 
         type_rest = string.split(item, '{' ,1)
-        d['BIBTYPE'] = string.upper(string.strip(type_rest[0]))
+        d['TYPE'] = string.upper(string.strip(type_rest[0]))
         try:
             rest = type_rest[1]
         except IndexError:
             d['ERROR'] = 'IndexError: nothing after first { in @' + item
             rest = ''
-        if d['BIBTYPE'] == 'STRING':
+        if d['TYPE'] == 'STRING':
         ###### Example:   @string{AnnAP = "Ann. Appl. Probab."}
             try:
                 key_val = string.split(rest,'=')
@@ -85,9 +85,9 @@ class BibTexParser(object):
                 (quote_count,br_count) = self.check_well_formed(current_field)
                 if quote_count == 0 and br_count == 0:
                     key_val = string.split(current_field,'=',1)
-                    key = key_val[0]
-                    val = key_val[1]
+                    key = key_val[0]                        
                     try:
+                        val = key_val[1]
                         d[self.add_key(key)] = self.add_val(val)
                     except IndexError:
                         d[self.add_key(key)] = ''
@@ -157,8 +157,8 @@ class BibTexParser(object):
         """ Add upper-cased key to keys dictionary """
         key = string.upper(string.strip(key))
         if key in self.keys_dict.keys():
-            return self.keys_dict[key]
-        else: return key
+            return unicode(self.keys_dict[key],'utf-8')
+        else: return unicode(key,'utf-8')
 
     def strip_quotes(self, instring):
         """Strip double quotes enclosing string"""
@@ -188,7 +188,7 @@ class BibTexParser(object):
         val = self.strip_quotes(val)
         val = self.strip_braces(val)
         val = self.string_subst(val)
-        return unicode(val,'8859')
+        return unicode(val,'utf-8')
 
 
 
@@ -200,12 +200,12 @@ class BibTexParser(object):
         meta = None
         
         for btrecord in btlist:            
-            bibtype = btrecord.get('BIBTYPE')
-            if bibtype == "COMMENT" and not has_meta:
+            typ = btrecord.get('TYPE')
+            if typ == "COMMENT" and not has_meta:
                 meta = self.get_meta(btrecord)
                 has_meta = True
             else:
-                if bibtype != "STRING":
+                if typ != "STRING":
                     bibjson = self.get_bibjson_object(btrecord)
                     self.jsonObj.append(bibjson)
         
@@ -228,20 +228,15 @@ class BibTexParser(object):
         for k, v in btrecord.iteritems():
             if k.lower() == "author":
                 if type(v) is not list:
-                    v = v.split(" and ")
+                    v = [i.strip() for i in v.split("and")]
             if k.lower() == "editor":
                 if type(v) is not list:
-                    v = v.split(" and ")
+                    v = [i.strip() for i in v.split("and")]
             if k.lower() == "pages":
-                if " -- " in v:
-                    v = v.replace(" -- "," to ")
-                elif " - " in v:
-                    v = v.replace(" - "," to ")
-                elif "--" in v:
-                    v = v.replace("--"," to ")
-                elif "-" in v:
-                    v = v.replace("-"," to ")
-            if k.lower() == "bibtype":
+                if "-" in v:
+                    p = [i.strip().strip('-') for i in v.split("-")]
+                    v = p[0] + ' to ' + p[-1]
+            if k.lower() == "type":
                 v = v.lower()
             bibjson[k.lower()] = v
         return bibjson

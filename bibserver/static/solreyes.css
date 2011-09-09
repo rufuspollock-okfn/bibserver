@@ -249,13 +249,13 @@
 }
 
 .list_result_odd {
-    background:#eee;
+    background:#f5f5f5;
     padding-left:3px;
     padding-bottom:15px;
 }
 
 .list_result_even {
-    background:#ddd;
+    background:#eeeeee;
     padding-left:3px;
     padding-bottom:15px;
 }
@@ -268,7 +268,6 @@
     clear:both;
     padding-top:5px;
     width:100%;
-    border-top:1px dotted #ccc;
 }
 
 .list_result_options select{
@@ -279,8 +278,12 @@
     display:inline;
 }
 
-.list_result_hidden {
+.list_result_hidden{
     display:none;
+}
+
+.list_table{
+    border-top:1px solid #ccc;
 }
 
 #resultstrap{

@@ -38,7 +38,7 @@ class IOManager(object):
             args = d[func_name]
             args["field"] = field
             func = globals()[func_name]
-            return func(str(value), args)
+            return func(str(value.encode('utf-8')), args)
         else:
             return value
 
@@ -49,7 +49,7 @@ class IOManager(object):
         if 'terms' in myargs:
             for term in myargs['terms']:
                 if term.replace(self.config.facet_field,'') not in self.args["path"]:
-                    val = '[' + ",".join(urllib2.quote('"{0}"'.format(i)) for i in myargs['terms'][term]) + ']'
+                    val = '[' + ",".join(urllib2.quote('"{0}"'.format(i.encode('utf-8'))) for i in myargs['terms'][term]) + ']'
                     param += term.replace(self.config.facet_field,'') + '=' + val + '&'
         return param
 
@@ -112,9 +112,9 @@ class IOManager(object):
             else:
                 return result.get(field)
         if hasattr(result.get(field), "append"):
-            return ", ".join([self.get_field_display(field, val) for val in result.get(field)])
+            return ", ".join([self.get_field_display(field, val) for val in result.get(field)]).decode('utf-8')
         else:
-            return self.get_field_display(field, result.get(field))
+            return self.get_field_display(field, result.get(field)).decode('utf-8')
         
     def get_meta(self):
         try:

@@ -88,20 +88,20 @@ class DomainObject(UserDict.IterableUserDict):
 
         If no id is supplied an uuid id will be created before saving.
         '''
-        try:
-            conn, db = get_conn()
-            for data in dataset:
-                if 'id' in data:
-                    id_ = data['id']
-                else:
-                    id_ = uuid.uuid4().hex
-                    data['id'] = id_
-                conn.index(data, db, cls.__type__, id_, bulk=True)
-            # refresh required after bulk index
-            conn.refresh()
-            return dataset
-        except:
-            return False
+#        try:
+        conn, db = get_conn()
+        for data in dataset:
+            if 'id' in data:
+                id_ = data['id']
+            else:
+                id_ = uuid.uuid4().hex
+                data['id'] = id_
+            conn.index(data, db, cls.__type__, id_, bulk=True)
+        # refresh required after bulk index
+        conn.refresh()
+        return dataset
+#        except:
+#            return False
     
     @classmethod
     def delete_by_query(cls, query):

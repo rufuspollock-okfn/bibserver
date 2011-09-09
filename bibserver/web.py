@@ -16,7 +16,6 @@ app = Flask(__name__)
 app.config['MAKO_DIR'] = 'templates'
 init_mako(app)
 
-
 @app.route('/')
 def home():
     # get list of available collections
@@ -66,16 +65,16 @@ class UploadView(MethodView):
         if self.validate(pkg):
             importer = bibserver.importer.Importer()
             try:
-                res = importer.upload(pkg)
-                if res != "DUPLICATE":
-                    if "collection" in pkg:
-                        return redirect('/collection/' + pkg["collection"])
-                    msg = "Your records were uploaded but no collection name could be discerned."
-                elif res == "DUPLICATE":
-                    msg = "The collection name you specified is already in use."
-                    msg += "<br />Please use another collection name."
-                else:
-                    msg = "Sorry! There was an indexing error. Please try again."                    
+            res = importer.upload(pkg)
+            if res != "DUPLICATE":
+                if "collection" in pkg:
+                    return redirect('/collection/' + pkg["collection"])
+                msg = "Your records were uploaded but no collection name could be discerned."
+            elif res == "DUPLICATE":
+                msg = "The collection name you specified is already in use."
+                msg += "<br />Please use another collection name."
+            else:
+                msg = "Sorry! There was an indexing error. Please try again."                    
             except:
                 msg = 'Sorry! There was an error indexing your collection. Please try again.'
         else:
