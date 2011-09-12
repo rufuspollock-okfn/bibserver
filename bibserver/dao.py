@@ -157,8 +157,11 @@ class DomainObject(UserDict.IterableUserDict):
             return msg
 
         host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
-        db_name = config['ELASTIC_SEARCH_DB']
-        fullpath = '/' + db_name + '/' + self.__type__ + '/_search' + '?' + query_string
+        db_path = config['ELASTIC_SEARCH_DB']
+        if "default_indices" in config:
+            if isinstance(config["default_indices"],list) and len(config["default_indices"]) > 0:
+                db_path = ",".join(config["default_indices"])
+        fullpath = '/' + db_path + '/' + self.__type__ + '/_search' + '?' + query_string
         c =  httplib.HTTPConnection(host)
         c.request('GET', fullpath)
         result = c.getresponse()
