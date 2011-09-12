@@ -121,7 +121,7 @@ class IOManager(object):
             coll = self.results['hits']['hits'][0]["_source"]["collection"]
             if isinstance(coll,list):
                 coll = coll[0]
-            res = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':' + coll + ' AND type:collection')
+            res = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':"' + coll + '" AND type:collection')
             rec = res["hits"]["hits"][0]["_source"]
             meta = "<p>"
             if "source" in rec:
