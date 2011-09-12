@@ -118,23 +118,26 @@ class IOManager(object):
         
     def get_meta(self):
         try:
-            coll = self.results['hits']['hits'][0]["_source"]["collection"]
-            if isinstance(coll,list):
-                coll = coll[0]
-            res = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':"' + coll + '" AND type:collection')
-            rec = res["hits"]["hits"][0]["_source"]
-            meta = "<p>"
-            if "source" in rec:
-                meta = 'The source of this collection is <a href="'
-                meta += rec["source"] + '">' + rec["source"] + '</a>. '
-            if "received" in rec:
-                meta += 'This collection was last updated on ' + rec["received"] + '. '
-            if "source" in rec:
-                meta += '<br />If changes have been made to the source file since then, '
-                meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["collection"]
-                meta += '">refresh this collection</a>.'
-            meta += '</p>'
-            return meta
+            if "collection/" in self.args['path']:
+                coll = self.results['hits']['hits'][0]["_source"]["collection"]
+                if isinstance(coll,list):
+                    coll = coll[0]
+                res = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':"' + coll + '" AND type:collection')
+                rec = res["hits"]["hits"][0]["_source"]
+                meta = "<p>"
+                if "source" in rec:
+                    meta = 'The source of this collection is <a href="'
+                    meta += rec["source"] + '">' + rec["source"] + '</a>. '
+                if "received" in rec:
+                    meta += 'This collection was last updated on ' + rec["received"] + '. '
+                if "source" in rec:
+                    meta += '<br />If changes have been made to the source file since then, '
+                    meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["collection"]
+                    meta += '">refresh this collection</a>.'
+                meta += '</p>'
+                return meta
+            else:
+                return ""
         except:
             return ""
         
