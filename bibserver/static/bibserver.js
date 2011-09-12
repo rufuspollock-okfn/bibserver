@@ -100,7 +100,6 @@ jQuery(document).ready(function() {
         } else {
             var href = target + value;
         }
-        alert(href);
         jQuery(this).attr('href',href);
     }
     jQuery('.submit_extsrch').bind('click',dosearch);
