@@ -28,6 +28,9 @@ def get_conn():
     host = str(config["ELASTIC_SEARCH_HOST"])
     db_name = config["ELASTIC_SEARCH_DB"]
     conn = pyes.ES([host])
+    if "default_indices" in config:
+        if isinstance(config["default_indices"],list) and len(config["default_indices"]) > 0:
+            conn.default_indices = config["default_indices"]
     return conn, db_name
 
 

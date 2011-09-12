@@ -8,6 +8,7 @@
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     "ELASTIC_SEARCH_DB" : "bibserver",
+    "default_indices": ["bibserver","medline"],
     
     # a dict of the ES mappings. identify by name, and include name as first object name
     "mappings" : {
