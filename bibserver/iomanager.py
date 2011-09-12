@@ -25,7 +25,7 @@ class IOManager(object):
         terms = {}
         for term in self.args["terms"]:
             if term.replace(self.config.facet_field,'') not in self.args["path"]:
-                terms[term.replace(self.config.facet_field,'')] = '[' + ','.join('"{0}"'.format(i) for i in self.args['terms'][term]) + ']'                                
+                terms[term.replace(self.config.facet_field,'')] = '[' + ','.join('"{0}"'.format(i) for i in self.args['terms'][term]) + ']'
         return terms    
 
 
@@ -38,7 +38,7 @@ class IOManager(object):
             args = d[func_name]
             args["field"] = field
             func = globals()[func_name]
-            return func(str(value.encode('utf-8')), args)
+            return func(value, args)
         else:
             return value
 
@@ -112,16 +112,16 @@ class IOManager(object):
             else:
                 return result.get(field)
         if hasattr(result.get(field), "append"):
-            return ", ".join([self.get_field_display(field, val) for val in result.get(field)]).decode('utf-8')
+            return ", ".join([self.get_field_display(field, val) for val in result.get(field)])
         else:
-            return self.get_field_display(field, result.get(field)).decode('utf-8')
+            return self.get_field_display(field, result.get(field))
         
     def get_meta(self):
         try:
             coll = self.results['hits']['hits'][0]["_source"]["collection"]
             if isinstance(coll,list):
                 coll = coll[0]
-            res = bibserver.dao.Record.query(q='collection:' + coll + ' AND type:collection')
+            res = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':' + coll + ' AND type:collection')
             rec = res["hits"]["hits"][0]["_source"]
             meta = "<p>"
             if "source" in rec:

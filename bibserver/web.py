@@ -64,19 +64,19 @@ class UploadView(MethodView):
         pkg = self.package()
         if self.validate(pkg):
             importer = bibserver.importer.Importer()
-            try:
-                res = importer.upload(pkg)
-                if res != "DUPLICATE":
-                    if "collection" in pkg:
-                        return redirect('/collection/' + pkg["collection"])
-                    msg = "Your records were uploaded but no collection name could be discerned."
-                elif res == "DUPLICATE":
-                    msg = "The collection name you specified is already in use."
-                    msg += "<br />Please use another collection name."
-                else:
-                    msg = "Sorry! There was an indexing error. Please try again."                    
-            except:
-                msg = 'Sorry! There was an error indexing your collection. Please try again.'
+#            try:
+            res = importer.upload(pkg)
+            if res != "DUPLICATE":
+                if "collection" in pkg:
+                    return redirect('/collection/' + pkg["collection"])
+                msg = "Your records were uploaded but no collection name could be discerned."
+            elif res == "DUPLICATE":
+                msg = "The collection name you specified is already in use."
+                msg += "<br />Please use another collection name."
+            else:
+                msg = "Sorry! There was an indexing error. Please try again."                    
+#            except:
+#                msg = 'Sorry! There was an error indexing your collection. Please try again.'
         else:
             msg = 'Your upload failed to validate. Please try again.'
         return render_template('upload.html', msg=msg)
@@ -138,14 +138,32 @@ def search(path=''):
     
     # get implicit facet
     c = {'implicit_facet': {}}
-    if path is not None and not path.startswith("/search"):
+    if path != '' and "search" not in path:
         path = path.strip()
         if path.endswith("/"):
             path = path[:-1]
         bits = path.split('/')
         if len(bits) == 2:
+            # its an implicit facet
             args['terms'][bits[0]+config["facet_field"]] = [bits[1]]
             c['implicit_facet'][bits[0]] = bits[1]
+        elif len(bits) == 1:
+            # send request through as an implicit facet on type, if said type exists
+            qry = 'type' + config["facet_field"] + ':' + bits[0]
+            check = bibserver.dao.Record.query(q=qry,size=1)
+            if check["hits"]["total"] != 0:
+                c['implicit_facet']["type"] = bits[0]
+                args['terms']["type"+config["facet_field"]] = [bits[0]]
+            else:
+                # otherwise just show a listing of the facet values for that key
+                if 'q' in args:
+                    qryval = args['q']
+                else:
+                    qryval = "*:*"
+                result = bibserver.dao.Record.query(q=qryval,facet_fields=[bits[0]+config["facet_field"]])
+                vals = result["facets"][bits[0]+config["facet_field"]]["terms"]
+                #return render_template('search/listing.html', vals=vals)
+        
 
     # get results and render
     results = bibserver.dao.Record.query(**args)
