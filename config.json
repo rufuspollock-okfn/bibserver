@@ -43,7 +43,11 @@
     "results_per_page_options" : [10, 20, 50, 100],
     
     # The fields for faceting on
-    "facet_fields" : ["collection","type","journal","author","year"],
+    "facet_fields" : ["collection","type","journal","author","person","year"],
+
+    # fields to offer result sorting on
+    # note these must not be multi-valued e.g. not list or object fields.
+    "sort_fields" : ["received","title","year","journal","url","source"],
 
     # fields to display as headers in search results
     "display_fields" : ["title","journal","author","doi","url"],
@@ -55,7 +59,8 @@
         "doi" : {"doiify" : {"resolver" : "http://dx.doi.org/"}},
         "url" : {"linkify" : {}},
         "author": {"searchify":{}},
-        "collection": {"implicify":{}}
+        "collection": {"implicify":{}},
+        "person": {"personify":{}}
     }
     
 }

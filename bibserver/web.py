@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 import urllib2
 from copy import deepcopy
+import unicodedata
 
 from flask import Flask, jsonify, json, request, redirect, abort, make_response
 from flask.views import View, MethodView
@@ -128,12 +129,15 @@ def search(path=''):
         args['start'] = request.values.get('from')
     if 'size' in request.values:
         args['size'] = request.values.get('size')
+    if 'sort' in request.values:
+        if request.values.get("sort") != "...":
+            args['sort'] = {request.values.get('sort')+config["facet_field"] : {"order" : request.values.get('order','asc')}}
     if 'q' in request.values:
         if len(request.values.get('q')) > 0:
             args['q'] = request.values.get('q')
     for param in request.values:
         if param in config["facet_fields"]:
-            vals = json.loads(urllib2.unquote(request.values.get(param)))
+            vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
             args["terms"][param + config["facet_field"]] = vals
     
     # get implicit facet

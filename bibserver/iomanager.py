@@ -25,7 +25,12 @@ class IOManager(object):
         terms = {}
         for term in self.args["terms"]:
             if term.replace(self.config.facet_field,'') not in self.args["path"]:
-                terms[term.replace(self.config.facet_field,'')] = '[' + ','.join('"{0}"'.format(i) for i in self.args['terms'][term]) + ']'
+                theterm = '['
+                for i in self.args['terms'][term]:
+                    theterm += '"' + i + '",'
+                theterm = theterm[:-1]
+                theterm += ']'
+                terms[term.replace(self.config.facet_field,'')] = theterm
         return terms    
 
 
@@ -90,12 +95,25 @@ class IOManager(object):
     def get_rpp_options(self):
         return self.config.results_per_page_options
 
+    def get_sort_fields(self):
+        return self.config.sort_fields
+
     def numFound(self):
         return int(self.results['hits']['total'])
 
     def page_size(self):
         return int(self.args.get("size",10))
 
+    def sorted_by(self):
+        if "sort" in self.args:
+            return self.args["sort"].keys()[0].replace(self.config.facet_field,"")
+        return ""
+
+    def sort_order(self):
+        if "sort" in self.args:
+            return self.args["sort"][self.args["sort"].keys()[0]]["order"]
+        return ""
+        
     def start(self):
         return int(self.args.get('start',0))
 
@@ -176,6 +194,10 @@ def searchify(value, dict):
 def implicify(value, dict):
     # for the given value, make it a link to an implicit facet URL
     return '<a href="/' + dict.get("field") + "/" + value + '" alt="go to ' + dict.get("field") + " - "  + value + '" title="go to ' + dict.get("field") + " - "  + value + '">' + value + '</a>'
+
+def personify(value, dict):
+    # for the given value, make it a link to a person URL
+    return '<a href="/person/' + value + '" alt="go to '  + value + ' record" title="go to ' + value + ' record">' + value + '</a>'
 
 def _get_location_pairs(message, start_sub, finish_sub):
     idx = 0

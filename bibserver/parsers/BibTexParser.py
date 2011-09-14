@@ -1,6 +1,7 @@
 import string
 import json
 import chardet
+import unicodedata
 
 class BibTexParser(object):
 
@@ -197,7 +198,8 @@ class BibTexParser(object):
         val = self.strip_braces(val)
         val = self.string_subst(val)
         #return unicode(val,'utf-8')
-        return val
+        return unicodedata.normalize('NFKD', val).encode('utf-8','ignore')
+        #return val
 
 
 

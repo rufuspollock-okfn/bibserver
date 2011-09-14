@@ -6,6 +6,7 @@
 import urllib2
 import re
 from cStringIO import StringIO
+import unicodedata
 
 from bibserver.parser import Parser
 import bibserver.dao
@@ -88,8 +89,9 @@ class Importer(object):
         if "collection" not in pkg:
             # build collection name from source URL
             if "source" in pkg:
-                derived_name = pkg["source"].replace("http://","").replace("https://","").replace("/","").replace(".","").replace("~","")
-                pkg["collection"] = derived_name
+                #derived_name = pkg["source"].replace("http://","").replace("https://","").replace("/","").replace(".","").replace("~","")
+                #pkg["collection"] = derived_name
+                pkg["collection"] = pkg["source"]
 
             # build collection name from source URL
             elif "email" in pkg and pkg["email"] is not None:
@@ -118,6 +120,9 @@ class Importer(object):
                 # if no package collection name, try to find one in the provided records
                 if "collection" in data[index]:
                     pkg["collection"] = data[index]["collection"]
+            
+            # look for people records
+            data[index] = self.parse_people(data[index])
 
         # add the package info to the collection
         pkg["type"] = "collection"
@@ -133,38 +138,57 @@ class Importer(object):
         return data, pkg
 
 
-    # THE FOLLOWING ARE NOT USED
-
-    # parse potential people names out of a collection file
+    # parse potential people out of a record
     # check if they have a person record in bibsoup
     # if not create one
     # append person IDs to a person attribute of every record
-    def parse_people(self,data):
-        for record in data:
-            if "person" in record:
-                return record
-
+    def parse_people(self,record):
+        if "person" not in record:
             record["person"] = []
-            if "author" in record:
-                for author in record["author"]:
-                    person = self.do_person(author)
-                    if person not in record["person"]:
-                        record["person"].append( person )
-            if "advisor" in record:
-                for advisor in record["advisor"]:
-                    person = self.do_person(advisor)
-                    if person not in record["person"]:
-                        record["person"].append( person )
-
+        if "author" in record:
+            record["person"].extend(self.do_people(record["author"]))
+        if "advisor" in record:
+            record["person"].extend(self.do_people(record["advisor"]))
+        if "editor" in record:
+            record["person"].extend(self.do_people(record["editor"]))
+        return record
     
-    # find the person in the index and return their ID
-    # or create a new one and return the new ID
-    # on new creation, write a file to the store too
-    def do_person(self,person):
-        return person
-                    
+    def do_people(self,people):
+        persons = []
+        if isinstance(people,str):
+            persons = self.do_person(people)
+        if isinstance(people,list):
+            for person in people:
+                persons.append(self.do_person(person))
+        return persons
+    
+    def do_person(self,person_string):
+        results = bibserver.dao.Record.query(q='type.exact:"person" AND alias.exact:"' + person_string + '"')
+        if results["hits"]["total"] != 0:
+            return results["hits"]["hits"][0]["_source"]["person"]
 
+        looseresults = bibserver.dao.Record.query(q='type.exact:"person" AND "*' + person_string + '*"',flt=True,fields=["person"])
+        if looseresults["hits"]["total"] != 0:
+            tid = looseresults["hits"]["hits"][0]["_id"]
+            data = bibserver.dao.Record.get(tid)
+            if person_string not in data["alias"]:
+                data["alias"].append(person_string)
+            # pyes does not seem to be accepting updates - I could be doing it wrong...
+            #bibserver.dao.Record.upsert(data)
+            import httplib
+            import json
+            host = "127.0.0.1:9200"
+            db_name = "bibserver"
+            fullpath = '/' + db_name + '/record/' + tid
+            c =  httplib.HTTPConnection(host)
+            c.request('PUT', fullpath, json.dumps(data))
+            c.getresponse()
 
+            return data["person"]
 
+        ident = person_string.replace(" ","").replace(",","").replace(".","")
+        data = {"person":ident,"type":"person","alias":[person_string]}
+        bibserver.dao.Record.upsert(data)
+        return ident
 
 

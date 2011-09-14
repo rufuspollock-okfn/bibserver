@@ -60,7 +60,8 @@ class DomainObject(UserDict.IterableUserDict):
         conn, db = get_conn()
         try:
             out = conn.get(db, cls.__type__, id_)
-            return cls(**out['_source'])
+            #return cls(**out['_source'])
+            return out["_source"]
         except pyes.exceptions.ElasticSearchException, inst:
             if inst.status == 404:
                 return None
@@ -122,7 +123,7 @@ class DomainObject(UserDict.IterableUserDict):
             return False
         
     @classmethod
-    def query(cls, q='', terms=None, facet_fields=None, **kwargs):
+    def query(cls, q='', terms=None, facet_fields=None, flt=False, **kwargs):
         '''Perform a query on backend.
 
         :param q: maps to query_string parameter.
@@ -134,7 +135,10 @@ class DomainObject(UserDict.IterableUserDict):
         if not q:
             ourq = pyes.query.MatchAllQuery()
         else:
-            ourq = pyes.query.StringQuery(q, default_operator='AND')
+            if flt:
+                ourq = pyes.query.FuzzyLikeThisQuery(like_text=q,**kwargs)
+            else:
+                ourq = pyes.query.StringQuery(q, default_operator='AND')
         if terms:
             for term in terms:
                 for val in terms[term]:

@@ -7,6 +7,13 @@
           % for item in c['io'].get_safe_terms_object():
           <input type="hidden" name="${item}" value='${c['io'].get_safe_terms_object()[item]}' />
           % endfor
+          % if c['io'].page_size() != 10:
+              <input type="hidden" name="size" value="${c['io'].page_size()}" />
+          % endif
+          % if c['io'].sorted_by() != "":
+              <input type="hidden" name="sort" value="${c['io'].sorted_by()}" />
+              <input type="hidden" name="order" value="${c['io'].sort_order()}" />
+          % endif
           <input type="submit" name="search" value="Search" />
       </form>
       <form method="get" action="">
