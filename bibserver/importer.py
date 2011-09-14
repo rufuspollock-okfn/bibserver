@@ -48,8 +48,14 @@ class Importer(object):
         
         # if allowed to index, then index (match source or email)
         if self.can_index(pkg):
+            # delete any old versions
             if "collection" in pkg:
-                bibserver.dao.Record.delete_by_query("collection:" + pkg["collection"])
+                bibserver.dao.Record.delete_by_query("collection.exact:" + pkg["collection"])
+            if "source" in pkg:
+                res = bibserver.dao.Record.query(q='source:"' + pkg["source"] + '" AND type:"collection"')
+                coll = res["hits"]["hits"][0]["_source"]["collection"]
+                if coll != pkg.get("collection",None):
+                    bibserver.dao.Record.delete_by_query("collection.exact:" + coll)
             # send the data list for bulk upsert
             return bibserver.dao.Record.bulk_upsert(data)
         else:
@@ -89,9 +95,9 @@ class Importer(object):
         if "collection" not in pkg:
             # build collection name from source URL
             if "source" in pkg:
-                #derived_name = pkg["source"].replace("http://","").replace("https://","").replace("/","").replace(".","").replace("~","")
-                #pkg["collection"] = derived_name
-                pkg["collection"] = pkg["source"]
+                derived_name = pkg["source"].replace("http://","").replace("https://","").replace("/","").replace(".","").replace("~","")
+                pkg["collection"] = derived_name
+                #pkg["collection"] = pkg["source"]
 
             # build collection name from source URL
             elif "email" in pkg and pkg["email"] is not None:
@@ -171,18 +177,10 @@ class Importer(object):
         if looseresults["hits"]["total"] != 0:
             tid = looseresults["hits"]["hits"][0]["_id"]
             data = bibserver.dao.Record.get(tid)
-            if person_string not in data["alias"]:
-                data["alias"].append(person_string)
-            # pyes does not seem to be accepting updates - I could be doing it wrong...
-            #bibserver.dao.Record.upsert(data)
-            import httplib
-            import json
-            host = "127.0.0.1:9200"
-            db_name = "bibserver"
-            fullpath = '/' + db_name + '/record/' + tid
-            c =  httplib.HTTPConnection(host)
-            c.request('PUT', fullpath, json.dumps(data))
-            c.getresponse()
+            if "alias" in data:
+                if person_string not in data["alias"]:
+                    data["alias"].append(person_string)
+            bibserver.dao.Record.upsert(data)
 
             return data["person"]
 
