@@ -20,8 +20,12 @@ init_mako(app)
 @app.route('/')
 def home():
     # get list of available collections
-    result = bibserver.dao.Record.query(q="*:*",facet_fields=["collection"+config["facet_field"]],size=1)
-    colls = result["facets"]["collection"+config["facet_field"]]["terms"]
+    try:
+        result = bibserver.dao.Record.query(q="type.exact:collection",sort={"received.exact":{"order":"desc"}})
+        if result["hits"]["total"] != 0:
+            colls = [i["_source"]["collection"] for i in result["hits"]["hits"]]
+    except:
+        colls = None
     return render_template('home/index.html', colls=colls, upload=config["allow_upload"] )
 
 

@@ -44,12 +44,13 @@ Install
 
 2. [optional] Create a virtualenv and enable it::
 
+    # in bash
     virtualenv {myenv}
     . {myenv}/bin/activate
 
 3. Get the source::
 
-    # by convention we put it in the virtualenv but you can be put anywhere
+    # by convention we put it in the virtualenv but you can put anywhere
     mkdir {myenv}/src
     git clone https://github.com/okfn/bibserver {myenv}/src/
 
@@ -58,7 +59,11 @@ Install
     # install Flask-Mako first (not in PyPI)
     pip install -e git+https://github.com/tzellman/flask-mako/#egg=Flask-Mako
 
+    # install other python modules
+    pip install pyes
+
     # now BibServer
+    # go to wherevevr you have the bibserver file, and enter it
     cd {myenv}/src/bibserver
     # do a development install from current directory
     pip install -e .
@@ -68,6 +73,7 @@ Install
 4. Run the webserver::
 
     # in the bibserver folder:
+    # don't worry, there is a bibserver subdirectory in bibserver, so this should run fine.
     python bibserver/web.py
 
 .. _ElasticSearch: http://www.elasticsearch.org/

@@ -9,7 +9,7 @@
       <!-- Example row of columns -->
       <div class="row">
         <div class="span-one-third column">
-          <h2>Search collections</h3>
+          <h2>Search records</h3>
           <p>Search shared collections and records. Find material relevant to your interests.</p>
           <p><a href="/search" class="btn">Search now &raquo;</a></p>
         </div>
@@ -24,8 +24,8 @@
           <h2>Recent Collections</h2>
           % if colls:
           <ul id="collections">
-          % for count,item in enumerate(colls):
-          <li><a href="/collection/${item.get("term")}">${item.get("term")} (${item.get("count")})</a></li>
+          % for item in colls:
+          <li><a href="/collection/${item}">${item}</a></li>
           % endfor
           </ul>
           % endif

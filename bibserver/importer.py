@@ -49,13 +49,20 @@ class Importer(object):
         # if allowed to index, then index (match source or email)
         if self.can_index(pkg):
             # delete any old versions
-            if "collection" in pkg:
-                bibserver.dao.Record.delete_by_query("collection.exact:" + pkg["collection"])
-            if "source" in pkg:
-                res = bibserver.dao.Record.query(q='source:"' + pkg["source"] + '" AND type:"collection"')
-                coll = res["hits"]["hits"][0]["_source"]["collection"]
-                if coll != pkg.get("collection",None):
-                    bibserver.dao.Record.delete_by_query("collection.exact:" + coll)
+            # should change this to do checks first, and save new ones, perhaps
+            try:
+                if "collection" in pkg:
+                    bibserver.dao.Record.delete_by_query("collection.exact:" + pkg["collection"])
+                if "source" in pkg:
+                    res = bibserver.dao.Record.query(q='source:"' + pkg["source"] + '" AND type:"collection"')
+                    if res["hits"]["total"] != 0:
+                        coll = res["hits"]["hits"][0]["_source"]["collection"]
+                    else:
+                        coll = ""
+                    if coll != pkg.get("collection",None):
+                        bibserver.dao.Record.delete_by_query("collection.exact:" + coll)
+            except:
+                pass
             # send the data list for bulk upsert
             return bibserver.dao.Record.bulk_upsert(data)
         else:
@@ -169,24 +176,27 @@ class Importer(object):
         return persons
     
     def do_person(self,person_string):
-        results = bibserver.dao.Record.query(q='type.exact:"person" AND alias.exact:"' + person_string + '"')
-        if results["hits"]["total"] != 0:
-            return results["hits"]["hits"][0]["_source"]["person"]
+        try:
+            results = bibserver.dao.Record.query(q='type.exact:"person" AND alias.exact:"' + person_string + '"')
+            if results["hits"]["total"] != 0:
+                return results["hits"]["hits"][0]["_source"]["person"]
 
-        looseresults = bibserver.dao.Record.query(q='type.exact:"person" AND "*' + person_string + '*"',flt=True,fields=["person"])
-        if looseresults["hits"]["total"] != 0:
-            tid = looseresults["hits"]["hits"][0]["_id"]
-            data = bibserver.dao.Record.get(tid)
-            if "alias" in data:
-                if person_string not in data["alias"]:
-                    data["alias"].append(person_string)
+            looseresults = bibserver.dao.Record.query(q='type.exact:"person" AND "*' + person_string + '*"',flt=True,fields=["person"])
+            if looseresults["hits"]["total"] != 0:
+                tid = looseresults["hits"]["hits"][0]["_id"]
+                data = bibserver.dao.Record.get(tid)
+                if "alias" in data:
+                    if person_string not in data["alias"]:
+                        data["alias"].append(person_string)
+                bibserver.dao.Record.upsert(data)
+
+                return data["person"]
+
+            ident = person_string.replace(" ","").replace(",","").replace(".","")
+            data = {"person":ident,"type":"person","alias":[person_string]}
             bibserver.dao.Record.upsert(data)
+            return ident
 
-            return data["person"]
-
-        ident = person_string.replace(" ","").replace(",","").replace(".","")
-        data = {"person":ident,"type":"person","alias":[person_string]}
-        bibserver.dao.Record.upsert(data)
-        return ident
-
+        except:
+            return []
 
