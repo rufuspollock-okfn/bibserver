@@ -1,0 +1,1 @@
+MAKO_DIR = 'templates'

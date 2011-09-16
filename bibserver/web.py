@@ -12,9 +12,8 @@ from bibserver.config import config
 import bibserver.iomanager
 import bibserver.importer
 
-app = Flask(__name__)
-app.config['MAKO_DIR'] = 'templates'
-init_mako(app)
+from bibserver.core import app
+
 
 @app.route('/')
 def home():
