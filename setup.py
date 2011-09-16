@@ -8,6 +8,7 @@ setup(
         "Flask==0.7.2",
         # need Flask-Mako from source. See README.rst.
         "Flask-Mako",
+        "Flask-Login",
         "pyes==0.16",
         # need solrpy from HEAD. See README.rst.
         "solrpy",

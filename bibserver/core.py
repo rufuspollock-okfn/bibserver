@@ -3,12 +3,15 @@ from flask import Flask
 
 from bibserver import default_settings
 from flaskext.mako import init_mako, render_template
+from flaskext.login import LoginManager, current_user
+login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
     configure_app(app)
     setup_error_email(app)
     init_mako(app)
+    login_manager.setup_app(app)
     return app
 
 def configure_app(app):

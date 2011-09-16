@@ -6,13 +6,24 @@ from copy import deepcopy
 from flask import Flask, jsonify, json, request, redirect, abort, make_response
 from flask.views import View, MethodView
 from flaskext.mako import init_mako, render_template
+from flaskext.login import login_user, current_user
 
 import bibserver.dao
 from bibserver.config import config
 import bibserver.iomanager
 import bibserver.importer
+from bibserver.core import app, login_manager
 
-from bibserver.core import app
+
+# NB: the decorator appears to kill the function for normal usage
+@login_manager.user_loader
+def load_account_for_login_manager(userid):
+    return bibserver.dao.Account.get(userid)
+
+@app.context_processor
+def set_current_user():
+    """ Set some template context globals. """
+    return dict(current_user=current_user)
 
 
 @app.route('/')

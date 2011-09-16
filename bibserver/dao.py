@@ -5,6 +5,8 @@ import UserDict
 import httplib
 
 import pyes
+from werkzeug import generate_password_hash, check_password_hash
+from flaskext.login import UserMixin
 
 from bibserver.config import config
 
@@ -173,4 +175,12 @@ class Record(DomainObject):
     __type__ = 'record'
 
 
+class Account(DomainObject, UserMixin):
+    __type__ = 'account'
+
+    def set_password(self, password):
+        self.data['password'] = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.data['password'], password)
 
