@@ -135,7 +135,7 @@ class Importer(object):
                     pkg["collection"] = data[index]["collection"]
             
             # look for people records
-            data[index] = self.parse_people(data[index])
+            #data[index] = self.parse_people(data[index])
 
         # add the package info to the collection
         pkg["type"] = "collection"

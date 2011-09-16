@@ -50,7 +50,7 @@
     "sort_fields" : ["received","title","year","journal","url","source"],
 
     # fields to display as headers in search results
-    "display_fields" : ["title","journal","author","doi","url"],
+    "display_fields" : ["author","title","journal","url"],
     
     # functions to perform on particular result fields on display
     "display_value_functions" : {

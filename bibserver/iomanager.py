@@ -126,11 +126,11 @@ class IOManager(object):
             return ""
         if raw:
             if hasattr(result.get(field), "append"):
-                return ", ".join([val for val in result.get(field)])
+                return " and ".join([val for val in result.get(field)])
             else:
                 return result.get(field)
         if hasattr(result.get(field), "append"):
-            return ", ".join([self.get_field_display(field, val) for val in result.get(field)])
+            return " and ".join([self.get_field_display(field, val) for val in result.get(field)])
         else:
             return self.get_field_display(field, result.get(field))
         
