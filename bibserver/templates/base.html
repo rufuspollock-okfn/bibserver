@@ -56,23 +56,24 @@
 
     <div class="container">
 
-    <% messages = get_flashed_messages(with_categories=True) %>
-    %if messages:
-      %for category, message in messages:
-        <div class="alert-message ${category}">
-          ${ message }
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {%if messages %}
+      {% for category, message in messages %}
+        <div class="alert-message {{category}}">
+          {{ message }}
         </div>
-      %endfor
-    %endif
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
 
-    %if msg:
+    {%if msg %}
         <div id="bibserver_msg">
-            <p> ${msg} </p>
+            <p> {{msg}} </p>
         </div>
-    %endif
+    {% endif %}
 
     <div class="content">
-      ${self.body()}
+      {% block content %}{% endblock %}
     </div> <!-- /content -->
 
     <footer>

@@ -6,8 +6,6 @@ setup(
     packages = find_packages(),
     install_requires = [
         "Flask==0.7.2",
-        # need Flask-Mako from source. See README.rst.
-        "Flask-Mako",
         "Flask-Login",
         "Flask-WTF",
         "pyes==0.16",

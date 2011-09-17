@@ -1,0 +1,32 @@
+<div class="list_view">
+    {% for i in range(c['io'].set()|length) %}
+        <div class="list_result_{{'odd' if i % 2 == 0 else 'even'}}">
+            {% for field in c['io'].get_display_fields() %}
+                {% if c['io'].get_str(c['io'].set()[i], field) != "" %}
+                    <div class="list_result_field">{{c['io'].get_str(c['io'].set()[i], field)|safe}}</div>
+                {% endif %}
+            {% endfor %}
+
+            {% if "type" in c['io'].set()[i] %}
+                {% if c['io'].set()[i]["type"] == "collection" or c['io'].set()[i]["type"] == "person" %}
+                    {% for record in c['io'].set()[i] %}
+                        <div class="list_result_field">{{record}} - {{c['io'].get_str(c['io'].set()[i], record)|safe}}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endif %}
+
+            <table class="list_result_hidden list_table">
+            {% for record in c['io'].set()[i] %}
+                <tr>
+                <td>{{record}}</td><td>{{c['io'].get_str(c['io'].set()[i], record)|safe}}</td>
+                </tr>
+            {% endfor %}
+            </table>
+
+            <div class="list_result_options list_result_hidden">
+                <a class="viewrecord" href="/collection/{{c['io'].get_str(c['io'].set()[i], "collection", True)|safe}}/{{c['io'].get_str(c['io'].set()[i], "citekey")|safe}}">View record</a>
+            </div>
+
+        </div>
+    {% endfor %}
+</div>

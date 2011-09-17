@@ -1,5 +1,5 @@
 from flask import Blueprint, request, url_for, flash, redirect
-from flaskext.mako import render_template
+from flask import render_template
 from flaskext.login import login_user, logout_user
 from flaskext.wtf import Form, TextField, PasswordField, validators
 
@@ -37,6 +37,8 @@ def login():
 
 @blueprint.route('/logout')
 def logout():
+    from flaskext.login import login_user, current_user
+    print 'XXXXXXXXXXXXXX', current_user
     logout_user()
     flash('You are now logged out', 'success')
     return redirect(url_for('home'))

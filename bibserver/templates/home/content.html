@@ -1,10 +1,12 @@
-<%inherit file="/base.html"/>
+{% extends "/base.html" %}
 
-% if page == "howto":
+{% block content %}
+
+{% if page == "howto" %}
 <div class="page-header">
   <h1>HowTo and FAQ!</h1>
 </div>
 <p>This website is an example of the BibServer software. It is an early stages example, so there is no more information here yet. However, you can find more details at our project website:</p>
 <p><a href="http://bibserver.okfn.org">http://bibserver.okfn.org</a></p>
-% endif
-
+{% endif %}
+{% endblock %}

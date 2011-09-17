@@ -1,10 +1,14 @@
-<%include file="/header.html"/>
-<%namespace name="helpers" file="/_formhelpers.html" />
+{% extends "base.html" %}
 
-  <form method="post" action="${url_for('account.register')}">
-      ${ helpers.render_field(form.username, placeholder="myusername") }
-      ${ helpers.render_field(form.email, placeholder="hello@mywebsite.org") }
-      ${ helpers.render_field(form.password, placeholder="********") }
-      ${ helpers.render_field(form.confirm, placeholder="********") }
+{% block content %}
+{% from "_formhelpers.html" import render_field %}
+
+  <form method="post" action="{{url_for('account.register')}}">
+      {{ render_field(form.username, placeholder="myusername") }}
+      {{ render_field(form.email, placeholder="hello@mywebsite.org") }}
+      {{ render_field(form.password, placeholder="********") }}
+      {{ render_field(form.confirm, placeholder="********") }}
     <input type="submit" value="Signup" class="btn" />
   </form>
+{% endblock %}
+

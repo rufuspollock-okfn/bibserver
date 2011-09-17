@@ -1,6 +1,6 @@
-<%inherit file="/base.html"/>
+{% extends "base.html" %}
 
-
+{% block content %}
       <div class="hero-unit">
         <h1>Welcome to BibSoup!</h1>
         <p>BibSoup makes it easy to find, manage and share bibliographies.</p>
@@ -14,22 +14,23 @@
           <p>Search shared collections and records. Find material relevant to your interests.</p>
           <p><a href="/search" class="btn">Search now &raquo;</a></p>
         </div>
-        % if upload == "YES":
+        {% if upload == "YES" %}
         <div class="span-one-third column">
           <h2>Upload your collection</h2>
           <p>Build collections for your group, for your research, for your students; share them with everyone. Collections can be created from your own files, such as BibTex, and then be managed online or re-exported.</p>
           <p><a href="/upload" class="btn">Upload now &raquo;</a></p>
         </div>
-        % endif
+        {% endif %}
         <div class="span-one-third column">
           <h2>Recent Collections</h2>
-          % if colls:
+          {% if colls %}
           <ul id="collections">
-          % for item in colls:
-          <li><a href="/collection/${item}">${item}</a></li>
-          % endfor
+          {% for item in colls %}
+          <li><a href="/collection/{{item}}">{{item}}</a></li>
+          {% endfor %}
           </ul>
-          % endif
+          {% endif %}
           <p><a href="/collection" class="btn">See more &raquo;</a></p>
         </div>
       </div>
+{% endblock %}

@@ -1,19 +1,21 @@
-<%inherit file="/base.html"/>
+{% extends "/base.html" %}
+
+{% block content %}
 
 <div id="bibserver_search">
   <div class="search_box">
       <form method="get" action="">
-          <input type="text" name="q" value='${c['io'].get_q()}' />
-          % for item in c['io'].get_safe_terms_object():
-          <input type="hidden" name="${item}" value='${c['io'].get_safe_terms_object()[item]}' />
-          % endfor
-          % if c['io'].page_size() != 10:
-              <input type="hidden" name="size" value="${c['io'].page_size()}" />
-          % endif
-          % if c['io'].sorted_by() != "":
-              <input type="hidden" name="sort" value="${c['io'].sorted_by()}" />
-              <input type="hidden" name="order" value="${c['io'].sort_order()}" />
-          % endif
+          <input type="text" name="q" value='{{c['io'].get_q()}}' />
+          {% for item in c['io'].get_safe_terms_object() %}
+          <input type="hidden" name="{{item}}" value='{{c['io'].get_safe_terms_object()[item]}}' />
+          {% endfor %}
+          {% if c['io'].page_size() != 10 %}
+              <input type="hidden" name="size" value="{{c['io'].page_size()}}" />
+          {% endif %}
+          {% if c['io'].sorted_by() != "" %}
+              <input type="hidden" name="sort" value="{{c['io'].sorted_by()}}" />
+              <input type="hidden" name="order" value="{{c['io'].sort_order()}}" />
+          {% endif %}
           <input type="submit" name="search" value="Search" />
       </form>
       <form method="get" action="">
@@ -23,33 +25,35 @@
   </div>
 </div>
 
-% for facet in c['implicit_facet']:
-    <h3>${facet} : <a href="/${facet}/${c['implicit_facet'][facet]}">${c['implicit_facet'][facet]}</a></h3>
-% endfor
+{% for facet in c['implicit_facet'] %}
+    <h3>{{facet}} : <a href="/{{facet}}/{{c['implicit_facet'][facet]}}">{{c['implicit_facet'][facet]}}</a></h3>
+{% endfor %}
 
     <div id="navigation">
-        <%include file="facet.mako"/>
+        {% include "search/facet.html" %}
     </div>
     
     <div id="panel">
     
-    % if c['io'].numFound() != 0:
-        <%include file="paging.mako"/>
-    % endif
+    {% if c['io'].numFound() != 0 %}
+      {% include "search/paging.html" %}
+    {% endif %}
 
     
-    % if c['io'].numFound() == 0:
+    {% if c['io'].numFound() == 0 %}
         No results
-    % else:
+    {% else %}
         
         <!-- the result set itself -->        
-        <%include file="list-view.mako"/>
+        {% include "search/list-view.html" %}
     
-    % endif
+    {% endif %}
 
     </div>
 
     <div id="resultstrap">
-    ${c['io'].get_meta()}
+    {{c['io'].get_meta()}}
     </div>
+{% endblock %}
+
 

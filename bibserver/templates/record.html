@@ -1,29 +1,31 @@
-<%inherit file="/base.html"/>
+{% extends "/base.html" %}
 
+{% block content %}
 <div id="bibsoup_box">
 <table>
-% for item in record:
+{% for item in record %}
 <tr>
-<td>${item}</td>
+<td>{{item}}</td>
 <td>
-% if isinstance(record[item],list):
-    % for count,each in enumerate(record[item]):
-        ${each}
-        % if count != len(record[item]) - 1:
+{% if isinstance(record[item],list) %}
+  {% for count,each in enumerate(record[item]) %}
+        {{each}}
+        {% if count != len(record[item]) - 1 %}
          and 
-        % endif
-    % endfor
-% elif isinstance(record[item],dict):
-    % for each in record[item]:
-        ${record[item][each]}
-    % endfor
-% else:
-    ${record[item]}
-% endif
+        {% endif %}
+    {% endfor %}
+{% elif isinstance(record[item],dict) %}
+    {% for each in record[item] %}
+        {{record[item][each]}}
+    {% endfor %}
+{% else %}
+    {{record[item]}}
+{% endif %}
 </td>
 </tr>
-% endfor
+{% endfor %}
 </table>
 
 </div>
+{% endblock %}
 

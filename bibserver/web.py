@@ -5,8 +5,8 @@ from copy import deepcopy
 import unicodedata
 
 from flask import Flask, jsonify, json, request, redirect, abort, make_response
+from flask import render_template
 from flask.views import View, MethodView
-from flaskext.mako import init_mako, render_template
 from flaskext.login import login_user, current_user
 
 import bibserver.dao
@@ -22,7 +22,9 @@ app.register_blueprint(account, url_prefix='/account')
 # NB: the decorator appears to kill the function for normal usage
 @login_manager.user_loader
 def load_account_for_login_manager(userid):
-    return bibserver.dao.Account.get(userid)
+    out = bibserver.dao.Account.get(userid)
+    print 'YYYYYYY', out
+    return out
 
 @app.context_processor
 def set_current_user():
