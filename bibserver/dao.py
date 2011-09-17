@@ -62,8 +62,7 @@ class DomainObject(UserDict.IterableUserDict):
         conn, db = get_conn()
         try:
             out = conn.get(db, cls.__type__, id_)
-            #return cls(**out['_source'])
-            return out["_source"]
+            return cls(**out['_source'])
         except pyes.exceptions.ElasticSearchException, inst:
             if inst.status == 404:
                 return None
