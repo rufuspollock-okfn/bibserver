@@ -104,7 +104,7 @@ jQuery(document).ready(function() {
     }
     jQuery('.submit_extsrch').bind('click',dosearch);
 
-    // attach functionality to trigger rpp and page selections
+    // attach functionality to trigger rpp, page, sort selections
     jQuery('#paging_trigger').remove();
     var rpp_select = function(event) {
         jQuery('#page_select').val($("#page_select option:first").val());
@@ -114,6 +114,8 @@ jQuery(document).ready(function() {
         jQuery(this).closest('form').trigger('submit');
     }
     jQuery('#rpp_select').bind('change',rpp_select);
+    jQuery('#sort_select').bind('change',rpp_select);
+    jQuery('#order_select').bind('change',rpp_select);
     jQuery('#page_select').bind('change',page_select);
 
     

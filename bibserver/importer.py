@@ -6,6 +6,7 @@
 import urllib2
 import re
 from cStringIO import StringIO
+import unicodedata
 
 from bibserver.parser import Parser
 import bibserver.dao
@@ -47,8 +48,21 @@ class Importer(object):
         
         # if allowed to index, then index (match source or email)
         if self.can_index(pkg):
-            if "collection" in pkg:
-                bibserver.dao.Record.delete_by_query("collection:" + pkg["collection"])
+            # delete any old versions
+            # should change this to do checks first, and save new ones, perhaps
+            try:
+                if "collection" in pkg:
+                    bibserver.dao.Record.delete_by_query("collection.exact:" + pkg["collection"])
+                if "source" in pkg:
+                    res = bibserver.dao.Record.query(q='source:"' + pkg["source"] + '" AND type:"collection"')
+                    if res["hits"]["total"] != 0:
+                        coll = res["hits"]["hits"][0]["_source"]["collection"]
+                    else:
+                        coll = ""
+                    if coll != pkg.get("collection",None):
+                        bibserver.dao.Record.delete_by_query("collection.exact:" + coll)
+            except:
+                pass
             # send the data list for bulk upsert
             return bibserver.dao.Record.bulk_upsert(data)
         else:
@@ -90,6 +104,7 @@ class Importer(object):
             if "source" in pkg:
                 derived_name = pkg["source"].replace("http://","").replace("https://","").replace("/","").replace(".","").replace("~","")
                 pkg["collection"] = derived_name
+                #pkg["collection"] = pkg["source"]
 
             # build collection name from source URL
             elif "email" in pkg and pkg["email"] is not None:
@@ -118,6 +133,9 @@ class Importer(object):
                 # if no package collection name, try to find one in the provided records
                 if "collection" in data[index]:
                     pkg["collection"] = data[index]["collection"]
+            
+            # look for people records
+            #data[index] = self.parse_people(data[index])
 
         # add the package info to the collection
         pkg["type"] = "collection"
@@ -133,38 +151,52 @@ class Importer(object):
         return data, pkg
 
 
-    # THE FOLLOWING ARE NOT USED
-
-    # parse potential people names out of a collection file
+    # parse potential people out of a record
     # check if they have a person record in bibsoup
     # if not create one
     # append person IDs to a person attribute of every record
-    def parse_people(self,data):
-        for record in data:
-            if "person" in record:
-                return record
-
+    def parse_people(self,record):
+        if "person" not in record:
             record["person"] = []
-            if "author" in record:
-                for author in record["author"]:
-                    person = self.do_person(author)
-                    if person not in record["person"]:
-                        record["person"].append( person )
-            if "advisor" in record:
-                for advisor in record["advisor"]:
-                    person = self.do_person(advisor)
-                    if person not in record["person"]:
-                        record["person"].append( person )
-
+        if "author" in record:
+            record["person"].extend(self.do_people(record["author"]))
+        if "advisor" in record:
+            record["person"].extend(self.do_people(record["advisor"]))
+        if "editor" in record:
+            record["person"].extend(self.do_people(record["editor"]))
+        return record
     
-    # find the person in the index and return their ID
-    # or create a new one and return the new ID
-    # on new creation, write a file to the store too
-    def do_person(self,person):
-        return person
-                    
+    def do_people(self,people):
+        persons = []
+        if isinstance(people,str):
+            persons = self.do_person(people)
+        if isinstance(people,list):
+            for person in people:
+                persons.append(self.do_person(person))
+        return persons
+    
+    def do_person(self,person_string):
+        try:
+            results = bibserver.dao.Record.query(q='type.exact:"person" AND alias.exact:"' + person_string + '"')
+            if results["hits"]["total"] != 0:
+                return results["hits"]["hits"][0]["_source"]["person"]
 
+            looseresults = bibserver.dao.Record.query(q='type.exact:"person" AND "*' + person_string + '*"',flt=True,fields=["person"])
+            if looseresults["hits"]["total"] != 0:
+                tid = looseresults["hits"]["hits"][0]["_id"]
+                data = bibserver.dao.Record.get(tid)
+                if "alias" in data:
+                    if person_string not in data["alias"]:
+                        data["alias"].append(person_string)
+                bibserver.dao.Record.upsert(data)
 
+                return data["person"]
 
+            ident = person_string.replace(" ","").replace(",","").replace(".","")
+            data = {"person":ident,"type":"person","alias":[person_string]}
+            bibserver.dao.Record.upsert(data)
+            return ident
 
+        except:
+            return []
 

@@ -3,9 +3,6 @@
     return
 %>
 
-
-
-
 <div class="list_view">
     % for i in range(len(c['io'].set())):
         <div class="list_result_${'odd' if i % 2 == 0 else 'even'}">
@@ -16,7 +13,7 @@
             % endfor
 
             % if "type" in c['io'].set()[i]:
-                % if c['io'].set()[i]["type"] == "collection":
+                % if c['io'].set()[i]["type"] == "collection" or c['io'].set()[i]["type"] == "person":
                     % for record in c['io'].set()[i]:
                         <div class="list_result_field">${record} - ${c['io'].get_str(c['io'].set()[i], record)}</div>
                     % endfor
