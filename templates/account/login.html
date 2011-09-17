@@ -1,0 +1,10 @@
+<%include file="/header.html"/>
+<%namespace name="helpers" file="/_formhelpers.html" />
+
+  <form method="post" action="">
+      ${ helpers.render_field(form.username, placeholder="your username") }
+      ${ helpers.render_field(form.password, placeholder="********") }
+    <input type="submit" value="Login" class="btn" />
+  </form>
+
+<%include file="/footer.html"/>

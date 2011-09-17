@@ -1,0 +1,10 @@
+<%include file="/header.html"/>
+<%namespace name="helpers" file="/_formhelpers.html" />
+
+  <form method="post" action="${url_for('account.register')}">
+      ${ helpers.render_field(form.username, placeholder="myusername") }
+      ${ helpers.render_field(form.email, placeholder="hello@mywebsite.org") }
+      ${ helpers.render_field(form.password, placeholder="********") }
+      ${ helpers.render_field(form.confirm, placeholder="********") }
+    <input type="submit" value="Signup" class="btn" />
+  </form>

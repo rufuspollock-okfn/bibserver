@@ -13,6 +13,9 @@ from bibserver.config import config
 import bibserver.iomanager
 import bibserver.importer
 from bibserver.core import app, login_manager
+from bibserver.view.account import blueprint as account
+
+app.register_blueprint(account, url_prefix='/account')
 
 
 # NB: the decorator appears to kill the function for normal usage
