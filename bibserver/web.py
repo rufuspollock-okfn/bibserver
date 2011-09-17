@@ -23,7 +23,6 @@ app.register_blueprint(account, url_prefix='/account')
 @login_manager.user_loader
 def load_account_for_login_manager(userid):
     out = bibserver.dao.Account.get(userid)
-    print 'YYYYYYY', out
     return out
 
 @app.context_processor

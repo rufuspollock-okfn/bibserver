@@ -37,8 +37,6 @@ def login():
 
 @blueprint.route('/logout')
 def logout():
-    from flaskext.login import login_user, current_user
-    print 'XXXXXXXXXXXXXX', current_user
     logout_user()
     flash('You are now logged out', 'success')
     return redirect(url_for('home'))
