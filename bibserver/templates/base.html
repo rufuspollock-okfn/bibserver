@@ -49,6 +49,21 @@
                 <input type="text" name="q" placeholder="search" />
               </form>
             </li>
+            {% if current_user.is_anonymous() %}
+            <li>
+              <a href="{{url_for('account.register')}}">Register</a>
+            </li>
+            <li>
+              <a href="{{url_for('account.login')}}">Login</a>
+            </li>
+            {% else %}
+            <li>
+              <a href="#"><strong>{{current_user.id}}</strong></a>
+            </li>
+            <li>
+              <a href="{{ url_for('account.logout') }}">Logout</a>
+            </li>
+            {% endif %}
           </ul>
         </div>
       </div>
@@ -56,11 +71,48 @@
 
     <div class="container">
 
-    %if msg:
-        <div id="bibserver_msg">
-            <p> ${msg} </p>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {%if messages %}
+      {% for category, message in messages %}
+        <div class="alert-message {{category}}">
+          {{ message }}
         </div>
-    %endif
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {%if msg %}
+        <div id="bibserver_msg">
+            <p> {{msg}} </p>
+        </div>
+    {% endif %}
 
     <div class="content">
+      {% block content %}{% endblock %}
+    </div> <!-- /content -->
 
+    <footer>
+      <div class="row">
+        <div class="span6">
+          <h4>About</h4>
+          <ul>
+            <li><a href="/content/howto">FAQ</a></li>
+            <li><a href="https://github.com/okfn/bibserver/issues">Feedback</a></li>
+            <li><a href="https://github.com/okfn/bibserver">Source Code</a></li>
+          </ul>
+        </div>
+        <div class="span5">
+          &nbsp;
+       </div>
+        <div class="span5">
+          <h4>Meta</h4>
+          <p>&copy; Open Knowlege Foundation 2011</p>
+          <p>Powered by <a href="http://bibserver.okfn.org">BibServer</a></p>
+        </div>
+      </div>
+    </footer>
+
+    </div> <!-- /container -->
+
+  </body>
+</html>

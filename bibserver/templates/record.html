@@ -1,0 +1,18 @@
+{% extends "/base.html" %}
+
+{% block content %}
+<div id="bibsoup_box">
+<table>
+{% for item in record %}
+<tr>
+<td>{{item}}</td>
+<td>
+  {{record[item]}}
+</td>
+</tr>
+{% endfor %}
+</table>
+
+</div>
+{% endblock %}
+

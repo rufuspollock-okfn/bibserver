@@ -56,9 +56,6 @@ Install
 
 3. Install the app::
 
-    # install Flask-Mako first (not in PyPI)
-    pip install -e git+https://github.com/tzellman/flask-mako/#egg=Flask-Mako
-
     # install other python modules
     pip install pyes
 

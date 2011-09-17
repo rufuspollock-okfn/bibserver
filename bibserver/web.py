@@ -5,17 +5,31 @@ from copy import deepcopy
 import unicodedata
 
 from flask import Flask, jsonify, json, request, redirect, abort, make_response
+from flask import render_template
 from flask.views import View, MethodView
-from flaskext.mako import init_mako, render_template
+from flaskext.login import login_user, current_user
 
 import bibserver.dao
 from bibserver.config import config
 import bibserver.iomanager
 import bibserver.importer
+from bibserver.core import app, login_manager
+from bibserver.view.account import blueprint as account
 
-app = Flask(__name__)
-app.config['MAKO_DIR'] = 'templates'
-init_mako(app)
+app.register_blueprint(account, url_prefix='/account')
+
+
+# NB: the decorator appears to kill the function for normal usage
+@login_manager.user_loader
+def load_account_for_login_manager(userid):
+    out = bibserver.dao.Account.get(userid)
+    return out
+
+@app.context_processor
+def set_current_user():
+    """ Set some template context globals. """
+    return dict(current_user=current_user)
+
 
 @app.route('/')
 def home():

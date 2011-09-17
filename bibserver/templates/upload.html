@@ -1,5 +1,6 @@
-<%include file="/header.html"/>
+{% extends "base.html" %}
 
+{% block content %}
 <div id="bibsoup_box">
     <form action="/upload" method="POST" enctype="multipart/form-data">
     
@@ -45,6 +46,5 @@
 
     </form>
 </div>
-
-<%include file="/footer.html"/>
+{% endblock %}
 
