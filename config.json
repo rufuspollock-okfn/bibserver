@@ -58,7 +58,6 @@
         "journal" : {"wrap" : {"start" : "<em>", "end" : "</em>"}},
         "doi" : {"doiify" : {"resolver" : "http://dx.doi.org/"}},
         "url" : {"linkify" : {}},
-        "author": {"searchify":{}},
         "collection": {"implicify":{}},
         "person": {"personify":{}}
     }

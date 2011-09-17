@@ -114,10 +114,6 @@ class Importer(object):
         
         for index,item in enumerate(data):
             
-            # strip the bibtex record for now
-            if data[index]["bibtex"]:
-                del data[index]["bibtex"]
-            
             # if collection name provided, check it is in each record, or add it if not
             if "collection" in pkg:
                 if "collection" in data[index]:
