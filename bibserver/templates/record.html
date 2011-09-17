@@ -7,20 +7,7 @@
 <tr>
 <td>{{item}}</td>
 <td>
-{% if isinstance(record[item],list) %}
-  {% for count,each in enumerate(record[item]) %}
-        {{each}}
-        {% if count != len(record[item]) - 1 %}
-         and 
-        {% endif %}
-    {% endfor %}
-{% elif isinstance(record[item],dict) %}
-    {% for each in record[item] %}
-        {{record[item][each]}}
-    {% endfor %}
-{% else %}
-    {{record[item]}}
-{% endif %}
+  {{record[item]}}
 </td>
 </tr>
 {% endfor %}
