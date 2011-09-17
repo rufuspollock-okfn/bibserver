@@ -1,3 +1,3 @@
-MAKO_DIR = 'templates'
+MAKO_DIR = 'bibserver/templates'
 SECRET_KEY = 'default-key'
 
