@@ -148,7 +148,7 @@ class IOManager(object):
                 meta = "<p>"
                 if "source" in rec:
                     meta = 'The source of this collection is <a href="'
-                    meta += rec["source"] + '">' + rec["source"] + '</a>. '
+                    meta += rec["source"] + '">' + rec["source"] + '</a>.<br /> '
                 if "received" in rec:
                     meta += 'This collection was last updated on ' + rec["received"] + '. '
                 if "source" in rec:

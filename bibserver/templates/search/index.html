@@ -52,7 +52,7 @@
     </div>
 
     <div id="resultstrap">
-    {{c['io'].get_meta()}}
+    {{c['io'].get_meta()|safe}}
     </div>
 {% endblock %}
 

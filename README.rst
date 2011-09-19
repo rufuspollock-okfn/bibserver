@@ -58,6 +58,8 @@ Install
 
     # install other python modules
     pip install pyes
+    pip install flask-login
+    pip install flask-WTF
 
     # now BibServer
     # go to wherevevr you have the bibserver file, and enter it
