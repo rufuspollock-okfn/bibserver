@@ -10,13 +10,8 @@ class IOManager(object):
         self.config = bibserver.config.Config()
         self.args = args if args is not None else {}
         self.facet_fields = {}
-        #print self.results['facets']
         for facet,data in self.results['facets'].items():
             self.facet_fields[facet.replace(self.config.facet_field,'')] = data["terms"]
-            #facet = facet.replace(self.config.facet_field,'')
-            #self.facet_fields[facet] = {}
-            #for termdict in data['terms']:
-            #    self.facet_fields[facet][termdict['term']] = termdict['count']
 
     def get_q(self):
         return self.args.get('q','')
@@ -128,12 +123,16 @@ class IOManager(object):
         if result.get(field) is None:
             return ""
         if raw:
-            if hasattr(result.get(field), "append"):
+            if isinstance(result.get(field), list):
                 return " and ".join([val for val in result.get(field)])
             else:
                 return result.get(field)
-        if hasattr(result.get(field), "append"):
+        if isinstance(result.get(field), list):
+            if isinstance(result.get(field)[0], dict):
+                return result.get(field)
             return " and ".join([self.get_field_display(field, val) for val in result.get(field)])
+        elif isinstance(result.get(field), dict):
+            return result.get(field)
         else:
             return self.get_field_display(field, result.get(field))
         
@@ -145,9 +144,14 @@ class IOManager(object):
                     coll = coll[0]
                 res = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':"' + coll + '" AND type:collection')
                 rec = res["hits"]["hits"][0]["_source"]
-                meta = "<p>"
+                sizer = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':"' + coll + '"')
+
+                print str(sizer["hits"]["total"])
+                meta = '<p><a href="/'
+                meta += self.args['path'] + '.json?size=' + str(sizer["hits"]["total"])
+                meta += '">Download this collection</a><br />'
                 if "source" in rec:
-                    meta = 'The source of this collection is <a href="'
+                    meta += 'The source of this collection is <a href="'
                     meta += rec["source"] + '">' + rec["source"] + '</a>.<br /> '
                 if "received" in rec:
                     meta += 'This collection was last updated on ' + rec["received"] + '. '

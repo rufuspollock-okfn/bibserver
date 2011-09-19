@@ -13,7 +13,12 @@ class BibTexParser(object):
             'keyw':'subjects',
             'authors':'author',
             'editors':'editor',
-            'urls':'links'
+            'url':'links',
+            'link':'links',
+            'urls':'links',
+            'keyword':'keywords',
+            'subjects':'keywords',
+            'subject':'keywords'
         }
 
     def parse(self, fileobj):
@@ -86,7 +91,7 @@ class BibTexParser(object):
         return record
 
 
-    '''alter some values based on what is available in other keys'''
+    '''alter some values to fit bibjson format'''
     def customisations(self,record):
         if 'eprint' in record and not 'year' in record: 
             yy = '????'
@@ -94,13 +99,39 @@ class BibTexParser(object):
             if len(ss) == 2: yy = ss[1][0:2]
             if yy[0] in ['0']: record['year'] = '20' + yy
             elif yy[0] in ['9']: record['year'] = '19' + yy
+        if "pages" in record:
+            if "-" in record["pages"]:
+                p = [i.strip().strip('-') for i in record["pages"].split("-")]
+                record["pages"] = p[0] + ' to ' + p[-1]
+        if "type" in record:
+            record["type"] = record["type"].lower()
+        if "author" in record:
+            record["author"] = self.getnames([i.strip() for i in record["author"].split(" and ")])
+        if "editor" in record:
+            record["editor"] = self.getnames([i.strip() for i in record["editor"].split(" and ")])
+        if "keywords" in record:
+            record["keywords"] = [i.strip() for i in record["keywords"].split(",")]
+        if "links" in record:
+            print record["links"]
+            if isinstance(record["links"],list):
+                links = record["links"]
+            else:
+                links = [i.strip() for i in record["links"].split("\n")]
+            record["links"] = []
+            for link in links:
+                parts = link.split(" ")
+                linkobj = { "url":parts[0] }
+                if len(parts) > 1:
+                    linkobj["anchor"] = parts[1]
+                if len(parts) > 2:
+                    linkobj["format"] = parts[2]
+                record["links"].append( linkobj )
         if 'doi' in record:
-            links = []
-            if 'links' in record:
-                links = record['links']
-            if 'doi' not in links:
-                links.append(record['doi'])
-            record['links'] = links
+            if 'links' not in record:
+                record['links'] = []
+            record["links"].append('http://dx.doi.org/' + record['doi'])
+                
+
         return record
 
     
@@ -138,7 +169,7 @@ class BibTexParser(object):
         return unicode(val)
 
     def add_val(self, key, val):
-        if val == {} or val == "" or val == "{}":
+        if val == {} or val == "" or val == "{}" or val == None:
             return ""
         """ Clean instring before adding to dictionary """
         val = self.strip_braces(val)
@@ -146,15 +177,15 @@ class BibTexParser(object):
         val = self.strip_braces(val)
         val = self.string_subst(val)
         """alter based on particular key types"""
-        if key == "pages":
-            if "-" in val:
-                p = [i.strip().strip('-') for i in val.split("-")]
-                val = p[0] + ' to ' + p[-1]
-        if key == "type":
-            val = val.lower()
-        if key == "author" or key == "editor":
-            val = self.getnames([i.strip() for i in val.split(" and ")])
-            return [unicodedata.normalize('NFKD', i).encode('utf-8','ignore') for i in val]
+#        if key == "pages":
+#            if "-" in val:
+#                p = [i.strip().strip('-') for i in val.split("-")]
+#                val = p[0] + ' to ' + p[-1]
+#        if key == "type":
+#            val = val.lower()
+#        if key == "author" or key == "editor":
+#            val = self.getnames([i.strip() for i in val.split(" and ")])
+#            return [unicodedata.normalize('NFKD', i).encode('utf-8','ignore') for i in val]
         return unicodedata.normalize('NFKD', val).encode('utf-8','ignore')
 
     def add_key(self, key):

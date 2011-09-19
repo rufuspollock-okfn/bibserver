@@ -12,10 +12,10 @@ class Parser(object):
 
         :return: a python dict json-i-fiable to bibjson.
         '''
-        if format == "bibtex":
+        if format == "bibtex" or format == "bib":
             parser = BibTexParser()
             data = parser.parse(fileobj)
-        elif format == "bibjson":
+        elif format == "bibjson" or format == "json":
             parser = JSONParser()
             data = parser.parse(fileobj)
         elif format == "csv" or format == "google":

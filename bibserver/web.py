@@ -50,12 +50,23 @@ def content(path):
 
 @app.route('/collection/<collid>/<path:path>')
 def record(collid,path):
+    JSON = False
+    if path.endswith(".json") or path.endswith(".bibjson"):
+        path = path.replace(".bibjson","").replace(".json","")
+        JSON = True
+
     res = bibserver.dao.Record.query(q='collection:"' + collid + '" AND citekey:"' + path + '"')
     if res["hits"]["total"] == 0:
         abort(404)
     if res["hits"]["total"] > 1:
         return render_template('record.html', msg="hmmm... there is more than one record in this collection with that id...")
     recorddict = res["hits"]["hits"][0]["_source"]
+    
+    if JSON:
+        resp = make_response( json.dumps( recorddict, indent=4 ) )
+        resp.mimetype = "application/json"
+        return resp
+
     return render_template('record.html', record=recorddict)
 
 
@@ -141,6 +152,11 @@ if config["allow_upload"] == "YES":
 @app.route('/<path:path>')
 def search(path=''):
 
+    JSON = False
+    if path.endswith(".json") or path.endswith(".bibjson"):
+        path = path.replace(".bibjson","").replace(".json","")
+        JSON = True
+
     # read args from config and params    
     args = {"terms":{},"facet_fields" : [i + config["facet_field"] for i in config["facet_fields"]]}
     if 'from' in request.values:
@@ -191,6 +207,12 @@ def search(path=''):
     results = bibserver.dao.Record.query(**args)
     args['path'] = path
     c['io'] = bibserver.iomanager.IOManager(results, args)
+
+    if JSON:
+        resp = make_response( json.dumps(c['io'].set(), indent=4 ) )
+        resp.mimetype = "application/json"
+        return resp
+
     return render_template('search/index.html', c=c)
 
 

@@ -1,0 +1,227 @@
+[
+    {
+        "bibnumber": "3.1", 
+        "school": "Dept. Prob. and Stat., University of Sheffield", 
+        "title": "Stopping time identities and limit theorems for Markov chains", 
+        "author": [
+            "Pitman, J W"
+        ], 
+        "collection": "pitnoid", 
+        "citekey": "p74t", 
+        "year": "1974", 
+        "keywords": [
+            "Stopping time", 
+            "Identities", 
+            "Markov chain", 
+            "Occupation time", 
+            "Rate of convergence", 
+            "Transition probabilities", 
+            "Coupling"
+        ], 
+        "type": "phdthesis"
+    }, 
+    {
+        "bibnumber": "9", 
+        "title": "Birth, death and conditioning of Markov chains", 
+        "journal": "Annals of Probability", 
+        "author": [
+            "Jacobsen, M", 
+            "Pitman, J W"
+        ], 
+        "mrclass": "60J10", 
+        "collection": "pitnoid", 
+        "volume": "5", 
+        "citekey": "jp77", 
+        "mrnumber": "MR0445613", 
+        "year": "1977", 
+        "keywords": [
+            "Path decomposition", 
+            "Conditioned process", 
+            "Conditional independence", 
+            "Markov chain", 
+            "Birth time", 
+            "Death time"
+        ], 
+        "type": "article", 
+        "pages": "430 to 450", 
+        "znumber": "0363.60052"
+    }, 
+    {
+        "bibnumber": "10", 
+        "title": "An extension of de Finetti's theorem", 
+        "journal": "Advances in Applied Probability", 
+        "author": [
+            "Pitman, J"
+        ], 
+        "collection": "pitnoid", 
+        "volume": "10", 
+        "citekey": "p78", 
+        "year": "1978", 
+        "type": "article", 
+        "pages": "268 to 270"
+    }, 
+    {
+        "bibnumber": "11", 
+        "title": "A pointwise ergodic theorem for the group of rational rotations", 
+        "journal": "Trans. Amer. Math. Soc.", 
+        "author": [
+            "Dubins, Lester E", 
+            "Pitman, Jim"
+        ], 
+        "mrclass": "60G42 (28D99)", 
+        "collection": "pitnoid", 
+        "volume": "251", 
+        "citekey": "dp79", 
+        "mrnumber": "MR531981", 
+        "year": "1980", 
+        "keywords": [
+            "Ergodic theory", 
+            "Rational rotation"
+        ], 
+        "type": "article", 
+        "pages": "299 to 308"
+    }, 
+    {
+        "bibnumber": "23", 
+        "title": "A decomposition of Bessel bridges", 
+        "journal": "Z. Wahrsch. Verw. Gebiete", 
+        "author": [
+            "Pitman, Jim", 
+            "Yor, Marc"
+        ], 
+        "mrclass": "60J60 (60J55)", 
+        "collection": "pitnoid", 
+        "volume": "59", 
+        "citekey": "py82", 
+        "mrnumber": "MR656509", 
+        "year": "1982", 
+        "keywords": [
+            "Bessel bridge", 
+            "Levy Khintchine representation", 
+            "Local time", 
+            "Ray Knight theorem", 
+            "Markov excursion", 
+            "Occupation time"
+        ], 
+        "type": "article", 
+        "pages": "425 to 457", 
+        "znumber": "0484.60062"
+    }, 
+    {
+        "bibnumber": "32", 
+        "title": "Comple\u0301ments a\u0300 l'e\u0301tude asymptotique des nombres de tours du mouvement brownien complexe autour d'un nombre fini de points", 
+        "journal": "C.R. Acad. Sc. Paris, Se\u0301rie I", 
+        "author": [
+            "Pitman, Jim", 
+            "Yor, Marc"
+        ], 
+        "mrclass": "60J65", 
+        "collection": "pitnoid", 
+        "volume": "305", 
+        "citekey": "py87", 
+        "mrnumber": "MR921145", 
+        "year": "1987", 
+        "keywords": [
+            "Planar Brownian motion", 
+            "Winding", 
+            "Asymptotic law"
+        ], 
+        "type": "article", 
+        "pages": "757 to 760"
+    }, 
+    {
+        "bibnumber": "35", 
+        "links": [
+            {
+                "url": "http://stat.berkeley.edu/users/pitman/further.asym.pdf"
+            }
+        ], 
+        "title": "Further asymptotic laws of planar Brownian motion", 
+        "journal": "Annals of Probability", 
+        "author": [
+            "Pitman, Jim", 
+            "Yor, Marc"
+        ], 
+        "mrclass": "60J65 (60F05 60G44)", 
+        "collection": "pitnoid", 
+        "volume": "17", 
+        "citekey": "py89", 
+        "mrnumber": "MR1009441", 
+        "year": "1989", 
+        "keywords": [
+            "Planar Brownian motion", 
+            "Winding", 
+            "Asymptotic law"
+        ], 
+        "type": "article", 
+        "pages": "965 to 1011", 
+        "znumber": "0686.60085"
+    }, 
+    {
+        "bibnumber": "34", 
+        "links": [
+            {
+                "url": "http://stat.berkeley.edu/users/pitman/arc.pdf"
+            }
+        ], 
+        "title": "The shortest planar arc of width one", 
+        "journal": "Amer. Math. Monthly", 
+        "author": [
+            "Adhikari, Ani", 
+            "Pitman, Jim"
+        ], 
+        "mrclass": "52A40", 
+        "collection": "pitnoid", 
+        "volume": "96, No 4", 
+        "citekey": "ap89", 
+        "mrnumber": "MR992078", 
+        "year": "1989", 
+        "keywords": [
+            "Planar arc", 
+            "Worm problem"
+        ], 
+        "type": "article", 
+        "pages": "309 to 327", 
+        "znumber": "0692.52001"
+    }, 
+    {
+        "bibnumber": "46.1", 
+        "title": "The two-parameter generalization of Ewens' random partition structure", 
+        "author": [
+            "Pitman, J"
+        ], 
+        "number": "345", 
+        "collection": "pitnoid", 
+        "citekey": "jp.ew", 
+        "year": "1992", 
+        "keywords": [
+            "Ewens sampling formula", 
+            "Two parameter family of partition structures", 
+            "Partition structure"
+        ], 
+        "type": "techreport", 
+        "institution": "Dept. Statistics, U.C. Berkeley"
+    }, 
+    {
+        "bibnumber": "48", 
+        "title": "Dilatations d'espace-temps, re\u0301arrangements des trajectoires browniennes, et quelques extensions d'une identite\u0301 de Knight", 
+        "journal": "C.R. Acad. Sci. Paris", 
+        "author": [
+            "Pitman, James W", 
+            "Yor, Marc"
+        ], 
+        "mrclass": "60J65", 
+        "collection": "pitnoid", 
+        "volume": "t. 316, Se\u0301rie I", 
+        "citekey": "py93c", 
+        "mrnumber": "MR1214423", 
+        "year": "1993", 
+        "keywords": [
+            "Random scaling", 
+            "Path rearrangement", 
+            "Knights identity"
+        ], 
+        "type": "article", 
+        "pages": "723 to 726"
+    }
+]

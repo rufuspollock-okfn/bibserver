@@ -27,6 +27,7 @@ jQuery(document).ready(function() {
         $('#fileformat').hide();
         var value = $(this).val();
         if (    value.substr(-4) != ".bib" && 
+                value.substr(-7) != ".bibtex" && 
                 value.substr(-4) != ".csv" && 
                 value.substr(-8) != ".bibjson" && 
                 value.substr(-5) != ".json"
