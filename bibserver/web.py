@@ -148,7 +148,7 @@ def search(path=''):
     if 'size' in request.values:
         args['size'] = request.values.get('size')
     if 'sort' in request.values:
-        if request.values.get("sort") != "...":
+        if request.values.get("sort") != "..." and request.values.get("sort") != "":
             args['sort'] = {request.values.get('sort')+config["facet_field"] : {"order" : request.values.get('order','asc')}}
     if 'q' in request.values:
         if len(request.values.get('q')) > 0:

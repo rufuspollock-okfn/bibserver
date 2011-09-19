@@ -104,6 +104,9 @@ class IOManager(object):
     def page_size(self):
         return int(self.args.get("size",10))
 
+    def paging_range(self):
+        return ( self.numFound() / self.page_size() ) + 1
+
     def sorted_by(self):
         if "sort" in self.args:
             return self.args["sort"].keys()[0].replace(self.config.facet_field,"")

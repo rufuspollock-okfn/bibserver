@@ -7,7 +7,7 @@
           <input type="hidden" name="{{item}}" value='{{c['io'].get_safe_terms_object()[item]}}' />
           {% endfor %}
           <input type="hidden" name="q" value="{{c['io'].get_q()}}" />
-    <input type="hidden" name="from" value="{{int(c['io'].start()) - c['io'].page_size()}}" />
+    <input type="hidden" name="from" value="{{c['io'].start() - c['io'].page_size()}}" />
     <input type="hidden" name="size" value="{{c['io'].page_size()}}" />
     <input type="hidden" name="sort" value="{{c['io'].sorted_by()}}" />
     <input type="hidden" name="order" value="{{c['io'].sort_order()}}" />
@@ -22,7 +22,7 @@
           <input type="hidden" name="q" value="{{c['io'].get_q()}}" />
     <select class="small" name="from" id="page_select">
 
-{% for i in range(0, ( c['io'].numFound() / c['io'].page_size() ) + 1) %}
+{% for i in range(0, c['io'].paging_range() ) %}
     {% if (i * c['io'].page_size()) == c['io'].start()|int %}
     <option value="{{i * c['io'].page_size()}}" selected>
     {% else %}
