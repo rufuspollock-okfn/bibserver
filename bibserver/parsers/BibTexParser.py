@@ -111,8 +111,7 @@ class BibTexParser(object):
             record["editor"] = self.getnames([i.strip() for i in record["editor"].split(" and ")])
         if "keywords" in record:
             record["keywords"] = [i.strip() for i in record["keywords"].split(",")]
-        if "links" in record:
-            print record["links"]
+        '''if "links" in record:
             if isinstance(record["links"],list):
                 links = record["links"]
             else:
@@ -125,11 +124,11 @@ class BibTexParser(object):
                     linkobj["anchor"] = parts[1]
                 if len(parts) > 2:
                     linkobj["format"] = parts[2]
-                record["links"].append( linkobj )
-        if 'doi' in record:
+                record["links"].append( linkobj )'''
+        '''if 'doi' in record:
             if 'links' not in record:
                 record['links'] = []
-            record["links"].append('http://dx.doi.org/' + record['doi'])
+            record["links"].append('http://dx.doi.org/' + record['doi'])'''
                 
 
         return record

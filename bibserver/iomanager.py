@@ -146,7 +146,6 @@ class IOManager(object):
                 rec = res["hits"]["hits"][0]["_source"]
                 sizer = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':"' + coll + '"')
 
-                print str(sizer["hits"]["total"])
                 meta = '<p><a href="/'
                 meta += self.args['path'] + '.json?size=' + str(sizer["hits"]["total"])
                 meta += '">Download this collection</a><br />'

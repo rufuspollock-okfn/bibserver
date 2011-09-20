@@ -126,22 +126,29 @@ class UploadView(MethodView):
             date received
         '''
         pkg = dict()
-
         if request.values.get("source"):
             pkg["source"] = urllib2.unquote(request.values.get("source"))
+            pkg["format"] = self.findformat(pkg["source"])
         if request.files.get('upfile'):
             pkg["upfile"] = request.files.get('upfile')
+            pkg["format"] = self.findformat(str(pkg["upfile"].filename))
         if request.values.get('data'):
             pkg["data"] = request.values['data']
-
         if request.values.get("collection"):
             pkg["collection"] = request.values.get("collection")
-        pkg["format"] = request.values.get('format', 'bibtex')
         pkg["email"] = request.values.get("email", None)
-
+        if "format" not in pkg:
+            pkg["format"] = request.values.get('format', 'bibtex')
         pkg["received"] = str(datetime.now())
-
         return pkg
+
+    def findformat(self,filename):
+        if filename.endswith(".json"): return "json"
+        if filename.endswith(".bibjson"): return "bibjson"
+        if filename.endswith(".bibtex"): return "bibtex"
+        if filename.endswith(".bib"): return "bibtex"
+        if filename.endswith(".csv"): return "csv"
+        return "bibtex"
 
 # enable upload unless not allowed in config
 if config["allow_upload"] == "YES":

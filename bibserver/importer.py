@@ -42,7 +42,6 @@ class Importer(object):
         '''index a file'''
         parser = Parser()
         data = parser.parse(pkg["fileobj"], pkg["format"])
-
         # prepare the data as required
         data, pkg = self.prepare(data,pkg)
         
@@ -112,14 +111,15 @@ class Importer(object):
                 pkg["collection"] = derived_name
 
         
+        provmeta = None
         for index,item in enumerate(data):
             
             # if collection name provided, check it is in each record, or add it if not
             if "collection" in pkg:
                 if "collection" in data[index]:
-                    if isinstance('List',data[index]["collection"]):
+                    if isinstance(data[index]["collection"],list):
                         data[index]["collection"] = data[index]["collection"].append(pkg["collection"])
-                    elif isinstance('String',data[index]["collection"]):
+                    elif isinstance(data[index]["collection"],str):
                         data[index]["collection"] = [data[index]["collection"],pkg["collection"]]
                     else:
                         data[index]["collection"] = pkg["collection"]
@@ -129,6 +129,11 @@ class Importer(object):
                 # if no package collection name, try to find one in the provided records
                 if "collection" in data[index]:
                     pkg["collection"] = data[index]["collection"]
+            
+            # find the collection metadata if already there
+            #if "type" in data[index] and data[index]["type"] == "collection":
+            #    provmeta = data[index]
+            #    del data[index]
             
             # look for people records
             #data[index] = self.parse_people(data[index])
@@ -142,6 +147,8 @@ class Importer(object):
             del metadata["fileobj"]
         if "upfile" in metadata:
             del metadata["upfile"]
+        if provmeta is not None:
+            metadata = dict( provmeta.items() + metadata.items() )
         data.insert(0,metadata)
         
         return data, pkg

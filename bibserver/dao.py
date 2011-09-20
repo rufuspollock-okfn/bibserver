@@ -93,8 +93,10 @@ class DomainObject(UserDict.IterableUserDict):
 
         If no id is supplied an uuid id will be created before saving.
         '''
+
 #        try:
         conn, db = get_conn()
+        count = 0
         for data in dataset:
             if 'id' in data:
                 id_ = data['id']
@@ -102,6 +104,8 @@ class DomainObject(UserDict.IterableUserDict):
                 id_ = uuid.uuid4().hex
                 data['id'] = id_
             conn.index(data, db, cls.__type__, id_, bulk=True)
+            count += 1
+            print count, id_
         # refresh required after bulk index
         conn.refresh()
         return dataset
