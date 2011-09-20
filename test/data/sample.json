@@ -132,9 +132,7 @@
     {
         "bibnumber": "35", 
         "links": [
-            {
-                "url": "http://stat.berkeley.edu/users/pitman/further.asym.pdf"
-            }
+            "http://stat.berkeley.edu/users/pitman/further.asym.pdf"
         ], 
         "title": "Further asymptotic laws of planar Brownian motion", 
         "journal": "Annals of Probability", 
@@ -160,9 +158,7 @@
     {
         "bibnumber": "34", 
         "links": [
-            {
-                "url": "http://stat.berkeley.edu/users/pitman/arc.pdf"
-            }
+            "http://stat.berkeley.edu/users/pitman/arc.pdf"
         ], 
         "title": "The shortest planar arc of width one", 
         "journal": "Amer. Math. Monthly", 
