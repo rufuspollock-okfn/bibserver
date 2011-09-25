@@ -108,7 +108,7 @@ class IOManager(object):
 
     def get_str(self, result, field, raw=False):
         res = result.get(field,"")
-        if len(res) == 0:
+        if not res:
             return ""
         if self.config.display_value_functions.has_key(field) and not raw:
             d = self.config.display_value_functions[field]

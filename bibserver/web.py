@@ -132,13 +132,13 @@ class UploadView(MethodView):
         if request.files.get('upfile'):
             pkg["upfile"] = request.files.get('upfile')
             pkg["format"] = self.findformat(str(pkg["upfile"].filename))
+        if request.values.get('format'):
+            pkg["format"] = request.values.get('format')
         if request.values.get('data'):
             pkg["data"] = request.values['data']
         if request.values.get("collection"):
             pkg["collection"] = request.values.get("collection")
         pkg["email"] = request.values.get("email", None)
-        if "format" not in pkg:
-            pkg["format"] = request.values.get('format', 'bibtex')
         pkg["received"] = str(datetime.now())
         return pkg
 
