@@ -22,17 +22,18 @@ class BibTexParser(object):
         }
 
     def parse(self, fileobj):
+        '''given a fileobject, parse it for bibtex records,
+        and pas them to the record parser'''
         records = []
         record = ""
         for line in fileobj:
-            if line.find('--BREAK--') >= 0:
+            if '--BREAK--' in line:
                 break
             else:
                 if line.strip().startswith('@'):
                     if record != "":
                         parsed = self.parse_record(record)
-                        # parsed can come back empty
-                        if len(parsed) != 0:
+                        if parsed:
                             records.append(parsed)
                     record = ""
                 if len(line.strip()) > 0:
@@ -40,59 +41,70 @@ class BibTexParser(object):
 
         if record != "":
             parsed = self.parse_record(record)
-            if len(parsed) != 0:
-                records.append(self.parse_record(record))
+            if parsed:
+                records.append(parsed)
 
         return records
 
-
     def parse_record(self, record):
-        d = {}        
-        kvs = [i.strip() for i in record.split(',\n')]
+        '''given a bibtex record, tidy whitespace and other rubbish; 
+        then parse out the bibtype and citekey, then find all the
+        key-value pairs it contains'''
+        d = {}
         
-        for kv in kvs:
-            if kv.startswith('@'):
-                bibtype, remainder = kv.split('{',1)
-                bibtype = self.add_key(bibtype)
-                remainder = remainder.strip('}').strip(',')
+        if not record.startswith('@'):
+            return d
 
-                if bibtype == "string":
-                    key, val = [i.strip() for i in remainder.split('=',1)]
-                    self.replace_dict[key] = val.strip('"')
+        record = '\n'.join([i.strip() for i in record.split('\n')])
+        if '}\n' in record:
+            record, rubbish = record.replace('\r\n','\n').replace('\r','\n').rsplit('}\n',1)
+
+        if record.lower().startswith('@string'):
+            key, val = [i.strip().strip('"') for i in record.split('{')[1].strip('\n').strip(',').strip('}').split('=')]
+            self.replace_dict[key] = val
+            return d
+
+        kvs = [i.strip() for i in record.split(',\n')]
+        inkey = ""
+        inval = ""
+        for kv in kvs:
+            if kv.startswith('@') and not inkey:
+                bibtype, citekey = kv.split('{',1)
+                bibtype = self.add_key(bibtype)
+                citekey = citekey.strip('}').strip(',')
+            elif '=' in kv and not inkey:
+                key, val = [i.strip() for i in kv.split('=',1)]
+                key = self.add_key(key)
+                if ( val.startswith('{') and not val.endswith('}') ) or ( val.startswith('"') and not val.replace('}','').endswith('"') ):
+                    inkey = key
+                    inval = val
+                    print inval
                 else:
-                    d['type'] = bibtype
-                    d['citekey'] = remainder
-                        
-            elif kv != "}" and kv != "":
-                if kv.find('=') != -1:
-                    key, val = [i.strip() for i in kv.split('=',1)]
-                    key = self.add_key(key)
-                    if val.find("\n") != -1:
-                        if key == "author_data" or key == "links":
-                            d[key] = [self.add_val(key,v) for v in val.split("\n")]
-                        else:
-                            d[key] = self.add_val(key,val.replace("\n",""))
-                    else:
-                        d[key] = self.add_val(key,val)
+                    d[key] = self.add_val(val)
+            elif inkey:
+                inval += kv
+                if ( inval.startswith('{') and inval.endswith('}') ) or ( inval.startswith('"') and inval.endswith('"') ):
+                    d[inkey] = self.add_val(inval)
+                    inkey = ""
+                    inval = ""
 
         if 'author_data' in d:
-            # author data is a string of surname, firstnames ID url
-            # however there is no guarantee that ID or url are present, and no way to discern the number of firstnames
-            self.persons = d['author_data']
+            self.persons = [i for i in d['author_data'].split('\n')]
             del d['author_data']
-            if len(d) <= 2: d = {}
 
-        record = self.customisations(d)
-        if not self.has_metadata and 'type' in record:
-            if record['type'] == 'personal bibliography' or record['type'] == 'comment':
-                #rec['type'] = "collection"
+        if not d:
+            return d
+
+        d['type'] = bibtype
+        d['citekey'] = citekey
+        if not self.has_metadata and 'type' in d:
+            if d['type'] == 'personal bibliography' or d['type'] == 'comment':
                 self.has_metadata = True
 
-        return record
+        return self.customisations(d)
 
-
-    '''alter some values to fit bibjson format'''
     def customisations(self,record):
+        '''alter some values to fit bibjson format'''
         if 'eprint' in record and not 'year' in record: 
             yy = '????'
             ss = record['eprint'].split('/')
@@ -106,17 +118,14 @@ class BibTexParser(object):
         if "type" in record:
             record["type"] = record["type"].lower()
         if "author" in record:
-            record["author"] = self.getnames([i.strip() for i in record["author"].split(" and ")])
+            record["author"] = self.getnames([i.strip() for i in record["author"].replace('\n',' ').split(" and ")])
         if "editor" in record:
-            record["editor"] = self.getnames([i.strip() for i in record["editor"].split(" and ")])
+            record["editor"] = self.getnames([i.strip() for i in record["editor"].replace('\n',' ').split(" and ")])
         if "keywords" in record:
-            record["keywords"] = [i.strip() for i in record["keywords"].split(",")]
-        '''if "links" in record:
-            if isinstance(record["links"],list):
-                links = record["links"]
-            else:
-                links = [i.strip() for i in record["links"].split("\n")]
-            record["links"] = []
+            record["keywords"] = [i.strip() for i in record["keywords"].replace('\n','').split(",")]
+        if "links" in record:
+            links = [i.strip().replace("  "," ") for i in record["links"].split('\n')]
+            record['links'] = []
             for link in links:
                 parts = link.split(" ")
                 linkobj = { "url":parts[0] }
@@ -124,16 +133,26 @@ class BibTexParser(object):
                     linkobj["anchor"] = parts[1]
                 if len(parts) > 2:
                     linkobj["format"] = parts[2]
-                record["links"].append( linkobj )'''
-        '''if 'doi' in record:
+                if len(linkobj["url"]) > 0:
+                    record["links"].append( linkobj )
+        if 'doi' in record:
             if 'links' not in record:
                 record['links'] = []
-            record["links"].append('http://dx.doi.org/' + record['doi'])'''
-                
-
+            nodoi = False
+            for item in record['links']:
+                if 'doi' not in item:
+                    nodoi = True
+            if nodoi:
+                link = record['doi']
+                if link.startswith("10."):
+                    link = 'http://dx.doi.org/' + link
+                if link.startswith("doi:"):
+                    link = 'http://dx.doi.org/' + link[4:]
+                record["links"].append( {"url": link,"anchor":"doi"} )
+        
         return record
 
-    
+
     # some methods to tidy and format keys and vals
 
     def strip_quotes(self, val):
@@ -153,11 +172,12 @@ class BibTexParser(object):
     def string_subst(self, val):
         """ Substitute string definitions """
         for k in self.replace_dict.keys():
-            val = val.replace(k, self.replace_dict[k])
+            if val == k:
+                val = self.replace_dict[k]
         val = unicode(val,chardet.detect(val)["encoding"],'ignore')
-        if val.find("\\") or val.find("{"):
+        if '\\' in val or '{' in val:
             for k, v in self.unicode_to_latex.iteritems():
-                if val.find(v) != -1:
+                if v in val:
                     parts = val.split(str(v))
                     for key,val in enumerate(parts):
                         if key+1 < len(parts) and len(parts[key+1]) > 0:
@@ -167,8 +187,8 @@ class BibTexParser(object):
                 val = val.replace("{","").replace("}","")
         return unicode(val)
 
-    def add_val(self, key, val):
-        if val == {} or val == "" or val == "{}" or val == None:
+    def add_val(self, val):
+        if not val or val == "{}":
             return ""
         """ Clean instring before adding to dictionary """
         val = self.strip_braces(val)
@@ -176,15 +196,6 @@ class BibTexParser(object):
         val = self.strip_braces(val)
         val = self.string_subst(val)
         """alter based on particular key types"""
-#        if key == "pages":
-#            if "-" in val:
-#                p = [i.strip().strip('-') for i in val.split("-")]
-#                val = p[0] + ' to ' + p[-1]
-#        if key == "type":
-#            val = val.lower()
-#        if key == "author" or key == "editor":
-#            val = self.getnames([i.strip() for i in val.split(" and ")])
-#            return [unicodedata.normalize('NFKD', i).encode('utf-8','ignore') for i in val]
         return unicodedata.normalize('NFKD', val).encode('utf-8','ignore')
 
     def add_key(self, key):
@@ -200,7 +211,7 @@ class BibTexParser(object):
         tidynames = []
         for namestring in names:
             namestring = namestring.strip()
-            if namestring.find(',') >= 0:
+            if ',' in namestring:
                 namesplit = namestring.split(',',1)
                 last = namesplit[0].strip()
                 firsts = [i.strip().strip('.') for i in namesplit[1].split()]

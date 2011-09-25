@@ -28,20 +28,6 @@ class IOManager(object):
                 terms[term.replace(self.config.facet_field,'')] = theterm
         return terms    
 
-
-    # run the desired method on a field content, to alter it for display
-    # see the bottom of this file for the collection of methods to run
-    def get_field_display(self, field, value):
-        if self.config.display_value_functions.has_key(field):
-            d = self.config.display_value_functions[field]
-            func_name = d.keys()[0]
-            args = d[func_name]
-            args["field"] = field
-            func = globals()[func_name]
-            return func(value, args)
-        else:
-            return value
-
     def get_path_params(self,myargs):
         param = '/' + myargs["path"] + '?' if (myargs["path"] != '') else self.config.base_url + '?'
         if 'q' in myargs:
@@ -119,22 +105,22 @@ class IOManager(object):
         '''Return list of search result items'''
         return [rec['_source'] for rec in self.results['hits']['hits']]
 
+
     def get_str(self, result, field, raw=False):
-        if result.get(field) is None:
+        res = result.get(field,"")
+        if len(res) == 0:
             return ""
-        if raw:
-            if isinstance(result.get(field), list):
-                return " and ".join([val for val in result.get(field)])
-            else:
-                return result.get(field)
-        if isinstance(result.get(field), list):
-            if isinstance(result.get(field)[0], dict):
-                return result.get(field)
-            return " and ".join([self.get_field_display(field, val) for val in result.get(field)])
-        elif isinstance(result.get(field), dict):
-            return result.get(field)
+        if self.config.display_value_functions.has_key(field) and not raw:
+            d = self.config.display_value_functions[field]
+            func_name = d.keys()[0]
+            args = d[func_name]
+            args["field"] = field
+            func = globals()[func_name]
+            return func(res, args)
         else:
-            return self.get_field_display(field, result.get(field))
+            if isinstance(res,list):
+                return ','.join(res)
+        return res
         
     def get_meta(self):
         try:
@@ -170,6 +156,9 @@ class IOManager(object):
 
 # the following methods can be called by get_field_display
 # to perform various functions upon a field for display
+
+def authorify(vals, dict):
+    return ' and '.join(['<a class="author_name" alt="search for ' + i + '" title="search for ' + i + '" ' + 'href="/search?q=' + i + '">' + i + '</a>' for i in vals])
 
 def wrap(value, dict):
     return dict['start'] + value + dict['end']
@@ -262,4 +251,15 @@ def linkify(nm, args):
     message = "".join(frags)
     return message
 
-
+def bibsoup_links(vals,dict):
+    links = "External links: "
+    for url in vals:
+        links += '<a href="' + url['url'] + '">'
+        if 'anchor' in url:
+            links += url['anchor']
+        else:
+            links += url['url']
+        if 'format' in url:
+            links += ' (' + url['format'] + ') '
+        links += '</a> | '
+    return links.strip(' | ')

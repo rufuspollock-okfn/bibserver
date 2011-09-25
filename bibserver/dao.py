@@ -105,7 +105,6 @@ class DomainObject(UserDict.IterableUserDict):
                 data['id'] = id_
             conn.index(data, db, cls.__type__, id_, bulk=True)
             count += 1
-            print count, id_
         # refresh required after bulk index
         conn.refresh()
         return dataset

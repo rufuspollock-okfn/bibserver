@@ -15,7 +15,7 @@ class TestImporter:
         records = i.upload(pkg)
         recid = records[1]['id']
         out = bibserver.dao.Record.get(recid)
-        assert out['year'] == '2008', out
+        assert out["year"] == '2008', out
 
     def test_bulkupload(self):
         i = Importer()

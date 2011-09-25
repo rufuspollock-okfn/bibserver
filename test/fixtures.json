@@ -6,8 +6,7 @@
       "title":"Great Unwritten Collaborations",
       "author": ["Leo Tolstoy","Robert Musil"],
       "journal": "journal_name",
-      "collection": ["great-novels"],
-      "person": ["leo.tolstoy","robert.musil"],
+      "collection": "great-novels",
       "moreinfo":"some more information about this collection",
       "ns1:thing":"some thing"
     },
@@ -16,7 +15,7 @@
       "title":"A mathematical theory of communication",
       "author": ["Claude Shannon"],
       "journal": "Bell System Technical Journal",
-      "collection": ["information-theory"]
+      "collection": "information-theory"
     }
   ]
 }

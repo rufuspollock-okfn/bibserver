@@ -27,7 +27,7 @@ class TestWeb(object):
         assert 'This website is an example' in res.data, res.data
 
     def test_record(self):
-        res = self.app.get('/collection/' + self.record["collection"][0] + '/' + self.record["citekey"])
+        res = self.app.get('/collection/' + self.record["collection"] + '/' + self.record["citekey"])
         assert res.status == '200 OK', res.status
         assert '%s' % self.record["citekey"] in res.data, res.data
 
@@ -58,20 +58,5 @@ class TestWeb(object):
         assert res.status == '200 OK', res.status
         assert 'Tolstoy' in res.data, res.data
 
-    '''query converter does not exist anymore
-    def test_queryobject(self):
-        indata = {
-            'search': u'pitman',
-            'rows': 10,
-            'q': {u'collection': [u'pitman2']},
-            'facet_date': {},
-            'facet_range': {},
-            'facet_field': [u'author', u'journal',
-                u'collection', u'subjects', u'year', u'type']
-        }
-        outdata = web.convert_query_dict_for_es(indata)
-        assert_equal(outdata['size'], 10)
-        assert_equal(outdata['terms'], {'collection': 'pitman2'})
-    '''
 
 

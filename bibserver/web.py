@@ -51,7 +51,7 @@ def content(path):
 @app.route('/collection/<collid>/<path:path>')
 def record(collid,path):
     JSON = False
-    if path.endswith(".json") or path.endswith(".bibjson"):
+    if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
         path = path.replace(".bibjson","").replace(".json","")
         JSON = True
 
@@ -160,7 +160,7 @@ if config["allow_upload"] == "YES":
 def search(path=''):
 
     JSON = False
-    if path.endswith(".json") or path.endswith(".bibjson"):
+    if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
         path = path.replace(".bibjson","").replace(".json","")
         JSON = True
 

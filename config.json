@@ -21,8 +21,8 @@
                             "mapping" : {
                                 "type" : "multi_field",
                                 "fields" : {
-                                    "{name}" : {"type" : "{dynamic_type}", "index" : "analyzed", "store" : "yes"},
-                                    "exact" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "yes"}
+                                    "{name}" : {"type" : "string", "index" : "analyzed", "store" : "no"},
+                                    "exact" : {"type" : "string", "index" : "not_analyzed", "store" : "no"}
                                 }
                             }
                         }
@@ -50,16 +50,18 @@
     "sort_fields" : ["received","title","year","journal","url","source"],
 
     # fields to display as headers in search results
-    "display_fields" : ["author","title","journal","url"],
+    "display_fields" : ["author","title","journal","links"],
     
     # functions to perform on particular result fields on display
     "display_value_functions" : {
         "title" : {"wrap" : {"start" : "<a class=\"list_result_field_showall\" href=\"\" alt=\"show more info\" title=\"show more info\"><strong>", "end" : "</strong></a>"}},
         "journal" : {"wrap" : {"start" : "<em>", "end" : "</em>"}},
+        "author":{"authorify":{}},
         "doi" : {"doiify" : {"resolver" : "http://dx.doi.org/"}},
         "url" : {"linkify" : {}},
         "collection": {"implicify":{}},
-        "person": {"personify":{}}
+        "person": {"personify":{}},
+        "links": {"bibsoup_links":{}}
     }
     
 }
