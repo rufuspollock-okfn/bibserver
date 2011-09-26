@@ -78,7 +78,6 @@ class BibTexParser(object):
                 if ( val.startswith('{') and not val.endswith('}') ) or ( val.startswith('"') and not val.replace('}','').endswith('"') ):
                     inkey = key
                     inval = val
-                    print inval
                 else:
                     d[key] = self.add_val(val)
             elif inkey:

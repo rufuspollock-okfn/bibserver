@@ -51,7 +51,7 @@ class Importer(object):
             # should change this to do checks first, and save new ones, perhaps
             try:
                 if "collection" in pkg:
-                    bibserver.dao.Record.delete_by_query("collection.exact:" + pkg["collection"])
+                    bibserver.dao.Record.delete_by_query('collection.exact:"' + pkg["collection"] + '"')
                 if "source" in pkg:
                     res = bibserver.dao.Record.query(q='source:"' + pkg["source"] + '" AND type:"collection"')
                     if res["hits"]["total"] != 0:
