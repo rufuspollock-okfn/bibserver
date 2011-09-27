@@ -3,6 +3,7 @@ from datetime import datetime
 import urllib2
 from copy import deepcopy
 import unicodedata
+import httplib
 
 from flask import Flask, jsonify, json, request, redirect, abort, make_response
 from flask import render_template
@@ -70,14 +71,25 @@ def record(collid,path):
     return render_template('record.html', record=recorddict)
 
 
-@app.route('/query', methods=['GET', 'POST'])
+@app.route('/query', methods=['GET','POST'])
 def query():
-    resp = make_response( bibserver.dao.Record.raw_query(request.query_string) )
-    if request.values.get('delete','') and request.values.get('q',''):
-        resp = make_response( bibserver.dao.Record.delete_by_query(request.values.get('q')) )
-    resp.mimetype = "application/json"
-    return resp
+    if request.method == "GET":
+        resp = make_response( bibserver.dao.Record.raw_query(request.query_string) )
+        if request.values.get('delete','') and request.values.get('q',''):
+            resp = make_response( bibserver.dao.Record.delete_by_query(request.values.get('q')) )
+        resp.mimetype = "application/json"
+        return resp
 
+    if request.method == "POST":
+        data = json.dumps(dict(request.form).keys()[0])
+        host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
+        db_name = config['ELASTIC_SEARCH_DB']
+        fullpath = '/' + db_name + '/record/_search'
+        c =  httplib.HTTPConnection(host)
+        c.request('POST', fullpath, data)
+        resp = make_response(c.getresponse().read())
+        resp.mimetype = "application/json"
+        return resp
 
 class UploadView(MethodView):
     '''The upload view.

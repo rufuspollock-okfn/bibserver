@@ -6,7 +6,7 @@
  * or a config variable can point to a remote config
  * config options include specifying SOLR or ElasticSearch index
  *
- * open source license - cc-by-sa
+ * open source license
  * 
  * created by Mark MacGillivray - mark@cottagelabs.com
  *
@@ -83,8 +83,8 @@ return this.bind(type, data, cb);
             "header_content":"",
             "footer_content":"",
             "show_advanced":false,
-            "search_url":"http://elastic.cottagelabs.com/bibserver/record/_search?",
 //            "search_url":"http://bibsoup.net/query?",
+            "search_url":"http://localhost:5000/query",
             "search_index":"elasticsearch",
             "default_url_params":{},
             "freetext_submit_delay":"700",
