@@ -5,7 +5,7 @@
 <div id="bibserver_search">
   <div class="search_box">
       <form method="get" action="">
-          <input type="text" name="q" value='{{c['io'].get_q()}}' />
+          <input type="text" id="searchbox" name="q" value='{{c['io'].get_q()}}' />
           {% for item in c['io'].get_safe_terms_object() %}
           <input type="hidden" name="{{item}}" value='{{c['io'].get_safe_terms_object()[item]}}' />
           {% endfor %}

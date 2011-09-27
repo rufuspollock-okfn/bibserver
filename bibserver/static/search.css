@@ -297,3 +297,7 @@ a.author_name{
     color:#555555;
     font-weight:bold;
 }
+
+a.delete_link{
+    color:red;
+}

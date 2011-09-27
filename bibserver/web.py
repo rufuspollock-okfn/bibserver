@@ -73,6 +73,8 @@ def record(collid,path):
 @app.route('/query', methods=['GET', 'POST'])
 def query():
     resp = make_response( bibserver.dao.Record.raw_query(request.query_string) )
+    if request.values.get('delete','') and request.values.get('q',''):
+        resp = make_response( bibserver.dao.Record.delete_by_query(request.values.get('q')) )
     resp.mimetype = "application/json"
     return resp
 

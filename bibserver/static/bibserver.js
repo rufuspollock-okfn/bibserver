@@ -119,7 +119,6 @@ jQuery(document).ready(function() {
     jQuery('#order_select').bind('change',rpp_select);
     jQuery('#page_select').bind('change',page_select);
 
-    
     // do the facet list toggling
     jQuery('.facet_value').hide();
     var showfacets = function(event) {

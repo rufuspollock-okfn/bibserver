@@ -144,7 +144,7 @@ class IOManager(object):
                     meta += '<br />If changes have been made to the source file since then, '
                     meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["collection"]
                     meta += '">refresh this collection</a>.'
-                meta += '</p>'
+                meta += '<br /><a class="delete_link" href="/query?delete=true&q=collection.exact:%22' + rec["collection"] + '%22">Delete this collection</a></p>'
                 return meta
             else:
                 return ""
