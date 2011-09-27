@@ -157,19 +157,21 @@ class BibTexParser(object):
     def strip_quotes(self, val):
         """Strip double quotes enclosing string"""
         val = val.strip()
-        if val[0] == '"' and val[-1] == '"':
+        if val.startswith('"') and val.endswith('"'):
             return val[1:-1]
         return val
 
     def strip_braces(self, val):
         """Strip braces enclosing string"""
         val.strip()
-        if val[0] == '{' and val[-1] == '}':
+        if val.startswith('{') and val.endswith('}'):
             return val[1:-1]
         return val
 
     def string_subst(self, val):
         """ Substitute string definitions """
+        if not val:
+            return u''
         for k in self.replace_dict.keys():
             if val == k:
                 val = self.replace_dict[k]
@@ -188,7 +190,7 @@ class BibTexParser(object):
 
     def add_val(self, val):
         if not val or val == "{}":
-            return ""
+            return u''
         """ Clean instring before adding to dictionary """
         val = self.strip_braces(val)
         val = self.strip_quotes(val)

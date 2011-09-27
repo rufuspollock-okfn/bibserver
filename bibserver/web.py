@@ -185,7 +185,7 @@ def search(path=''):
     
     # get implicit facet
     c = {'implicit_facet': {}}
-    if path != '' and "search" not in path:
+    if path != '' and not path.startswith("search"):
         path = path.strip()
         if path.endswith("/"):
             path = path[:-1]
