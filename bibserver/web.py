@@ -83,6 +83,8 @@ def query():
     if request.method == "POST":
         if request.values.get('callback',''):
             print request.values["callback"]
+            print request.values["data"]
+            print request.values.keys()
         data = json.dumps(dict(request.form).keys()[0])
         print dict(request.form).keys()[0]
         print data
