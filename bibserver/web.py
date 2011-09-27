@@ -81,7 +81,10 @@ def query():
         return resp
 
     if request.method == "POST":
+        if request.values.get('callback',''):
+            print request.values["callback"]
         data = json.dumps(dict(request.form).keys()[0])
+        print data
         host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
         db_name = config['ELASTIC_SEARCH_DB']
         fullpath = '/' + db_name + '/record/_search'
