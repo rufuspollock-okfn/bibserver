@@ -73,33 +73,17 @@ def record(collid,path):
 
 @app.route('/query', methods=['GET','POST'])
 def query():
+    qs = request.query_string
     if request.method == "GET":
-        resp = make_response( bibserver.dao.Record.raw_query(request.query_string) )
         if request.values.get('delete','') and request.values.get('q',''):
             resp = make_response( bibserver.dao.Record.delete_by_query(request.values.get('q')) )
-        resp.mimetype = "application/json"
-        return resp
-
-    if request.method == "POST":
-        if request.values.get('callback',''):
-            # this will fail if a POST is done to a URL that has more than just a callback param in the GET
-            # why is it so hard to get the POST data object out of flask? Is there not a key for it? 
-            callback = request.values["callback"]
-            data = json.dumps(dict(request.form).keys()[1])
         else:
-            data = json.dumps(dict(request.form).keys()[0])
-            callback = ""
-        host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
-        db_name = config['ELASTIC_SEARCH_DB']
-        fullpath = '/' + db_name + '/record/_search?'
-        if callback:
-            fullpath += 'callback=' + callback
-        c =  httplib.HTTPConnection(host)
-        c.request('POST', fullpath, data)
-        out = c.getresponse().read()
-        resp = make_response(out)
-        #resp.mimetype = "application/json"
-        return resp
+            resp = make_response( bibserver.dao.Record.raw_query(qs) )
+    if request.method == "POST":
+        qs += "&source=" + json.dumps(dict(request.form).keys()[-1])
+        resp = make_response( bibserver.dao.Record.raw_query(qs) )
+    resp.mimetype = "application/json"
+    return resp
 
 class UploadView(MethodView):
     '''The upload view.
