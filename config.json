@@ -52,6 +52,9 @@
     # fields to display as headers in search results
     "display_fields" : ["author","title","journal","links"],
     
+    # search result display header
+    "result_display" : "{{author}} ({{year}})<br />{{title}}<br />{{howpublished}} {{journal}} {{pages}} {{booktitle}} {{publisher}}<br />{{links}}",
+    
     # functions to perform on particular result fields on display
     "display_value_functions" : {
         "title" : {"wrap" : {"start" : "<a class=\"list_result_field_showall\" href=\"\" alt=\"show more info\" title=\"show more info\"><strong>", "end" : "</strong></a>"}},

@@ -1,11 +1,15 @@
 <div class="list_view">
     {% for i in range(c['io'].set()|length) %}
         <div class="list_result_{{'odd' if i % 2 == 0 else 'even'}}">
-            {% for field in c['io'].get_display_fields() %}
-                {% if c['io'].get_str(c['io'].set()[i], field) != "" %}
-                    <div class="list_result_field">{{c['io'].get_str(c['io'].set()[i], field)|safe}}</div>
-                {% endif %}
-            {% endfor %}
+            {% if c['io'].get_result_display(i) != "" %}
+                <div class="list_result_field">{{c['io'].get_result_display(i)|safe}}</div>
+            {% else %}
+                {% for field in c['io'].get_display_fields() %}
+                    {% if c['io'].get_str(c['io'].set()[i], field) != "" %}
+                        <div class="list_result_field">{{c['io'].get_str(c['io'].set()[i], field)|safe}}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
 
             {% if "type" in c['io'].set()[i] %}
                 {% if c['io'].set()[i]["type"] == "collection" or c['io'].set()[i]["type"] == "person" %}
