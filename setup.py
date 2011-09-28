@@ -9,8 +9,6 @@ setup(
         "Flask-Login",
         "Flask-WTF",
         "pyes==0.16",
-        # need solrpy from HEAD. See README.rst.
-        "solrpy",
         ],
     url = 'http://bibserver.okfn.org/',
     author = 'Open Knowledge Foundation',

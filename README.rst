@@ -56,13 +56,7 @@ Install
 
 3. Install the app::
 
-    # install other python modules
-    pip install pyes
-    pip install flask-login
-    pip install flask-WTF
-
-    # now BibServer
-    # go to wherevevr you have the bibserver file, and enter it
+    # move to your checkout of bibserver
     cd {myenv}/src/bibserver
     # do a development install from current directory
     pip install -e .
