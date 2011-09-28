@@ -99,56 +99,38 @@ class UploadView(MethodView):
         return render_template('upload.html')
 
     def post(self):
-        pkg = self.package()
-        if self.validate(pkg):
-            importer = bibserver.importer.Importer()
-#            try:
-            res = importer.upload(pkg)
-            if res != "DUPLICATE":
-                if "collection" in pkg:
-                    return redirect('/collection/' + pkg["collection"])
-                msg = "Your records were uploaded but no collection name could be discerned."
-            elif res == "DUPLICATE":
-                msg = "The collection name you specified is already in use."
-                msg += "<br />Please use another collection name."
-            else:
-                msg = "Sorry! There was an indexing error. Please try again."                    
-#            except:
-#                msg = 'Sorry! There was an error indexing your collection. Please try again.'
-        else:
-            msg = 'Your upload failed to validate. Please try again.'
-        return render_template('upload.html', msg=msg)
-
-    def validate(self, pkg):
-        '''validate the submission before proceeding'''
-        if "source" in pkg or "upfile" in pkg or "data" in pkg:
-            return True
-        return False
-    
-    def package(self):
-        '''make package with: 
-            format of upload (default to bibtex)
-            collection name (default to version of filename)
-            email address (for a file upload)
-            source, upfile, or data, depending on if URL, upload, or POST
-            date received
-        '''
         pkg = dict()
+        format = 'bibtex'
         if request.values.get("source"):
-            pkg["source"] = urllib2.unquote(request.values.get("source"))
-            pkg["format"] = self.findformat(pkg["source"])
-        if request.files.get('upfile'):
+            source = urllib2.unquote(request.values.get("source", ''))
+            pkg["source"] = source
+            format = self.findformat(source)
+        elif request.files.get('upfile'):
             pkg["upfile"] = request.files.get('upfile')
-            pkg["format"] = self.findformat(str(pkg["upfile"].filename))
-        if request.values.get('format'):
-            pkg["format"] = request.values.get('format')
-        if request.values.get('data'):
+            format = self.findformat(str(pkg["upfile"].filename))
+        elif request.values.get('data'):
             pkg["data"] = request.values['data']
+
+        if request.values.get('format'):
+            format = request.values.get('format')
+        pkg["format"] = format
+
         if request.values.get("collection"):
             pkg["collection"] = request.values.get("collection")
         pkg["email"] = request.values.get("email", None)
         pkg["received"] = str(datetime.now())
-        return pkg
+        importer = bibserver.importer.Importer()
+        res = importer.upload(pkg)
+        if res != "DUPLICATE":
+            if "collection" in pkg:
+                return redirect('/collection/' + pkg["collection"])
+            msg = "Your records were uploaded but no collection name could be discerned."
+        elif res == "DUPLICATE":
+            msg = "The collection name you specified is already in use."
+            msg += "<br />Please use another collection name."
+        else:
+            msg = "Sorry! There was an indexing error. Please try again."                    
+        return render_template('upload.html', msg=msg)
 
     def findformat(self,filename):
         if filename.endswith(".json"): return "json"
