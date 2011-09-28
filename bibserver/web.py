@@ -91,13 +91,12 @@ def query():
             callback = ""
         host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
         db_name = config['ELASTIC_SEARCH_DB']
-        fullpath = '/' + db_name + '/record/_search'
+        fullpath = '/' + db_name + '/record/_search?'
+        if callback:
+            path += 'callback=' + callback
         c =  httplib.HTTPConnection(host)
         c.request('POST', fullpath, data)
-        if callback:
-            resp = make_response(callback + '(' + c.getresponse().read() + ')')
-        else:
-            resp = make_response(c.getresponse().read())
+        resp = make_response(c.getresponse().read())
         resp.mimetype = "application/json"
         return resp
 
