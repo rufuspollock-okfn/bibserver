@@ -14,34 +14,26 @@ import bibserver.dao
 class Importer(object):
     def upload(self, pkg):
         '''upload content and index it'''
-        
         if "upfile" in pkg:
-            pkg["fileobj"] = pkg["upfile"]
+            fileobj = pkg["upfile"]
         elif "data" in pkg:
-            pkg["fileobj"] = StringIO(pkg['data'])
+            fileobj = StringIO(pkg['data'])
         elif "source" in pkg:
-            pkg["fileobj"] = urllib2.urlopen( pkg["source"] )
-
-        return self.index(pkg)
-
+            fileobj = urllib2.urlopen( pkg["source"] )
+        return self.index(fileobj, pkg)
     
     def bulk_upload(self, colls_list):
         '''upload a list of collections from provided file locations
         colls_list looks like the pkg, so should have source for a URL, 
         or upfile for a local file'''
-#        try:
         for coll in colls_list["collections"]:
             self.upload(coll)
         return True
-#        except:
-#            return False
     
-    
-    # index the content
-    def index(self, pkg):
+    def index(self, fileobj, pkg):
         '''index a file'''
         parser = Parser()
-        data = parser.parse(pkg["fileobj"], pkg["format"])
+        data = parser.parse(fileobj, pkg["format"])
         # prepare the data as required
         data, pkg = self.prepare(data,pkg)
         
@@ -66,7 +58,6 @@ class Importer(object):
             return bibserver.dao.Record.bulk_upsert(data)
         else:
             return "DUPLICATE"
-
 
     def can_index(self,pkg):
         '''check if a pre-existing collection of same name exists.
