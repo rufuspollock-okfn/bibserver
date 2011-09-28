@@ -82,18 +82,22 @@ def query():
 
     if request.method == "POST":
         if request.values.get('callback',''):
-            print request.values["callback"]
-            print request.values.get("data","")
-            print request.values.keys()
-        data = json.dumps(dict(request.form).keys()[0])
-        print dict(request.form).keys()[0]
-        print data
+            # this will fail if a POST is done to a URL that has more than just a callback param in the GET
+            # why is it so hard to get the POST data object out of flask? Is there not a key for it? 
+            callback = request.values["callback"]
+            data = json.dumps(dict(request.form).keys()[1])
+        else:
+            data = json.dumps(dict(request.form).keys()[0])
+            callback = ""
         host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
         db_name = config['ELASTIC_SEARCH_DB']
         fullpath = '/' + db_name + '/record/_search'
         c =  httplib.HTTPConnection(host)
         c.request('POST', fullpath, data)
-        resp = make_response(c.getresponse().read())
+        if callback:
+            resp = make_response(callback + '(' + c.getresponse().read() + ')')
+        else:
+            resp = make_response(c.getresponse().read())
         resp.mimetype = "application/json"
         return resp
 
