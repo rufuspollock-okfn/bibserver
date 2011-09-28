@@ -72,8 +72,9 @@ class IOManager(object):
         disp = self.config.result_display
         for key,value in self.set()[counter].items():
             print key, value, disp
-            if '{{'+key+'}}' in disp:
-                disp = disp.replace(str('{{'+key+'}}'),str(self.get_str(self.set()[counter],key)))
+            fkey = '{{' + `key` + '}}'
+            if fkey in disp:
+                disp = disp.replace(fkey,self.get_str(self.set()[counter],key))
         disp = re.sub('{.*}', '', disp)
         return disp
 
