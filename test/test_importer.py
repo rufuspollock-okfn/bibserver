@@ -5,8 +5,18 @@ import bibserver.dao
 import os
 
 class TestImporter:
+    @classmethod
+    def setup_class(cls):
+        cls.owner = dao.Account(id='testaccount')
+        cls.owner.save()
+
+    @classmethod
+    def teardown_class(cls):
+        conn, db = dao.get_conn()
+        conn.delete_index(TESTDB)
+
     def test_upload(self):
-        i = Importer()
+        i = Importer(owner=self.owner)
         bibtex = open('test/data/sample.bibtex').read()
         pkg = {
             'format': 'bibtex',
@@ -18,7 +28,7 @@ class TestImporter:
         assert out["year"] == '2008', out
 
     def test_bulkupload(self):
-        i = Importer()
+        i = Importer(owner=self.owner)
         colls = open('test/data/bulk_upload.json').read()
         toupload = json.loads(colls)
         

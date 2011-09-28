@@ -12,6 +12,9 @@ from bibserver.parser import Parser
 import bibserver.dao
 
 class Importer(object):
+    def __init__(self, owner):
+        self.owner = owner
+
     def upload(self, pkg):
         '''upload content and index it'''
         if "upfile" in pkg:
@@ -34,10 +37,8 @@ class Importer(object):
         '''index a file'''
         parser = Parser()
         data = parser.parse(fileobj, pkg["format"])
-        # prepare the data as required
         data, pkg = self.prepare(data,pkg)
         
-        # if allowed to index, then index (match source or email)
         if self.can_index(pkg):
             # delete any old versions
             # should change this to do checks first, and save new ones, perhaps
@@ -81,13 +82,11 @@ class Importer(object):
             return True
 
 
-    # prepare the data in various ways
     def prepare(self,data,pkg):
-    
+        '''prepare the data in various ways'''
         # replace white space in collection name with _
         if "collection" in pkg:
             pkg["collection"] = pkg["collection"].replace(" ","_")
-    
         # if no collection name provided, build a collection name if possible
         if "collection" not in pkg:
             # build collection name from source URL
@@ -104,7 +103,6 @@ class Importer(object):
         
         provmeta = None
         for index,item in enumerate(data):
-            
             # if collection name provided, check it is in each record, or add it if not
             if "collection" in pkg:
                 if "collection" in data[index]:

@@ -119,7 +119,7 @@ class UploadView(MethodView):
             pkg["collection"] = request.values.get("collection")
         pkg["email"] = request.values.get("email", None)
         pkg["received"] = str(datetime.now())
-        importer = bibserver.importer.Importer()
+        importer = bibserver.importer.Importer(owner=current_user)
         res = importer.upload(pkg)
         if res != "DUPLICATE":
             if "collection" in pkg:
