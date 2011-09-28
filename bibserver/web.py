@@ -96,7 +96,10 @@ def query():
             fullpath += 'callback=' + callback
         c =  httplib.HTTPConnection(host)
         c.request('POST', fullpath, data)
-        resp = make_response(c.getresponse().read())
+        out = c.getresponse().read()
+        print out
+        print data
+        resp = make_response(out)
         resp.mimetype = "application/json"
         return resp
 
