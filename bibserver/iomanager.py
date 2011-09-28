@@ -3,6 +3,7 @@ from copy import deepcopy
 import operator, unicodedata
 import bibserver.dao
 import bibserver.config
+import re
 
 class IOManager(object):
     def __init__(self, results, args):
@@ -66,6 +67,15 @@ class IOManager(object):
             
     def has_values(self, facet):
         return facet in self.config.facet_fields and facet in self.facet_fields
+
+    def get_result_display(self,counter):
+        disp = self.config.result_display
+        for key,value in self.set()[counter].items():
+            print key, value, disp
+            if '{{'+key+'}}' in disp:
+                disp = disp.replace(str('{{'+key+'}}'),str(self.get_str(self.set()[counter],key)))
+        disp = re.sub('{.*}', '', disp)
+        return disp
 
     def get_display_fields(self):
         return self.config.display_fields
