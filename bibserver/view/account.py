@@ -1,3 +1,5 @@
+import uuid
+
 from flask import Blueprint, request, url_for, flash, redirect
 from flask import render_template
 from flaskext.login import login_user, logout_user
@@ -56,7 +58,9 @@ def register():
     # TODO: re-enable csrf
     form = RegisterForm(request.form, csrf_enabled=False)
     if request.method == 'POST' and form.validate():
-        account = dao.Account(id=form.username.data, email=form.email.data)
+        api_key = str(uuid.uuid4())
+        account = dao.Account(id=form.username.data, email=form.email.data,
+                api_key=api_key)
         account.set_password(form.password.data)
         account.save()
         login_user(account, remember=True)
