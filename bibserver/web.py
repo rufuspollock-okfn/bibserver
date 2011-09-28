@@ -93,7 +93,7 @@ def query():
         db_name = config['ELASTIC_SEARCH_DB']
         fullpath = '/' + db_name + '/record/_search?'
         if callback:
-            path += 'callback=' + callback
+            fullpath += 'callback=' + callback
         c =  httplib.HTTPConnection(host)
         c.request('POST', fullpath, data)
         resp = make_response(c.getresponse().read())
