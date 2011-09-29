@@ -2,8 +2,8 @@
 # gets an uploaded file or retrieves a file from a URL
 # Uses the parser manager to parse the file
 # indexes the records found in the file by upserting via the DAO
-
 import urllib2
+from datetime import datetime
 import re
 from cStringIO import StringIO
 import unicodedata
@@ -25,32 +25,33 @@ class Importer(object):
             fileobj = urllib2.urlopen( pkg["source"] )
         return self.index(fileobj, pkg)
 
-    def upload_from_web(self, request_data):
+    def upload_from_web(self, request):
         '''
         :param request_data: Flask request.values attribute.
         '''
         pkg = dict()
         format = 'bibtex'
-        if request_data.get("source"):
-            source = urllib2.unquote(request_data.get("source", ''))
+        if request.values.get("source"):
+            source = urllib2.unquote(request.values.get("source", ''))
             fileobj = urllib2.urlopen(source)
             pkg["source"] = source
             format = self.findformat(source)
         elif request.files.get('upfile'):
             fileobj = request.files.get('upfile')
-            format = self.findformat(str(pkg["upfile"].filename))
-        elif request_data.get('data'):
-            fileobj = StringIO(request_data['data'])
+            format = self.findformat(fileobj.filename)
+        elif request.values.get('data'):
+            fileobj = StringIO(request.values['data'])
 
-        if request_data.get('format'):
-            format = request_data.get('format')
+        if request.values.get('format'):
+            format = request.values.get('format')
         pkg["format"] = format
 
-        if request_data.get("collection"):
-            pkg["collection"] = request_data.get("collection")
-        pkg["email"] = request_data.get("email", None)
+        if not request.values.get("collection"):
+            pkg["collection"] = request.values.get("collection")
         pkg["received"] = str(datetime.now())
+
         res = self.index(fileobj, pkg)
+
         if res != "DUPLICATE":
             if "collection" in pkg:
                 return pkg["collection"], res
@@ -61,6 +62,14 @@ class Importer(object):
         else:
             msg = "Sorry! There was an indexing error. Please try again."
         raise ValueError(msg)
+
+    def findformat(self,filename):
+        if filename.endswith(".json"): return "json"
+        if filename.endswith(".bibjson"): return "bibjson"
+        if filename.endswith(".bibtex"): return "bibtex"
+        if filename.endswith(".bib"): return "bibtex"
+        if filename.endswith(".csv"): return "csv"
+        return "bibtex"
     
     def bulk_upload(self, colls_list):
         '''upload a list of collections from provided file locations

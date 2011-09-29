@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 import urllib2
 from copy import deepcopy
 import unicodedata
@@ -101,7 +100,7 @@ class UploadView(MethodView):
     def post(self):
         importer = bibserver.importer.Importer(owner=current_user)
         try:
-            collection, msg = importer.upload_from_web(request.values)
+            collection, msg = importer.upload_from_web(request)
         except Exception, inst:
             msg = str(inst)
             if app.debug:
@@ -110,13 +109,6 @@ class UploadView(MethodView):
             return redirect('/collection/' + collection)
         return render_template('upload.html', msg=msg)
 
-    def findformat(self,filename):
-        if filename.endswith(".json"): return "json"
-        if filename.endswith(".bibjson"): return "bibjson"
-        if filename.endswith(".bibtex"): return "bibtex"
-        if filename.endswith(".bib"): return "bibtex"
-        if filename.endswith(".csv"): return "csv"
-        return "bibtex"
 
 # enable upload unless not allowed in config
 if config["allow_upload"] == "YES":
