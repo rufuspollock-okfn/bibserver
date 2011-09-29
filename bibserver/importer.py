@@ -25,9 +25,11 @@ class Importer(object):
         :param format_: format of the fileobj (e.g. bibtex)
         :param collection: collection dict for use when creating collection. If
         undefined collection must be extractable from the fileobj.
+
+        :return: same as `index` method.
         '''
         parser = Parser()
-        record_dicts = parser.parse(fileobj, format_)
+        record_dicts = parser.parse(fileobj, format=format_)
         collection_from_parser = None
         if collection_from_parser:
             collection = collection_from_parser
@@ -60,19 +62,8 @@ class Importer(object):
         collection = {
             'label': request.values['collection']
             }
-
-        res = self.upload(fileobj, format, collection)
-
-        if res != "DUPLICATE":
-            if "collection" in pkg:
-                return pkg["collection"], res
-            msg = "Your records were uploaded but no collection name could be discerned."
-        elif res == "DUPLICATE":
-            msg = "The collection name you specified is already in use."
-            msg += "<br />Please use another collection name."
-        else:
-            msg = "Sorry! There was an indexing error. Please try again."
-        raise ValueError(msg)
+        collection, records = self.upload(fileobj, format, collection)
+        return (collection, records)
 
     def findformat(self,filename):
         if filename.endswith(".json"): return "json"
@@ -83,9 +74,19 @@ class Importer(object):
         return "bibtex"
     
     def bulk_upload(self, colls_list):
-        '''upload a list of collections from provided file locations
-        colls_list looks like the pkg, so should have source for a URL, 
-        or upfile for a local file'''
+        '''upload a list of collections from provided file locations.
+
+        :param colls_list: a list of dictionaries with 3 keys::
+
+            {
+                # source = url source for data
+                # upfile = local file path for data
+                # data = raw data
+                source | upfile | data: ...,
+                format: {the-format-of-the-data-e.g.-bibtex},
+                collection: {label for the collection}
+            }
+        '''
         for coll in colls_list["collections"]:
             if "upfile" in coll:
                 fileobj = coll["upfile"]
@@ -101,6 +102,11 @@ class Importer(object):
         return True
     
     def index(self, collection_dict, record_dicts):
+        '''Add this collection and its records to the database index.
+
+        :return: (collection, records) tuple of collection and associated
+        record objects.
+        '''
         collection = bibserver.dao.Collection(**collection_dict)
         timestamp = datetime.now().isoformat()
         collection['created'] = timestamp
