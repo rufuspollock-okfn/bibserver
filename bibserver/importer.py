@@ -132,27 +132,6 @@ class Importer(object):
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
         return collection, records
 
-    def can_index(self,pkg):
-        '''check if a pre-existing collection of same name exists.
-        If so, only allow re-index if either source or email match.
-        '''
-        try:
-            res = bibserver.dao.Record.query(q='collection:' + pkg["collection"] + ' AND type:collection')
-            if "source" in res["hits"]["hits"][0]["_source"]:
-                if pkg["source"] == res["hits"]["hits"][0]["_source"]["source"]:
-                    return True
-                else:
-                    return False
-            elif "email" in res["hits"]["hits"][0]["_source"]:
-                if pkg["email"] == res["hits"]["hits"][0]["_source"]["email"]:
-                    return True
-                else:
-                    return False
-            else:
-                return False
-        except:
-            return True
-
     # parse potential people out of a record
     # check if they have a person record in bibsoup
     # if not create one
