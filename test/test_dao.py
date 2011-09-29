@@ -37,7 +37,10 @@ class TestDAO:
         coll = dao.Collection.upsert(colldict)
         assert coll.id, coll
         assert coll['label'] == label
-
+        # should only be one collection for this account so this is ok
+        account_colls = Fixtures.account.collections
+        assert coll.id == account_colls[0].id, account_colls
+        
 
 class TestDAOQuery:
     @classmethod

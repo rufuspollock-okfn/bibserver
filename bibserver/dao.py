@@ -194,3 +194,11 @@ class Account(DomainObject, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.data['password'], password)
 
+    @property
+    def collections(self):
+        colls = Collection.query(terms={
+            'owner': [self.id]
+            })
+        colls = [ Collection(**item['_source']) for item in colls['hits']['hits'] ]
+        return colls
+
