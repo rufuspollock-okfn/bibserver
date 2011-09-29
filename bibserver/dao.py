@@ -181,6 +181,10 @@ class Record(DomainObject):
     __type__ = 'record'
 
 
+class Collection(DomainObject):
+    __type__ = 'collection'
+
+
 class Account(DomainObject, UserMixin):
     __type__ = 'account'
 
