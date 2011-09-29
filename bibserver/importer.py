@@ -10,20 +10,29 @@ import unicodedata
 
 from bibserver.parser import Parser
 import bibserver.dao
+import bibserver.util as util
+
 
 class Importer(object):
     def __init__(self, owner):
         self.owner = owner
 
-    def upload(self, pkg):
-        '''upload content and index it'''
-        if "upfile" in pkg:
-            fileobj = pkg["upfile"]
-        elif "data" in pkg:
-            fileobj = StringIO(pkg['data'])
-        elif "source" in pkg:
-            fileobj = urllib2.urlopen( pkg["source"] )
-        return self.index(fileobj, pkg)
+    def upload(self, fileobj, format_, collection=None):
+        '''Import a collection into the database.
+       
+        :param fileobj: a fileobj pointing to file from which to import
+        collection records (and possibly collection metadata)
+        :param format_: format of the fileobj (e.g. bibtex)
+        :param collection: collection dict for use when creating collection. If
+        undefined collection must be extractable from the fileobj.
+        '''
+        parser = Parser()
+        record_dicts = parser.parse(fileobj, format_)
+        collection_from_parser = None
+        if collection_from_parser:
+            collection = collection_from_parser
+        # TODO: check authz for write to this collection
+        return self.index(collection, record_dicts)
 
     def upload_from_web(self, request):
         '''
@@ -46,11 +55,13 @@ class Importer(object):
             format = request.values.get('format')
         pkg["format"] = format
 
-        if not request.values.get("collection"):
-            pkg["collection"] = request.values.get("collection")
-        pkg["received"] = str(datetime.now())
+        if not 'collection' in request.values:
+            raise ValueError('You must provide a collection label')
+        collection = {
+            'label': request.values['collection']
+            }
 
-        res = self.index(fileobj, pkg)
+        res = self.upload(fileobj, format, collection)
 
         if res != "DUPLICATE":
             if "collection" in pkg:
@@ -76,35 +87,44 @@ class Importer(object):
         colls_list looks like the pkg, so should have source for a URL, 
         or upfile for a local file'''
         for coll in colls_list["collections"]:
-            self.upload(coll)
+            if "upfile" in coll:
+                fileobj = coll["upfile"]
+            elif "data" in coll:
+                fileobj = StringIO(coll['data'])
+            elif "source" in coll:
+                fileobj = urllib2.urlopen(coll["source"])
+            format_ = coll['format']
+            collection_dict = {
+                'label': coll['collection']
+                }
+            self.upload(fileobj, format_, collection_dict)
         return True
     
-    def index(self, fileobj, pkg):
-        '''index a file'''
-        parser = Parser()
-        data = parser.parse(fileobj, pkg["format"])
-        data, pkg = self.prepare(data,pkg)
-        
-        if self.can_index(pkg):
-            # delete any old versions
-            # should change this to do checks first, and save new ones, perhaps
-            try:
-                if "collection" in pkg:
-                    bibserver.dao.Record.delete_by_query('collection.exact:"' + pkg["collection"] + '"')
-                if "source" in pkg:
-                    res = bibserver.dao.Record.query(q='source:"' + pkg["source"] + '" AND type:"collection"')
-                    if res["hits"]["total"] != 0:
-                        coll = res["hits"]["hits"][0]["_source"]["collection"]
-                    else:
-                        coll = ""
-                    if coll != pkg.get("collection",None):
-                        bibserver.dao.Record.delete_by_query("collection.exact:" + coll)
-            except:
-                pass
-            # send the data list for bulk upsert
-            return bibserver.dao.Record.bulk_upsert(data)
-        else:
-            return "DUPLICATE"
+    def index(self, collection_dict, record_dicts):
+        collection = bibserver.dao.Collection(**collection_dict)
+        timestamp = datetime.now().isoformat()
+        collection['created'] = timestamp
+        assert 'label' in collection, 'Collection must have a label'
+        if not 'slug' in collection:
+            collection['slug'] = util.slugify(collection['label'])
+        collection['owner'] = self.owner.id
+        # check if there is an existing collection for this user with same
+        # 'user provided id' (ie. slug) and if so use that instead
+        for coll in self.owner.collections:
+            if coll['slug'] == collection['slug']:
+                collection = coll
+                break
+        collection['modified'] = timestamp
+        collection.save()
+        # delete any old versions of the records
+        # TODO: should we merge (ie. do upsert rather than delete all existing
+        # ones)
+        bibserver.dao.Record.delete_by_query('collection.exact:"' +
+                collection.id + '"')
+        for rec in record_dicts:
+            rec['collection'] = collection.id
+        records = bibserver.dao.Record.bulk_upsert(record_dicts)
+        return collection, records
 
     def can_index(self,pkg):
         '''check if a pre-existing collection of same name exists.
@@ -126,68 +146,6 @@ class Importer(object):
                 return False
         except:
             return True
-
-
-    def prepare(self,data,pkg):
-        '''prepare the data in various ways'''
-        # replace white space in collection name with _
-        if "collection" in pkg:
-            pkg["collection"] = pkg["collection"].replace(" ","_")
-        # if no collection name provided, build a collection name if possible
-        if "collection" not in pkg:
-            # build collection name from source URL
-            if "source" in pkg:
-                derived_name = pkg["source"].replace("http://","").replace("https://","").replace("/","").replace(".","").replace("~","")
-                pkg["collection"] = derived_name
-                #pkg["collection"] = pkg["source"]
-
-            # build collection name from source URL
-            elif "email" in pkg and pkg["email"] is not None:
-                derived_name = pkg["email"].replace("@","").replace(".","")
-                pkg["collection"] = derived_name
-
-        
-        provmeta = None
-        for index,item in enumerate(data):
-            # if collection name provided, check it is in each record, or add it if not
-            if "collection" in pkg:
-                if "collection" in data[index]:
-                    if isinstance(data[index]["collection"],list):
-                        data[index]["collection"] = data[index]["collection"].append(pkg["collection"])
-                    elif isinstance(data[index]["collection"],str):
-                        data[index]["collection"] = [data[index]["collection"],pkg["collection"]]
-                    else:
-                        data[index]["collection"] = pkg["collection"]
-                else:
-                    data[index]["collection"] = pkg["collection"]
-            else:
-                # if no package collection name, try to find one in the provided records
-                if "collection" in data[index]:
-                    pkg["collection"] = data[index]["collection"]
-            
-            # find the collection metadata if already there
-            #if "type" in data[index] and data[index]["type"] == "collection":
-            #    provmeta = data[index]
-            #    del data[index]
-            
-            # look for people records
-            #data[index] = self.parse_people(data[index])
-
-        # add the package info to the collection
-        pkg["type"] = "collection"
-        metadata = pkg
-        if "data" in metadata:
-            del metadata["data"]
-        if "fileobj" in metadata:
-            del metadata["fileobj"]
-        if "upfile" in metadata:
-            del metadata["upfile"]
-        if provmeta is not None:
-            metadata = dict( provmeta.items() + metadata.items() )
-        data.insert(0,metadata)
-        
-        return data, pkg
-
 
     # parse potential people out of a record
     # check if they have a person record in bibsoup
