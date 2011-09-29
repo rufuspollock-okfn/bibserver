@@ -99,37 +99,15 @@ class UploadView(MethodView):
         return render_template('upload.html')
 
     def post(self):
-        pkg = dict()
-        format = 'bibtex'
-        if request.values.get("source"):
-            source = urllib2.unquote(request.values.get("source", ''))
-            pkg["source"] = source
-            format = self.findformat(source)
-        elif request.files.get('upfile'):
-            pkg["upfile"] = request.files.get('upfile')
-            format = self.findformat(str(pkg["upfile"].filename))
-        elif request.values.get('data'):
-            pkg["data"] = request.values['data']
-
-        if request.values.get('format'):
-            format = request.values.get('format')
-        pkg["format"] = format
-
-        if request.values.get("collection"):
-            pkg["collection"] = request.values.get("collection")
-        pkg["email"] = request.values.get("email", None)
-        pkg["received"] = str(datetime.now())
         importer = bibserver.importer.Importer(owner=current_user)
-        res = importer.upload(pkg)
-        if res != "DUPLICATE":
-            if "collection" in pkg:
-                return redirect('/collection/' + pkg["collection"])
-            msg = "Your records were uploaded but no collection name could be discerned."
-        elif res == "DUPLICATE":
-            msg = "The collection name you specified is already in use."
-            msg += "<br />Please use another collection name."
+        try:
+            collection, msg = importer.upload_from_web(request.values)
+        except Exception, inst:
+            msg = str(inst)
+            if app.debug:
+                raise
         else:
-            msg = "Sorry! There was an indexing error. Please try again."                    
+            return redirect('/collection/' + collection)
         return render_template('upload.html', msg=msg)
 
     def findformat(self,filename):

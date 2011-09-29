@@ -24,6 +24,43 @@ class Importer(object):
         elif "source" in pkg:
             fileobj = urllib2.urlopen( pkg["source"] )
         return self.index(fileobj, pkg)
+
+    def upload_from_web(self, request_data):
+        '''
+        :param request_data: Flask request.values attribute.
+        '''
+        pkg = dict()
+        format = 'bibtex'
+        if request_data.get("source"):
+            source = urllib2.unquote(request_data.get("source", ''))
+            fileobj = urllib2.urlopen(source)
+            pkg["source"] = source
+            format = self.findformat(source)
+        elif request.files.get('upfile'):
+            fileobj = request.files.get('upfile')
+            format = self.findformat(str(pkg["upfile"].filename))
+        elif request_data.get('data'):
+            fileobj = StringIO(request_data['data'])
+
+        if request_data.get('format'):
+            format = request_data.get('format')
+        pkg["format"] = format
+
+        if request_data.get("collection"):
+            pkg["collection"] = request_data.get("collection")
+        pkg["email"] = request_data.get("email", None)
+        pkg["received"] = str(datetime.now())
+        res = self.index(fileobj, pkg)
+        if res != "DUPLICATE":
+            if "collection" in pkg:
+                return pkg["collection"], res
+            msg = "Your records were uploaded but no collection name could be discerned."
+        elif res == "DUPLICATE":
+            msg = "The collection name you specified is already in use."
+            msg += "<br />Please use another collection name."
+        else:
+            msg = "Sorry! There was an indexing error. Please try again."
+        raise ValueError(msg)
     
     def bulk_upload(self, colls_list):
         '''upload a list of collections from provided file locations
