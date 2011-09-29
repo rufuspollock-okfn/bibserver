@@ -14,6 +14,10 @@ form{
   * Flash notifications / messages
   ***********************************/
 
+div.alert-messages {
+  margin-top: 15px;
+}
+
 #bibserver_msg{
     margin:10px 0 10px 0;
     width:100%;

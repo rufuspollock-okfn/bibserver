@@ -72,6 +72,7 @@
 
     <div class="container">
 
+    <div class="alert-messages">
     {% with messages = get_flashed_messages(with_categories=True) %}
     {%if messages %}
       {% for category, message in messages %}
@@ -82,6 +83,7 @@
       {% endfor %}
     {% endif %}
     {% endwith %}
+    </div>
 
     {%if msg %}
         <div id="bibserver_msg">
