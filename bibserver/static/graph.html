@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+    <meta charset="UTF-8" />
+    <title>facet graphs</title>
+    
+    <script src="jquery.js"></script>
+    <script type="text/javascript" src="/static/d3/d3.js"></script>
+    <script type="text/javascript" src="/static/d3/d3.geom.js?2.1.3"></script>
+    <script type="text/javascript" src="/static/d3/d3.layout.js?2.1.3"></script>
+
+    <style type="text/css">
+        body {
+            font: 10px sans-serif;
+        }
+
+        svg {
+            shape-rendering: crispEdges;
+        }
+        circle {
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+        text {
+            font: 10px sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="text/javascript">
+
+        $('body').append(
+            '<input type="text" id="qs"> search value<br>' +
+            '<input type="text" id="facet"> type a facet field name (e.g. author,year,journal) and sort by ' +
+            '<select id="sort">' +
+            '<option>count</option><option>reverse_count</option><option>term</option><option>reverse_term</option>' +
+            '</select>' +
+            '<input type="submit" id="submit" value="go">' +
+            '<br><br>'
+        );
+        var isenter = function(event) {
+            if (true) {
+                runit(event);
+            }
+        }
+        var runit = function(event) {
+            event.preventDefault();
+            data = [];
+            titles = [];
+            $('svg').remove();
+            load_data($(this).val());
+        }
+        $('#facet').bind('change',runit).bind('keyup',isenter);
+        $('#submit').bind('click',runit);
+
+        var load_data = function(facet) {
+            var order = $('#sort').val();
+            var qs = { "query_string" : {"query": $('#qs').val() } };
+            if ($('#qs').val() == "") { qs = { "match_all" : {} } }
+            $.ajax({
+                url: 'http://localhost:9200/bibserver/record/_search'
+                , type: 'POST'
+                , data : JSON.stringify({
+                    "query" : qs,
+                    "facets" : {
+                        "facet" : {
+                            "terms" : {
+                                "field" : facet + ".exact",
+                                "size"  : "100",
+                                "order" : order
+                            }
+                        }
+                    }
+                })
+                , dataType : 'json'
+                , processData: false
+                , success: function(json, statusText, xhr) {
+                    bubble(json);
+                    barchart(json);
+                    piechart(json);
+                }
+                , error: function(xhr, message, error) {
+                    console.error("Error while loading data from ElasticSearch", message);
+                    throw(error);
+                }
+            });
+        };
+
+        var barchart = function(json) {
+            var data = []
+            var titles = []
+            for (var item in json.facets.facet.terms) {
+                data.push(json.facets.facet.terms[item].count);
+                titles.push(json.facets.facet.terms[item].term);
+            };
+            var w = 1000,
+                h = 1000,
+                x = d3.scale.linear().domain([0, Math.max.apply(Math, data) ]).range([0, w]),
+                y = d3.scale.ordinal().domain(d3.range(data.length)).rangeBands([0, h], .2);
+            var vis = d3.select("body")
+              .append("svg:svg")
+                .attr("width", w + 40)
+                .attr("height", h + 20)
+              .append("svg:g")
+                .attr("transform", "translate(150,0)");
+            var bars = vis.selectAll("g.bar")
+                .data(data)
+              .enter().append("svg:g")
+                .attr("class", "bar")
+                .attr("transform", function(d, i) { return "translate(0," + y(i) + ")"; });
+            bars.append("svg:rect")
+                .attr("fill", "steelblue")
+                .attr("width", x)
+                .attr("height", y.rangeBand());
+            bars.append("svg:text")
+                .attr("x", x)
+                .attr("y", y.rangeBand() / 2)
+                .attr("dx", -6)
+                .attr("dy", ".35em")
+                .attr("fill", "white")
+                .attr("text-anchor", "end")
+                .text(x.tickFormat(100));
+            bars.append("svg:text")
+                .attr("x", 0)
+                .attr("y", y.rangeBand() / 2)
+                .attr("dx", -6)
+                .attr("dy", ".35em")
+                .attr("text-anchor", "end")
+                .text(function(d, i) { return titles[i] });
+            var rules = vis.selectAll("g.rule")
+                .data(x.ticks(10))
+              .enter().append("svg:g")
+                .attr("class", "rule")
+                .attr("transform", function(d) { return "translate(" + x(d) + ",0)"; });
+            rules.append("svg:line")
+                .attr("y1", h)
+                .attr("y2", h + 6)
+                .attr("stroke", "black");
+            rules.append("svg:line")
+                .attr("y1", 0)
+                .attr("y2", h)
+                .attr("stroke", "white")
+                .attr("stroke-opacity", .3);
+            rules.append("svg:text")
+                .attr("y", h + 9)
+                .attr("dy", ".71em")
+                .attr("text-anchor", "middle")
+                .text(x.tickFormat(10));
+            vis.append("svg:line")
+                .attr("y1", 0)
+                .attr("y2", h)
+                .attr("stroke", "black");
+        };
+
+        var piechart = function(json) {
+            var data = []
+            for (var item in json.facets.facet.terms) {
+                data.push({"label":json.facets.facet.terms[item].term,"value":json.facets.facet.terms[item].count});
+            };
+            var w = 1000, //width
+            h = 1000, //height
+            r = 500, //radius
+            color = d3.scale.category20c(); //builtin range of colors
+            var vis = d3.select("body")
+                .append("svg:svg") //create the SVG element inside the <body>
+                .data([data]) //associate our data with the document
+                    .attr("width", w) //set the width and height of our visualization (these will be attributes of the <svg> tag
+                    .attr("height", h)
+                .append("svg:g") //make a group to hold our pie chart
+                    .attr("transform", "translate(" + r + "," + r + ")") //move the center of the pie chart from 0, 0 to radius, radius
+            var arc = d3.svg.arc() //this will create <path> elements for us using arc data
+                .outerRadius(r);
+            var pie = d3.layout.pie() //this will create arc data for us given a list of values
+                .value(function(d) { return d.value; }); //we must tell it out to access the value of each element in our data array
+            var arcs = vis.selectAll("g.slice") //this selects all <g> elements with class slice (there aren't any yet)
+                .data(pie) //associate the generated pie data (an array of arcs, each having startAngle, endAngle and value properties)
+                .enter() //create <g> elements for every "extra" data element to associate with a selection - results in creating <g> for every object in data array
+                    .append("svg:g") //create a group to hold each slice (we will have a <path> and a <text> element associated with each slice)
+                        .attr("class", "slice"); //allow us to style things in the slices (like text)
+                arcs.append("svg:path")
+                        .attr("fill", function(d, i) { return color(i); } ) //set the color for each slice to be chosen from the color function defined above
+                        .attr("d", arc); //this creates the actual SVG path using the associated data (pie) with the arc drawing function
+                arcs.append("svg:text") //add a label to each slice
+                        .attr("transform", function(d) { //set the label's origin to the center of the arc
+                        //we have to make sure to set these before calling arc.centroid
+                        d.innerRadius = 0.7 * r;
+                        d.outerRadius = r;
+                        return "translate(" + arc.centroid(d) + ")"; //this gives us a pair of coordinates like [50, 50]
+                    })
+                    .attr("text-anchor", "middle") //center the text on it's origin
+                    .text(function(d, i) { return data[i].label; }); //get the label from our original data array
+        }
+
+        var bubble = function(json) { 
+            //data = {"children":[]};
+            var data = [];
+            var count = 0;
+            for (var item in json.facets.facet.terms) {
+                var arr = {
+                    "className": json.facets.facet.terms[item].term,
+                    "packageName": count += 1,
+                    "value": json.facets.facet.terms[item].count
+                };
+                //data["children"].push(arr);
+                data.push(arr);
+            };
+            var r = 960,
+                format = d3.format(",d"),
+                fill = d3.scale.category20c();
+            var bubble = d3.layout.pack()
+                .sort(null)
+                .size([r, r]);
+            var vis = d3.select("body").append("svg:svg")
+                .attr("width", r)
+                .attr("height", r)
+                .attr("class", "bubble");
+            var node = vis.selectAll("g.node")
+                //.data(bubble(data)
+                //.filter(function(d) { return !d.children; }))
+                .data(bubble(data))
+                .enter().append("svg:g")
+                .attr("class", "node")
+                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+            node.append("svg:title")
+                .text(function(d) { return d.data.className + ": " + format(d.value); });
+            node.append("svg:circle")
+                .attr("r", function(d) { return d.r; })
+                .style("fill", function(d) { return fill(d.data.packageName); });
+            node.append("svg:text")
+                .attr("text-anchor", "middle")
+                .attr("dy", ".3em")
+                .text(function(d) { return d.data.className + " (" + d.data.value + ")"; });
+        }
+
+    </script>
+
+</body>
+</html>

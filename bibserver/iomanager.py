@@ -70,12 +70,14 @@ class IOManager(object):
 
     def get_result_display(self,counter):
         disp = self.config.result_display
+        if not disp:
+            return ""
         for key,value in self.set()[counter].items():
-            print key, value, disp
-            fkey = '{{' + `key` + '}}'
+            fkey = u'{{' + `key` + u'}}'
+            print fkey
             if fkey in disp:
                 disp = disp.replace(fkey,self.get_str(self.set()[counter],key))
-        disp = re.sub('{.*}', '', disp)
+        #disp = re.sub('\{.*\}', '', disp)
         return disp
 
     def get_display_fields(self):
