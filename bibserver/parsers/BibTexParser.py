@@ -62,7 +62,8 @@ class BibTexParser(object):
             key, val = [i.strip().strip('"') for i in record.split('{')[1].strip('\n').strip(',').strip('}').split('=')]
             self.replace_dict[key] = val
             return d
-        record = record.replace(u'\x00', '')
+        # causes unicode decode error
+        #record = record.replace(u'\x00', '')
 
         kvs = [i.strip() for i in record.split(',\n')]
         inkey = ""
