@@ -137,27 +137,26 @@ class IOManager(object):
         
     def get_meta(self):
         try:
-            if "collection/" in self.args['path']:
-                coll = self.results['hits']['hits'][0]["_source"]["collection"]
-                if isinstance(coll,list):
-                    coll = coll[0]
-                res = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':"' + coll + '" AND type:collection')
+            if self.args['path'].startswith('collection'):
+                coll = self.args['path'].replace('collection/','')
+                print coll
+                res = bibserver.dao.Collection.query(q='slug:"' + coll + '"')
                 rec = res["hits"]["hits"][0]["_source"]
-                sizer = bibserver.dao.Record.query(q='collection' + self.config.facet_field + ':"' + coll + '"')
+                print rec
 
                 meta = '<p><a href="/'
-                meta += self.args['path'] + '.json?size=' + str(sizer["hits"]["total"])
+                meta += self.args['path'] + '.json?size=' + str(rec['records'])
                 meta += '">Download this collection</a><br />'
                 if "source" in rec:
                     meta += 'The source of this collection is <a href="'
                     meta += rec["source"] + '">' + rec["source"] + '</a>.<br /> '
-                if "received" in rec:
-                    meta += 'This collection was last updated on ' + rec["received"] + '. '
+                if "modified" in rec:
+                    meta += 'This collection was last updated on ' + rec["modified"] + '. '
                 if "source" in rec:
                     meta += '<br />If changes have been made to the source file since then, '
-                    meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["collection"]
+                    meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["slug"]
                     meta += '">refresh this collection</a>.'
-                meta += '<br /><a class="delete_link" href="/query?delete=true&q=collection.exact:%22' + rec["collection"] + '%22">Delete this collection</a></p>'
+                meta += '<br /><a class="delete_link" href="/query?delete=true&q=collection.exact:%22' + rec["slug"] + '%22">Delete this collection</a></p>'
                 return meta
             else:
                 return ""

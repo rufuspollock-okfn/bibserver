@@ -30,37 +30,37 @@ class Importer(object):
         '''
         parser = Parser()
         record_dicts = parser.parse(fileobj, format=format_)
-        collection_from_parser = None
-        if collection_from_parser:
-            collection = collection_from_parser
+        #collection_from_parser = None
+        #if collection_from_parser:
+        #    collection = collection_from_parser
         # TODO: check authz for write to this collection
+        collection['records'] = len(record_dicts)
         return self.index(collection, record_dicts)
 
     def upload_from_web(self, request):
         '''
         :param request_data: Flask request.values attribute.
         '''
-        pkg = dict()
         format = 'bibtex'
+        source = ''
         if request.values.get("source"):
             source = urllib2.unquote(request.values.get("source", ''))
             fileobj = urllib2.urlopen(source)
-            pkg["source"] = source
             format = self.findformat(source)
         elif request.files.get('upfile'):
             fileobj = request.files.get('upfile')
             format = self.findformat(fileobj.filename)
         elif request.values.get('data'):
             fileobj = StringIO(request.values['data'])
-
         if request.values.get('format'):
             format = request.values.get('format')
-        pkg["format"] = format
 
         if not 'collection' in request.values:
             raise ValueError('You must provide a collection label')
         collection = {
-            'label': request.values['collection']
+            'label': request.values['collection'],
+            'source': source,
+            'format': format
             }
         collection, records = self.upload(fileobj, format, collection)
         return (collection, records)
@@ -128,7 +128,7 @@ class Importer(object):
         bibserver.dao.Record.delete_by_query('collection.exact:"' +
                 collection.id + '"')
         for rec in record_dicts:
-            rec['collection'] = collection.id
+            rec['collection'] = collection["slug"]
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
         return collection, records
 

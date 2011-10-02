@@ -45,9 +45,9 @@ def standard_authentication():
 def home():
     # get list of available collections
     try:
-        result = bibserver.dao.Record.query(q="type.exact:collection",sort={"received.exact":{"order":"desc"}})
+        result = bibserver.dao.Collection.query(q="*",sort={"created":{"order":"desc"}})
         if result["hits"]["total"] != 0:
-            colls = [i["_source"]["collection"] for i in result["hits"]["hits"]]
+            colls = [i["_source"]["label"] for i in result["hits"]["hits"]]
     except:
         colls = None
     return render_template('home/index.html', colls=colls, upload=config["allow_upload"] )
@@ -162,6 +162,7 @@ def search(path=''):
     
     # get implicit facet
     c = {'implicit_facet': {}}
+    results = None
     if path != '' and not path.startswith("search"):
         path = path.strip()
         if path.endswith("/"):
@@ -171,26 +172,12 @@ def search(path=''):
             # its an implicit facet
             args['terms'][bits[0]+config["facet_field"]] = [bits[1]]
             c['implicit_facet'][bits[0]] = bits[1]
-        elif len(bits) == 1:
-            # send request through as an implicit facet on type, if said type exists
-            qry = 'type' + config["facet_field"] + ':' + bits[0]
-            check = bibserver.dao.Record.query(q=qry,size=1)
-            if check["hits"]["total"] != 0:
-                c['implicit_facet']["type"] = bits[0]
-                args['terms']["type"+config["facet_field"]] = [bits[0]]
-            else:
-                # otherwise just show a listing of the facet values for that key
-                if 'q' in args:
-                    qryval = args['q']
-                else:
-                    qryval = "*:*"
-                result = bibserver.dao.Record.query(q=qryval,facet_fields=[bits[0]+config["facet_field"]])
-                vals = result["facets"][bits[0]+config["facet_field"]]["terms"]
-                #return render_template('search/listing.html', vals=vals)
+        elif len(bits) == 1 and bits[0] == "collection":
+            results = bibserver.dao.Collection.query(**args)
         
-
     # get results and render
-    results = bibserver.dao.Record.query(**args)
+    if not results:
+        results = bibserver.dao.Record.query(**args)
     args['path'] = path
     c['io'] = bibserver.iomanager.IOManager(results, args)
 
