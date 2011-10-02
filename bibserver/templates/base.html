@@ -16,20 +16,19 @@
     <![endif]-->
 
     <!-- Bootstrap styles -->
-    <link rel="stylesheet" href="/static/twitter-bootstrap-1.3/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/vendor/bootstrap/1.3.0/bootstrap.min.css">
 
     <!-- our styles -->
-    <link rel="stylesheet" type="text/css" href="/static/bibserver/bibserver.css">
-    <link rel="stylesheet" type="text/css" href="/static/bibserver/search.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/css/bibsoup.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/search.css"/>
 
-    <!-- jquery UI style -->
-    <link rel="stylesheet" type="text/css" href="/static/jquery-ui-1.8.16.custom/css/ui-lightness/jquery-ui-1.8.16.custom.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/vendor/jquery-ui/jquery-ui.css"/>
 
-    <!-- javascripts -->
-    <script type="text/javascript" src="/static/jquery-1.6.4.min.js"></script>
-    <script type="text/javascript" src="/static/jquery-ui-1.8.16.custom/js/jquery-ui-1.8.16.custom.min.js"></script>
-    <script type="text/javascript" src="/static/jquery.tinysort.1.1.0/scripts/jquery.tinysort.min.js"></script>
-    <script type="text/javascript" src="/static/bibserver/bibserver.js"></script>
+    <script type="text/javascript" src="/static/vendor/jquery.js"></script>
+    <script type="text/javascript" src="/static/vendor/jquery.tinysort.js"></script>
+    <script type="text/javascript" src="/static/vendor/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/static/vendor/bootstrap/1.3.0/bootstrap-alerts.js"></script>
+    <script type="text/javascript" src="/static/js/bibserver.js"></script>
     
 <!--    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script> -->
 
@@ -74,15 +73,18 @@
 
     <div class="container">
 
+    <div class="alert-messages">
     {% with messages = get_flashed_messages(with_categories=True) %}
     {%if messages %}
       {% for category, message in messages %}
-        <div class="alert-message {{category}}">
+        <div class="alert-message {{category}} fade in" data-alert="alert">
+          <a class="close" href="#">&times;</a>
           {{ message }}
         </div>
       {% endfor %}
     {% endif %}
     {% endwith %}
+    </div>
 
     {%if msg %}
         <div id="bibserver_msg">

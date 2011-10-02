@@ -3,14 +3,15 @@ import json
 import pprint
 from nose.tools import assert_equal
 
-from test.base import *
-from bibserver import dao
+from test.base import fixtures, Fixtures, TESTDB
+import bibserver.dao as dao
+import bibserver.util as util
 
 
 class TestDAO:
     @classmethod
     def setup_class(cls):
-        pass
+        Fixtures.create_account()
 
     @classmethod
     def teardown_class(cls):
@@ -24,6 +25,22 @@ class TestDAO:
         for attr in ['type', 'author']:
             assert record[attr] == recdict[attr], record
             assert outrecord[attr] == recdict[attr], outrecord
+    
+    def test_02_collection(self):
+        label = u'My Collection'
+        slug = util.slugify(label)
+        colldict = {
+            'label': label,
+            'slug': slug,
+            'owner': Fixtures.account.id
+            }
+        coll = dao.Collection.upsert(colldict)
+        assert coll.id, coll
+        assert coll['label'] == label
+        # should only be one collection for this account so this is ok
+        account_colls = Fixtures.account.collections
+        assert coll.id == account_colls[0].id, account_colls
+        
 
 class TestDAOQuery:
     @classmethod

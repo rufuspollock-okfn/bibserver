@@ -1,12 +1,11 @@
 import os
-from datetime import datetime
 import urllib2
 from copy import deepcopy
 import unicodedata
 import httplib
 
 from flask import Flask, jsonify, json, request, redirect, abort, make_response
-from flask import render_template
+from flask import render_template, flash
 from flask.views import View, MethodView
 from flaskext.login import login_user, current_user
 
@@ -16,6 +15,7 @@ import bibserver.iomanager
 import bibserver.importer
 from bibserver.core import app, login_manager
 from bibserver.view.account import blueprint as account
+from bibserver import auth
 
 app.register_blueprint(account, url_prefix='/account')
 
@@ -30,6 +30,15 @@ def load_account_for_login_manager(userid):
 def set_current_user():
     """ Set some template context globals. """
     return dict(current_user=current_user)
+
+@app.before_request
+def standard_authentication():
+    """Check remote_user on a per-request basis."""
+    remote_user = request.headers.get('REMOTE_USER', '')
+    if remote_user:
+        user = bibserver.dao.Account.get(remote_user)
+        if user:
+            login_user(user, remember=False)
 
 
 @app.route('/')
@@ -94,51 +103,31 @@ class UploadView(MethodView):
     record
     '''
     def get(self):
+        if not auth.collection.create(current_user, None):
+            flash('You need to login to create a collection.')
+            return redirect('/account/login')
         if request.values.get("source") is not None:
             return self.post()
         return render_template('upload.html')
 
     def post(self):
-        pkg = dict()
-        format = 'bibtex'
-        if request.values.get("source"):
-            source = urllib2.unquote(request.values.get("source", ''))
-            pkg["source"] = source
-            format = self.findformat(source)
-        elif request.files.get('upfile'):
-            pkg["upfile"] = request.files.get('upfile')
-            format = self.findformat(str(pkg["upfile"].filename))
-        elif request.values.get('data'):
-            pkg["data"] = request.values['data']
-
-        if request.values.get('format'):
-            format = request.values.get('format')
-        pkg["format"] = format
-
-        if request.values.get("collection"):
-            pkg["collection"] = request.values.get("collection")
-        pkg["email"] = request.values.get("email", None)
-        pkg["received"] = str(datetime.now())
-        importer = bibserver.importer.Importer()
-        res = importer.upload(pkg)
-        if res != "DUPLICATE":
-            if "collection" in pkg:
-                return redirect('/collection/' + pkg["collection"])
-            msg = "Your records were uploaded but no collection name could be discerned."
-        elif res == "DUPLICATE":
-            msg = "The collection name you specified is already in use."
-            msg += "<br />Please use another collection name."
+        if not auth.collection.create(current_user, None):
+            abort(401)
+        importer = bibserver.importer.Importer(owner=current_user)
+        try:
+            collection, records = importer.upload_from_web(request)
+        except Exception, inst:
+            msg = str(inst)
+            if app.debug or app.config['TESTING']:
+                raise
+            return render_template('upload.html', msg=msg)
         else:
-            msg = "Sorry! There was an indexing error. Please try again."                    
-        return render_template('upload.html', msg=msg)
+            # TODO: can we be sure that current_user is also the owner
+            # e.g. perhaps user has imported to someone else's collection?
+            flash('Successfully created collection and imported %s records' %
+                    len(records))
+            return redirect('/%s/%s/' % (current_user.id, collection['slug']))
 
-    def findformat(self,filename):
-        if filename.endswith(".json"): return "json"
-        if filename.endswith(".bibjson"): return "bibjson"
-        if filename.endswith(".bibtex"): return "bibtex"
-        if filename.endswith(".bib"): return "bibtex"
-        if filename.endswith(".csv"): return "csv"
-        return "bibtex"
 
 # enable upload unless not allowed in config
 if config["allow_upload"] == "YES":

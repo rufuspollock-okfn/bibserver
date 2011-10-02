@@ -43,7 +43,6 @@ class BibTexParser(object):
             parsed = self.parse_record(record)
             if parsed:
                 records.append(parsed)
-
         return records
 
     def parse_record(self, record):
@@ -63,6 +62,7 @@ class BibTexParser(object):
             key, val = [i.strip().strip('"') for i in record.split('{')[1].strip('\n').strip(',').strip('}').split('=')]
             self.replace_dict[key] = val
             return d
+        record = record.replace(u'\x00', '')
 
         kvs = [i.strip() for i in record.split(',\n')]
         inkey = ""
@@ -175,7 +175,8 @@ class BibTexParser(object):
         for k in self.replace_dict.keys():
             if val == k:
                 val = self.replace_dict[k]
-        val = unicode(val,chardet.detect(val)["encoding"],'ignore')
+        if not isinstance(val, unicode):
+            val = unicode(val,chardet.detect(val)["encoding"],'ignore')
         if '\\' in val or '{' in val:
             for k, v in self.unicode_to_latex.iteritems():
                 if v in val:
@@ -186,7 +187,7 @@ class BibTexParser(object):
                             parts[key+1] = parts[key+1][1:]
                     val = k.join(parts)
                 val = val.replace("{","").replace("}","")
-        return unicode(val)
+        return val
 
     def add_val(self, val):
         if not val or val == "{}":
@@ -202,8 +203,11 @@ class BibTexParser(object):
     def add_key(self, key):
         key = key.strip().strip('@').lower()
         if key in self.alt_dict.keys():
-            return unicode(self.alt_dict[key],'utf-8')
-        return unicode(key,'utf-8')
+            key = self.alt_dict[key]
+        if not isinstance(key, unicode):
+            return unicode(key,'utf-8')
+        else:
+            return key
 
 
     ''' make people names as surname, firstnames
