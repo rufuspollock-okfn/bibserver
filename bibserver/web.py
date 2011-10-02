@@ -47,7 +47,7 @@ def home():
     try:
         result = bibserver.dao.Collection.query(q="*",sort={"created":{"order":"desc"}})
         if result["hits"]["total"] != 0:
-            colls = [i["_source"]["label"] for i in result["hits"]["hits"]]
+            colls = [i["_source"]["label"] + ' (' + str(i["_source"]["total_records"]) + ')'  for i in result["hits"]["hits"]]
     except:
         colls = None
     return render_template('home/index.html', colls=colls, upload=config["allow_upload"] )
@@ -73,9 +73,7 @@ def record(collid,path):
     recorddict = res["hits"]["hits"][0]["_source"]
     
     if JSON:
-        resp = make_response( json.dumps( recorddict, indent=4 ) )
-        resp.mimetype = "application/json"
-        return resp
+        return outputJSON(records=recorddict, coll=collid)
 
     return render_template('record.html', record=recorddict)
 
@@ -181,13 +179,26 @@ def search(path=''):
     args['path'] = path
     c['io'] = bibserver.iomanager.IOManager(results, args)
 
+    print dir(request)
+
     if JSON:
-        resp = make_response( json.dumps(c['io'].set(), indent=4 ) )
-        resp.mimetype = "application/json"
-        return resp
+        return outputJSON(records=c['io'].set(), coll=c['implicit_facet'].get('collection',None))
 
     return render_template('search/index.html', c=c)
 
+def outputJSON(records=None, coll=None):
+    '''build a JSON response, with metadata unless specifically asked to suppress'''
+    meta = request.values.get('meta',True)
+    # TODO: in some circumstances, people data should be added to collections too.
+    if coll and meta != "False" and meta != "false" and meta != "no" and meta != "No":
+        out = bibserver.dao.Collection.query(q=coll)['hits']['hits'][0]['_source']
+        out['records'] = records
+        out['query'] = request.base_url + '?' + request.query_string
+    else:
+        out = records
+    resp = make_response( json.dumps(out, indent=4) )
+    resp.mimetype = "application/json"
+    return resp
 
 if __name__ == "__main__":
     bibserver.dao.init_db()

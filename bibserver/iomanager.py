@@ -139,13 +139,10 @@ class IOManager(object):
         try:
             if self.args['path'].startswith('collection'):
                 coll = self.args['path'].replace('collection/','')
-                print coll
-                res = bibserver.dao.Collection.query(q='slug:"' + coll + '"')
-                rec = res["hits"]["hits"][0]["_source"]
-                print rec
+                rec = bibserver.dao.Collection.query(q='slug:"' + coll + '"')["hits"]["hits"][0]["_source"]
 
                 meta = '<p><a href="/'
-                meta += self.args['path'] + '.json?size=' + str(rec['records'])
+                meta += self.args['path'] + '.json?size=' + str(rec['total_records'])
                 meta += '">Download this collection</a><br />'
                 if "source" in rec:
                     meta += 'The source of this collection is <a href="'

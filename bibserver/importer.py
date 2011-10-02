@@ -34,7 +34,7 @@ class Importer(object):
         #if collection_from_parser:
         #    collection = collection_from_parser
         # TODO: check authz for write to this collection
-        collection['records'] = len(record_dicts)
+        collection['total_records'] = len(record_dicts)
         return self.index(collection, record_dicts)
 
     def upload_from_web(self, request):
