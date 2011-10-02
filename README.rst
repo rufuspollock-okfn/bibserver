@@ -17,21 +17,17 @@ http://bibsoup.net. It is possible to take the code and customise to provide
 the same functionality under a different brand, or on a local network if
 desired.
 
-Records can be uploaded from bibTex, BibJSON, or CSV files, and will
+Records can be uploaded from bibTex, JSON / BibJSON, or CSV files, and will
 automatically generate a collection that can be browsed via the web site. Also,
 additional parsers can easily be written and used in your local version, or
 submitted for inclusion to the BibServer repository so others can use them too.
 
 Collections can be browsed via the online service, and content negotiation can
 be performed to receive an HTML or JSON output. The search functionality
-utilises an underlying SOLR (moving to ES soon) index, and can be directly
-queried for responses.
+utilises an underlying elasticsearch index, and can be directly queried for 
+responses.
 
-BibServer uses code from some other projects (facetview and solreyes), but for
-ease of installation these have all been included in this repo. We have plans
-to develop further functionality, including being able to parse more source
-formats; installation information and development plans are being detailed on
-our web site at http://bibserver.okfn.org.
+Further information at http://bibserver.okfn.org.
 
 
 Install
