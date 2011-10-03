@@ -54,13 +54,22 @@ def home():
         counts = None
     return render_template('home/index.html', colls=colls, counts = counts, upload=config["allow_upload"] )
 
+@app.route('/account/<user>')
+def account(user):
+    if hasattr(current_user,'id'):
+        if user == current_user.id:
+            return render_template('account/user.html',current_user=current_user)
+    else:
+        flash('You need to be logged in to see your user page.')
+        return redirect('/account/login')
+
 
 @app.route('/content/<path:path>')
 def content(path):
     return render_template('home/content.html', page=path)
 
 
-@app.route('/collection/<collid>/<path:path>')
+@app.route('/record/<collid>/<path:path>')
 def record(collid,path):
     JSON = False
     if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
