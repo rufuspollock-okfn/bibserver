@@ -170,6 +170,10 @@ def search(path=''):
             path = path[:-1]
         bits = path.split('/')
         if len(bits) == 2:
+            # check if first bit is a user ID
+            if bibserver.dao.Account.get(bits[0]):
+                c['user'] = bits[0]
+                bits[0] = 'collection'
             # its an implicit facet
             args['terms'][bits[0]+config["facet_field"]] = [bits[1]]
             c['implicit_facet'][bits[0]] = bits[1]
