@@ -25,8 +25,8 @@
           <h2>Recent Collections</h2>
           {% if colls %}
           <ul id="collections">
-          {% for item in colls %}
-          <li><a href="/collection/{{item}}">{{item}}</a></li>
+          {% for i in range(colls|length) %}
+          <li><a href="/collection/{{colls[i]}}">{{colls[i]}}</a> ({{counts[i]}})</li>
           {% endfor %}
           </ul>
           {% endif %}

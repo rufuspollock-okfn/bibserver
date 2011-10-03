@@ -34,7 +34,6 @@ class Importer(object):
         #if collection_from_parser:
         #    collection = collection_from_parser
         # TODO: check authz for write to this collection
-        collection['total_records'] = len(record_dicts)
         return self.index(collection, record_dicts)
 
     def upload_from_web(self, request):
@@ -120,13 +119,14 @@ class Importer(object):
             if coll['slug'] == collection['slug']:
                 collection = coll
                 break
+        collection['total_records'] = len(record_dicts)
         collection['modified'] = timestamp
         collection.save()
         # delete any old versions of the records
         # TODO: should we merge (ie. do upsert rather than delete all existing
         # ones)
         bibserver.dao.Record.delete_by_query('collection.exact:"' +
-                collection.id + '"')
+                collection['slug'] + '"')
         for rec in record_dicts:
             rec['collection'] = collection["slug"]
         records = bibserver.dao.Record.bulk_upsert(record_dicts)

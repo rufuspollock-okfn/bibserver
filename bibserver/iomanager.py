@@ -74,7 +74,6 @@ class IOManager(object):
             return ""
         for key,value in self.set()[counter].items():
             fkey = u'{{' + `key` + u'}}'
-            print fkey
             if fkey in disp:
                 disp = disp.replace(fkey,self.get_str(self.set()[counter],key))
         #disp = re.sub('\{.*\}', '', disp)
@@ -136,29 +135,29 @@ class IOManager(object):
         return res
         
     def get_meta(self):
-        try:
-            if self.args['path'].startswith('collection'):
-                coll = self.args['path'].replace('collection/','')
-                rec = bibserver.dao.Collection.query(q='slug:"' + coll + '"')["hits"]["hits"][0]["_source"]
+        #try:
+        if self.args['path'].startswith('collection'):
+            coll = self.args['path'].replace('collection/','')
+            rec = bibserver.dao.Collection.query(q='slug:"' + coll + '"')["hits"]["hits"][0]["_source"]
 
-                meta = '<p><a href="/'
-                meta += self.args['path'] + '.json?size=' + str(rec['total_records'])
-                meta += '">Download this collection</a><br />'
-                if "source" in rec:
-                    meta += 'The source of this collection is <a href="'
-                    meta += rec["source"] + '">' + rec["source"] + '</a>.<br /> '
-                if "modified" in rec:
-                    meta += 'This collection was last updated on ' + rec["modified"] + '. '
-                if "source" in rec:
-                    meta += '<br />If changes have been made to the source file since then, '
-                    meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["slug"]
-                    meta += '">refresh this collection</a>.'
-                meta += '<br /><a class="delete_link" href="/query?delete=true&q=collection.exact:%22' + rec["slug"] + '%22">Delete this collection</a></p>'
-                return meta
-            else:
-                return ""
-        except:
+            meta = '<p><a href="/'
+            meta += self.args['path'] + '.json?size=' + str(rec['total_records'])
+            meta += '">Download this collection</a><br />'
+            if "source" in rec:
+                meta += 'The source of this collection is <a href="'
+                meta += rec["source"] + '">' + rec["source"] + '</a>.<br /> '
+            if "modified" in rec:
+                meta += 'This collection was last updated on ' + rec["modified"] + '. '
+            if "source" in rec:
+                meta += '<br />If changes have been made to the source file since then, '
+                meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["slug"]
+                meta += '">refresh this collection</a>.'
+            meta += '<br /><a class="delete_link" href="/query?delete=true&q=collection.exact:%22' + rec["slug"] + '%22">Delete this collection</a></p>'
+            return meta
+        else:
             return ""
+        #except:
+        #    return ""
         
 
 

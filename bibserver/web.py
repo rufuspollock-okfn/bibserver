@@ -47,10 +47,12 @@ def home():
     try:
         result = bibserver.dao.Collection.query(q="*",sort={"created":{"order":"desc"}})
         if result["hits"]["total"] != 0:
-            colls = [i["_source"]["label"] + ' (' + str(i["_source"]["total_records"]) + ')'  for i in result["hits"]["hits"]]
+            colls = [i["_source"]["label"]  for i in result["hits"]["hits"]]
+            counts =  [str(i["_source"]["total_records"]) for i in result["hits"]["hits"]]
     except:
         colls = None
-    return render_template('home/index.html', colls=colls, upload=config["allow_upload"] )
+        counts = None
+    return render_template('home/index.html', colls=colls, counts = counts, upload=config["allow_upload"] )
 
 
 @app.route('/content/<path:path>')
@@ -73,7 +75,7 @@ def record(collid,path):
     recorddict = res["hits"]["hits"][0]["_source"]
     
     if JSON:
-        return outputJSON(records=recorddict, coll=collid)
+        return outputJSON(results=res, coll=collid)
 
     return render_template('record.html', record=recorddict)
 
@@ -161,6 +163,7 @@ def search(path=''):
     # get implicit facet
     c = {'implicit_facet': {}}
     results = None
+    incollection = False
     if path != '' and not path.startswith("search"):
         path = path.strip()
         if path.endswith("/"):
@@ -172,6 +175,7 @@ def search(path=''):
             c['implicit_facet'][bits[0]] = bits[1]
         elif len(bits) == 1 and bits[0] == "collection":
             results = bibserver.dao.Collection.query(**args)
+            incollection = True
         
     # get results and render
     if not results:
@@ -179,23 +183,25 @@ def search(path=''):
     args['path'] = path
     c['io'] = bibserver.iomanager.IOManager(results, args)
 
-    print dir(request)
-
     if JSON:
-        return outputJSON(records=c['io'].set(), coll=c['implicit_facet'].get('collection',None))
+        return outputJSON(results=results, coll=c['implicit_facet'].get('collection',None))
+    elif incollection:
+        return render_template('collection/index.html', c=c)
+    else:
+        return render_template('search/index.html', c=c)
 
-    return render_template('search/index.html', c=c)
-
-def outputJSON(records=None, coll=None):
+def outputJSON(results=None, coll=None):
     '''build a JSON response, with metadata unless specifically asked to suppress'''
     meta = request.values.get('meta',True)
     # TODO: in some circumstances, people data should be added to collections too.
     if coll and meta != "False" and meta != "false" and meta != "no" and meta != "No":
         out = bibserver.dao.Collection.query(q=coll)['hits']['hits'][0]['_source']
-        out['records'] = records
+        out['records'] = [i['_source'] for i in results['hits']['hits']]
         out['query'] = request.base_url + '?' + request.query_string
+        if request.values.get('facets','') and results['facets']:
+            out['facets'] = results['facets']
     else:
-        out = records
+        out = [i['_source'] for i in results['hits']['hits']]
     resp = make_response( json.dumps(out, indent=4) )
     resp.mimetype = "application/json"
     return resp
