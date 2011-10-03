@@ -59,7 +59,8 @@
             var qs = { "query_string" : {"query": $('#qs').val() } };
             if ($('#qs').val() == "") { qs = { "match_all" : {} } }
             $.ajax({
-                url: 'http://localhost:9200/bibserver/record/_search'
+                //url: 'http://localhost:9200/bibserver/record/_search'
+                url: 'http://elastic.cottagelabs.com/bibserver/record/_search'
                 , type: 'POST'
                 , data : JSON.stringify({
                     "query" : qs,
