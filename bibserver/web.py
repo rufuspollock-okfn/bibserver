@@ -213,6 +213,8 @@ def outputJSON(results=None, coll=None):
         out['query'] = request.base_url + '?' + request.query_string
         if request.values.get('facets','') and results['facets']:
             out['facets'] = results['facets']
+        out['from'] = request.values.get('from',0)
+        out['size'] = request.values.get('size',10)
     else:
         out = [i['_source'] for i in results['hits']['hits']]
     resp = make_response( json.dumps(out, indent=4) )
