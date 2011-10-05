@@ -47,7 +47,7 @@ def home():
     try:
         result = bibserver.dao.Collection.query(q="*",sort={"created":{"order":"desc"}})
         if result["hits"]["total"] != 0:
-            colls = [i["_source"]["label"]  for i in result["hits"]["hits"]]
+            colls = [i["_source"]["slug"]  for i in result["hits"]["hits"]]
             counts =  [str(i["_source"]["total_records"]) for i in result["hits"]["hits"]]
     except:
         colls = None
