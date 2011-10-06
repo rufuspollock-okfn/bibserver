@@ -138,6 +138,7 @@ class IOManager(object):
         return res
         
     def get_meta(self):
+        meta = ""
         if self.user:
             coll = self.args['path'].replace(self.user+'/','')
             res = bibserver.dao.Collection.query(terms={'slug':[coll]})
@@ -159,7 +160,7 @@ class IOManager(object):
                 #meta += '<br /><a class="delete_link" href="/query?delete=true&q=collection.exact:%22' + rec["slug"] + '%22">Delete this collection</a></p>'
             return meta
         else:
-            return ""
+            return meta
         
 
 
