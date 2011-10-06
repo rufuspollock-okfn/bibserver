@@ -25,12 +25,12 @@
   </div>
 </div>
 
-{% if c['user'] %}
-    <h3>user : {{c['user']}}</h3>
-{% endif %}
-
 {% for facet in c['implicit_facet'] %}
-    <h3>{{facet}} : <a href="/{{facet}}/{{c['implicit_facet'][facet]}}">{{c['implicit_facet'][facet]}}</a></h3>
+    {% if facet == "collection" %}
+        <h3>{{facet}} : <a href="/{{c['user']}}/{{c['implicit_facet'][facet]}}">{{c['implicit_facet'][facet]}}</a></h3>    
+    {% else %}
+        <h3>{{facet}} : <a href="/{{facet}}/{{c['implicit_facet'][facet]}}">{{c['implicit_facet'][facet]}}</a></h3>
+    {% endif %}
 {% endfor %}
 
     <div id="navigation">

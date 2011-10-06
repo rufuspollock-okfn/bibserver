@@ -63,6 +63,7 @@
         "doi" : {"doiify" : {"resolver" : "http://dx.doi.org/"}},
         "url" : {"linkify" : {}},
         "collection": {"implicify":{}},
+        "collection": {"collectionify":{}},
         "person": {"personify":{}},
         "links": {"bibsoup_links":{}}
     }

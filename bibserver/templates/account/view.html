@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3>User: {{current_user['id']}}</h3>
+
+<ul>
+<li>API key: {{current_user['api_key']}}</li>
+</ul>
+
+<h3>Your collections:</h3>
+
+<ul>
+{% for coll in current_user['collections'] %}
+    <li><a href="/{{current_user['id']}}/{{coll['slug']}}">{{coll['label']}}</a> - {{coll['total_records']}} records
+    {% if 'source' in coll %}
+     - from <a href="{{coll['source']}}">{{coll['source']}}
+    {% endif %}
+    </a></li>
+{% endfor %}
+</ul>
+
+{% endblock %}

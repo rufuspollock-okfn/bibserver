@@ -28,7 +28,7 @@ class TestWeb(object):
         assert 'This website is an example' in res.data, res.data
 
     def test_record(self):
-        res = self.app.get('/collection/' + self.record["collection"] + '/' + self.record["citekey"])
+        res = self.app.get('/' + Fixtures.account.id + '/' + self.record["collection"] + '/' + self.record["citekey"])
         assert res.status == '200 OK', res.status
         assert '%s' % self.record["citekey"] in res.data, res.data
 

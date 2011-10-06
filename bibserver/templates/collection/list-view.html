@@ -1,8 +1,9 @@
 <div class="list_view">
     {% for i in range(c['io'].set()|length) %}
         <div class="list_result_{{'odd' if i % 2 == 0 else 'even'}}">
-            <h3><a href="/collection/{{c['io'].get_str(c['io'].set()[i], 'slug')|safe}}">{{c['io'].get_str(c['io'].set()[i], 'slug')|safe}}</a></h3>
+            <h3><a href="/{{c['io'].get_str(c['io'].set()[i], 'owner')|safe}}/{{c['io'].get_str(c['io'].set()[i], 'slug')|safe}}">{{c['io'].get_str(c['io'].set()[i], 'label')|safe}}</a></h3>
             <ul>
+            <li>slug: {{c['io'].get_str(c['io'].set()[i], 'slug')|safe}}</li>
             <li>owner: {{c['io'].get_str(c['io'].set()[i], 'owner')|safe}}</li>
             <li>contains: {{c['io'].get_str(c['io'].set()[i], 'total_records')|safe}} records</li>
             <li>created: {{c['io'].get_str(c['io'].set()[i], 'created')|safe}}</li>

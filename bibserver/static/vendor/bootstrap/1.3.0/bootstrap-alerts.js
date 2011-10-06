@@ -18,11 +18,7 @@
  * ========================================================== */
 
 
-<<<<<<< HEAD
-(function( $ ){
-=======
 !function( $ ){
->>>>>>> ce79070f6d3970cff35ab87cc0fa15f35367ef5b
 
   /* CSS TRANSITION SUPPORT (https://gist.github.com/373874)
    * ======================================================= */
@@ -105,8 +101,4 @@
     new Alert($('body'), '.alert-message[data-alert] .close')
   })
 
-<<<<<<< HEAD
-})( window.jQuery || window.ender )
-=======
 }( window.jQuery || window.ender );
->>>>>>> ce79070f6d3970cff35ab87cc0fa15f35367ef5b

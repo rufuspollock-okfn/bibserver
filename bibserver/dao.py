@@ -114,7 +114,6 @@ class DomainObject(UserDict.IterableUserDict):
     @classmethod
     def delete_by_query(cls, query):
         try:
-        
             # how to do this using PYES?
             url = str(config['ELASTIC_SEARCH_HOST'])
             loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + query

@@ -6,8 +6,9 @@ import bibserver.config
 import re
 
 class IOManager(object):
-    def __init__(self, results, args):
+    def __init__(self, results, args, user):
         self.results = results
+        self.user = user
         self.config = bibserver.config.Config()
         self.args = args if args is not None else {}
         self.facet_fields = {}
@@ -127,6 +128,8 @@ class IOManager(object):
             func_name = d.keys()[0]
             args = d[func_name]
             args["field"] = field
+            if self.user:
+                args["user"] = self.user
             func = globals()[func_name]
             return func(res, args)
         else:
@@ -135,29 +138,28 @@ class IOManager(object):
         return res
         
     def get_meta(self):
-        #try:
-        if self.args['path'].startswith('collection'):
-            coll = self.args['path'].replace('collection/','')
-            rec = bibserver.dao.Collection.query(q='slug:"' + coll + '"')["hits"]["hits"][0]["_source"]
-
-            meta = '<p><a href="/'
-            meta += self.args['path'] + '.json?size=' + str(rec['total_records'])
-            meta += '">Download this collection</a><br />'
-            if "source" in rec:
-                meta += 'The source of this collection is <a href="'
-                meta += rec["source"] + '">' + rec["source"] + '</a>.<br /> '
-            if "modified" in rec:
-                meta += 'This collection was last updated on ' + rec["modified"] + '. '
-            if "source" in rec:
-                meta += '<br />If changes have been made to the source file since then, '
-                meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["slug"]
-                meta += '">refresh this collection</a>.'
-            meta += '<br /><a class="delete_link" href="/query?delete=true&q=collection.exact:%22' + rec["slug"] + '%22">Delete this collection</a></p>'
+        if self.user:
+            coll = self.args['path'].replace(self.user+'/','')
+            res = bibserver.dao.Collection.query(terms={'slug':[coll]})
+            if len(res['hits']['hits']) > 0:
+                rec = res['hits']['hits'][0]['_source']
+                meta = '<p><a href="/'
+                meta += self.args['path'] + '.json?size=' + str(rec['total_records'])
+                meta += '">Download this collection</a><br />'
+                meta += 'This collection was created by <a href="/account/' + rec['owner'] + '">' + rec['owner'] + '</a><br />'
+                if "source" in rec:
+                    meta += 'The source of this collection is <a href="'
+                    meta += rec["source"] + '">' + rec["source"] + '</a>.<br /> '
+                if "modified" in rec:
+                    meta += 'This collection was last updated on ' + rec["modified"] + '. '
+                if "source" in rec:
+                    meta += '<br />If changes have been made to the source file since then, '
+                    meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["slug"]
+                    meta += '">refresh this collection</a>.'
+                #meta += '<br /><a class="delete_link" href="/query?delete=true&q=collection.exact:%22' + rec["slug"] + '%22">Delete this collection</a></p>'
             return meta
         else:
             return ""
-        #except:
-        #    return ""
         
 
 
@@ -197,6 +199,10 @@ def searchify(value, dict):
 def implicify(value, dict):
     # for the given value, make it a link to an implicit facet URL
     return '<a href="/' + dict.get("field") + "/" + value + '" alt="go to ' + dict.get("field") + " - "  + value + '" title="go to ' + dict.get("field") + " - "  + value + '">' + value + '</a>'
+
+def collectionify(value, dict):
+    # for the given value, make it a link to an implicit facet URL
+    return '<a href="/' + dict.get('user',"missing") + "/" + value + '" alt="go to collection '  + value + '" title="go to collection '  + value + '">' + value + '</a>'
 
 def personify(value, dict):
     # for the given value, make it a link to a person URL

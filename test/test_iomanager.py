@@ -22,7 +22,7 @@ class TestIOManager:
         results = bibserver.dao.Record.query('tolstoy',
                 facet_fields=facet_fields)
         args = None
-        manager = bibserver.iomanager.IOManager(results, args)
+        manager = bibserver.iomanager.IOManager(results, args, user=None)
 
         assert_equal(manager.numFound(), 1)
 

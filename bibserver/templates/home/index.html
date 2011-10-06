@@ -26,7 +26,7 @@
           {% if colls %}
           <ul id="collections">
           {% for i in range(colls|length) %}
-          <li><a href="/collection/{{colls[i]}}">{{colls[i]}}</a> ({{counts[i]}})</li>
+          <li><a href="/{{colls[i]['owner']}}/{{colls[i]['slug']}}">{{colls[i]['label']}}</a> ({{colls[i]['total_records']}})</li>
           {% endfor %}
           </ul>
           {% endif %}

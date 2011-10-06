@@ -114,11 +114,16 @@ class Importer(object):
             collection['slug'] = util.slugify(collection['label'])
         collection['owner'] = self.owner.id
         # check if there is an existing collection for this user with same
-        # 'user provided id' (ie. slug) and if so use that instead
+        # source, or if no source an object with same slug, and if so use that instead
         for coll in self.owner.collections:
-            if coll['slug'] == collection['slug']:
-                collection = coll
-                break
+            if 'source' in collection:
+                if coll.get('source','') == collection['source']:
+                    collection['id'] = coll['id']
+                    break
+            else:
+                if coll['slug'] == collection['slug']:
+                    collection['id'] = coll['id']
+                    break
         collection['total_records'] = len(record_dicts)
         collection['modified'] = timestamp
         collection.save()

@@ -31,7 +31,7 @@ class TestImporter:
         recid = records[0]['id']
         out = bibserver.dao.Record.get(recid)
         assert out["year"] == '2008', out
-        assert out['collection'] == coll.id
+        assert out['collection'] == coll['slug']
 
         # now try uploading exactly the same data again
         bibtex = open('test/data/sample.bibtex')
