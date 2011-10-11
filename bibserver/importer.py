@@ -55,12 +55,24 @@ class Importer(object):
             fileobj = StringIO(request.json)
         elif request.data:
             fileobj = StringIO(request.data)
-
         # there is a problem here. request.data and request.json never appear to have content
         #print request.input_stream.read(request.headers.get('content-type', type=int) or 0)
         #print dir(request)
         #print request.json
         #print request.data
+        # can solve by getting it out of the key it appears to get stuck into
+        import json
+        obj = ''
+        for thing in request.values:
+            if not request.values[thing] and not obj:
+                try:
+                    obj = json.loads(thing)
+                except:
+                    pass
+        if obj:
+            print json.dumps(obj)
+            fileobj = StringIO(json.dumps(obj))
+        # end of request data oddity
 
         if request.values.get('format'):
             format = request.values.get('format')

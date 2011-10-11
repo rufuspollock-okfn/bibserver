@@ -120,8 +120,8 @@ class UploadView(MethodView):
 
     def post(self):
         # turning off POST auth for test usage
-        #if not auth.collection.create(current_user, None):
-        #    abort(401)
+        if not auth.collection.create(current_user, None):
+            abort(401)
         importer = bibserver.importer.Importer(owner=current_user)
         try:
             collection, records = importer.upload_from_web(request)
