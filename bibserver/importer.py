@@ -42,6 +42,7 @@ class Importer(object):
         '''
         format = 'bibtex'
         source = ''
+        fileobj = None
         if request.values.get("source"):
             source = urllib2.unquote(request.values.get("source", ''))
             fileobj = urllib2.urlopen(source)

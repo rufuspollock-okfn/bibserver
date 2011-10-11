@@ -39,6 +39,14 @@ def standard_authentication():
         user = bibserver.dao.Account.get(remote_user)
         if user:
             login_user(user, remember=False)
+    # add a check for provision of api key
+    elif 'api_key' in request.values:
+        res = bibserver.dao.Account.query(q='api_key:"' + request.values['api_key'] + '"')['hits']['hits']
+        print res
+        if len(res) == 1:
+            user = bibserver.dao.Account.get(res[0]['_source']['id'])
+            if user:
+                login_user(user, remember=False)
 
 
 @app.route('/')
@@ -119,7 +127,6 @@ class UploadView(MethodView):
         return render_template('upload.html')
 
     def post(self):
-        # turning off POST auth for test usage
         if not auth.collection.create(current_user, None):
             abort(401)
         importer = bibserver.importer.Importer(owner=current_user)
