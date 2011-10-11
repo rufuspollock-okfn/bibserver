@@ -56,6 +56,12 @@ class Importer(object):
         elif request.data:
             fileobj = StringIO(request.data)
 
+        # there is a problem here. request.data and request.json never appear to have content
+        #print request.input_stream.read(request.headers.get('content-type', type=int) or 0)
+        #print dir(request)
+        #print request.json
+        #print request.data
+
         if request.values.get('format'):
             format = request.values.get('format')
 
@@ -121,8 +127,8 @@ class Importer(object):
         # check if there is an existing collection for this user with same
         # source, or if no source an object with same slug, and if so use that instead
         for coll in self.owner.collections:
-            if 'source' in collection:
-                if coll.get('source','') == collection['source']:
+            if 'source' in collection and 'source' in coll:
+                if coll['source'] == collection['source']:
                     collection['id'] = coll['id']
                     break
             else:
