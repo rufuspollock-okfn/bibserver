@@ -49,8 +49,13 @@ class Importer(object):
         elif request.files.get('upfile'):
             fileobj = request.files.get('upfile')
             format = self.findformat(fileobj.filename)
-        elif request.values.get('data'):
-            fileobj = StringIO(request.values['data'])
+        elif request.json:
+            # see flask repo for further info
+            # https://github.com/mitsuhiko/flask/issues/110
+            fileobj = StringIO(request.json)
+        elif request.data:
+            fileobj = StringIO(request.data)
+
         if request.values.get('format'):
             format = request.values.get('format')
 
