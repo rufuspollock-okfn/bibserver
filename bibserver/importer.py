@@ -69,8 +69,7 @@ class Importer(object):
                     obj = json.loads(thing)
                 except:
                     pass
-        if obj:
-            print json.dumps(obj)
+        if obj and not fileobj:
             fileobj = StringIO(json.dumps(obj))
         # end of request data oddity
 
