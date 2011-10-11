@@ -9,7 +9,9 @@
 </ul>
 
 <h3>Your collections:</h3>
-
+{% if current_user['collections']|length == 0 %}
+<p>You have no collections yet. <a href="/upload">Create one!</a></p>
+{% else %}
 <ul>
 {% for coll in current_user['collections'] %}
     <li><a href="/{{current_user['id']}}/{{coll['slug']}}">{{coll['label']}}</a> - {{coll['total_records']}} records
@@ -19,5 +21,6 @@
     </a></li>
 {% endfor %}
 </ul>
+{% endif %}
 
 {% endblock %}
