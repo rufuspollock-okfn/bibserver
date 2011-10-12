@@ -4,7 +4,11 @@
             <div class="list_result_output">{{c['io'].get_result_display(i)|safe}}</div>
 
             <div class="list_result_options">
+            {% if c['io'].get_str(c['io'].set()[i], "citekey") != "" %}
             <a href="/record/{{c['io'].get_str(c['io'].set()[i], "collection", True)|safe}}/{{c['io'].get_str(c['io'].set()[i], "citekey")|safe}}">View record</a><br />
+            {% else %}
+            <a href="/record/{{c['io'].get_str(c['io'].set()[i], "collection", True)|safe}}/{{c['io'].get_str(c['io'].set()[i], "id")|safe}}">View record</a><br />
+            {% endif %}
             {% if c['io'].get_str(c['io'].set()[i], "collection") %}
             in: {{c['io'].get_str(c['io'].set()[i], "collection")|safe}}
             {% endif %}

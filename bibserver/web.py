@@ -85,14 +85,17 @@ def record(collid,path):
 
     res = bibserver.dao.Record.query(q='collection:"' + collid + '" AND citekey:"' + path + '"')
     if res["hits"]["total"] == 0:
-        abort(404)
-    if res["hits"]["total"] > 1:
-        pass
+        recorddict = bibserver.dao.Record.get(path)
+        if not recorddict:
+            abort(404)
+    elif res["hits"]["total"] == 1:
+        recorddict = res["hits"]["hits"][0]["_source"]
+    else:
+        recorddict = res["hits"]["hits"][0]["_source"]
         #return render_template('record.html', msg="hmmm... there is more than one record in this collection with that id...")
-    recorddict = res["hits"]["hits"][0]["_source"]
     
     if JSON:
-        return outputJSON(results=res, coll=collid)
+        return outputJSON(results=recorddict, coll=collid)
 
     return render_template('record.html', record=recorddict)
 
