@@ -248,49 +248,37 @@
     margin:10px 0 0 0;
 }
 
-.list_result_odd {
-    background:#f5f5f5;
+.list_result{
     padding-left:3px;
     padding-bottom:15px;
+}
+
+.list_result_odd {
+    background:#f5f5f5;
 }
 
 .list_result_even {
     background:#eeeeee;
-    padding-left:3px;
-    padding-bottom:15px;
 }
 
-.list_result_field {
-
+.list_result_output {
+    float:left;
+    padding-right:3px;
+    width:75%;
 }
 
-.list_result_options{
-    clear:both;
-    padding-top:5px;
-    width:100%;
+.list_result_options {
+    float:left;
+    clear:right;
+    width:22%;
+    text-align:right;
 }
 
-.list_result_options select{
-    width:100px;
-}
-
-.list_result_options form{
-    display:inline;
-}
-
-.list_result_hidden{
-    display:none;
-}
-
-.list_table{
-    border-top:1px solid #ccc;
-}
-
-#resultstrap{
+.resultstrap{
     clear:both;
     width:100%;
-    margin:0 0 20px 0;
-    padding:20px 0 0 0;
+    margin:0;
+    padding:0;
 }
 
 a.author_name{

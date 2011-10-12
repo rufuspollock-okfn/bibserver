@@ -11,6 +11,7 @@
     <input type="hidden" name="size" value="{{c['io'].page_size()}}" />
     <input type="hidden" name="sort" value="{{c['io'].sorted_by()}}" />
     <input type="hidden" name="order" value="{{c['io'].sort_order()}}" />
+    <input type="hidden" name="showkeys" value="{{c['io'].showkeys()}}" />
     <input type="submit" class="paging_submit_left" name="submit" value="previous" />
     </form>
     {% endif %}
@@ -20,6 +21,7 @@
           <input type="hidden" name="{{item}}" value='{{c['io'].get_safe_terms_object()[item]}}' />
           {% endfor %}
           <input type="hidden" name="q" value="{{c['io'].get_q()}}" />
+        <input type="hidden" name="showkeys" value="{{c['io'].showkeys()}}" />
     <select class="small" name="from" id="page_select">
 
 {% for i in range(0, c['io'].paging_range() ) %}
@@ -84,6 +86,7 @@
     <input type="hidden" name="size" value="{{c['io'].page_size()}}" />
     <input type="hidden" name="sort" value="{{c['io'].sorted_by()}}" />
     <input type="hidden" name="order" value="{{c['io'].sort_order()}}" />
+    <input type="hidden" name="showkeys" value="{{c['io'].showkeys()}}" />
     <input type="submit" class="paging_submit_right" name="submit" value="next" />
     </form>
     {% endif %}

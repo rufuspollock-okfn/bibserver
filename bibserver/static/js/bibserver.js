@@ -78,21 +78,19 @@ jQuery(document).ready(function() {
         "MathSciNet HTML" : "http://www.ams.org/mathscinet-mref?dataType=mathscinet&ref=",
         "MathSciNet BibTex" : "http://www.ams.org/mathscinet-mref?mref-submit=Search&dataType=bibtex&ref="          
     }
-    jQuery('.viewrecord').each(function(index) {
-        var searcher = '<span id="ext_srch_' + index + '"> or search <select class="extsrch_target">';
-        for (var item in searchables) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; }
-        searcher += '</select> for <input class="extsrch_value" id="extsrch_value_' + index + '" />';
-        searcher += '<a href="" alt="find it" title="find it" class="submit_extsrch btn">go</a></span>';
-        jQuery(this).after(searcher);
-        var tags = [];
-        jQuery(this).parent().prev('table').find('tr').each(function() {
-            var thing = jQuery(this).children().last().html().replace(/<.*?>/ig,'');
-            if ( thing != "" && thing != null ) {
-                tags.push(thing);
-            }
-        });
-        jQuery('#extsrch_value_' + index).autocomplete({source:tags});
+    var searcher = '<span id="ext_srch_0">search <select class="extsrch_target">';
+    for (var item in searchables) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; }
+    searcher += '</select> for <input class="extsrch_value" id="extsrch_value_0" />';
+    searcher += '<a href="" alt="find it" title="find it" class="submit_extsrch btn">go</a></span>';
+    jQuery('#bibsoup_box').append(searcher);
+    var tags = [];
+    jQuery('#bibsoup_box').children('table').find('tr').each(function() {
+        var thing = jQuery(this).children().last().html().replace(/<.*?>/ig,'');
+        if ( thing != "" && thing != null ) {
+            tags.push(thing);
+        }
     });
+    jQuery('#extsrch_value_0').autocomplete({source:tags});
     var dosearch = function(event) {
         var target = jQuery(this).siblings('.extsrch_target').val();
         var value = jQuery(this).siblings('.extsrch_value').val();

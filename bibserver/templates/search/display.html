@@ -1,0 +1,17 @@
+
+<div id="display">
+    <p>display options - experimental</p>
+
+    <p>enter a comma separated list of the keys you want to add to the result lists</p>
+
+    <form method="get" action="">
+        {% for item in c['io'].get_safe_terms_object() %}
+              <input type="hidden" name="{{item}}" value='{{c['io'].get_safe_terms_object()[item]}}' />
+        {% endfor %}
+        <input type="hidden" name="q" value="{{c['io'].get_q()}}" />
+        <input type="text" class="small" name="showkeys" value="{{c['io'].showkeys()}}" />
+        <input type="submit" name="submit" value="display" />
+    </form>
+
+
+</div>

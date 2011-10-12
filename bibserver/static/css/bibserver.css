@@ -73,7 +73,7 @@ span.upload_label{
 }
 
 /************************************
-  * Search page (see also solreyes.css)
+  * Search page (see also search.css)
   ***********************************/
 
 #bibserver_search {
@@ -91,5 +91,14 @@ span.upload_label{
 
 #bibserver_search input[type=text] {
   width: 520px;
+}
+
+#display{
+    margin:40px 0 0 0;
+    padding:5px;
+    border:1px solid #373737;
+   -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
 }
 

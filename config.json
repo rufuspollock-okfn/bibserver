@@ -42,29 +42,68 @@
     "default_results_per_page" : 10,
     "results_per_page_options" : [10, 20, 50, 100],
     
-    # The fields for faceting on
+    # The fields for which faceting should be made available on
     "facet_fields" : ["collection","type","journal","author","year"],
 
     # fields to offer result sorting on
-    # note these must not be multi-valued e.g. not list or object fields.
+    # note these must not be list or object fields.
     "sort_fields" : ["received","title","year","journal","url","source"],
 
     # fields to display as headers in search results
-    "display_fields" : ["author","title","journal","links"],
+    #"display_fields" : ["author","title","journal","links"],
     
     # search result display header
-    #"result_display" : "{{author}} ({{year}})<br />{{title}}<br />{{howpublished}} {{journal}} {{pages}} {{booktitle}} {{publisher}}<br />{{links}}",
+    "result_display" : [
+        [
+            {
+                "key": "author",
+                "pre": "",
+                "post": ""
+            },
+            {
+                "key": "year",
+                "pre": "(",
+                "post": ")"
+            }
+        ],
+        [
+            {
+                "pre": "<strong>",
+                "key": "title",
+                "post": "</strong>"
+            }
+        ],
+        [
+            {
+                "key": "howpublished",
+                "post": " in"
+            },
+            {
+                "pre": "<em>",
+                "key": "journal",
+                "post": "</em>,"
+            },
+            {
+                "key": "booktitle",
+                "pre": "<em>",
+                "post": "</em>,"
+            },
+            {
+                "key": "publisher"
+            }
+        ],
+        [
+            {
+                "key": "links"
+            }
+        ]
+    ],
     
     # functions to perform on particular result fields on display
     "display_value_functions" : {
-        "title" : {"wrap" : {"start" : "<a class=\"list_result_field_showall\" href=\"\" alt=\"show more info\" title=\"show more info\"><strong>", "end" : "</strong></a>"}},
-        "journal" : {"wrap" : {"start" : "<em>", "end" : "</em>"}},
         "author":{"authorify":{}},
         "doi" : {"doiify" : {"resolver" : "http://dx.doi.org/"}},
-        "url" : {"linkify" : {}},
-        "collection": {"implicify":{}},
         "collection": {"collectionify":{}},
-        "person": {"personify":{}},
         "links": {"bibsoup_links":{}}
     }
     

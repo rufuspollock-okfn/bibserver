@@ -87,7 +87,8 @@ def record(collid,path):
     if res["hits"]["total"] == 0:
         abort(404)
     if res["hits"]["total"] > 1:
-        return render_template('record.html', msg="hmmm... there is more than one record in this collection with that id...")
+        pass
+        #return render_template('record.html', msg="hmmm... there is more than one record in this collection with that id...")
     recorddict = res["hits"]["hits"][0]["_source"]
     
     if JSON:
@@ -170,7 +171,7 @@ def search(path=''):
             args['sort'] = {request.values.get('sort')+config["facet_field"] : {"order" : request.values.get('order','asc')}}
     if 'q' in request.values:
         if len(request.values.get('q')) > 0:
-            args['q'] = request.values.get('q')
+            args['q'] = request.values.get('q')    
     for param in request.values:
         if param in config["facet_fields"]:
             vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
@@ -202,6 +203,8 @@ def search(path=''):
     if not results:
         results = bibserver.dao.Record.query(**args)
     args['path'] = path
+    if 'showkeys' in request.values:
+        args['showkeys'] = request.values['showkeys']
     c['io'] = bibserver.iomanager.IOManager(results, args, c.get('user',None))
 
     if JSON:

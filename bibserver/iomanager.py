@@ -70,18 +70,41 @@ class IOManager(object):
         return facet in self.config.facet_fields and facet in self.facet_fields
 
     def get_result_display(self,counter):
-        disp = self.config.result_display
-        if not disp:
-            return ""
-        for key,value in self.set()[counter].items():
-            fkey = u'{{' + `key` + u'}}'
-            if fkey in disp:
-                disp = disp.replace(fkey,self.get_str(self.set()[counter],key))
-        #disp = re.sub('\{.*\}', '', disp)
-        return disp
+        '''use the result_display object as a template for search results'''
+        display = self.config.result_display
+        output = ""
+        if not display:
+            return output
 
-    def get_display_fields(self):
-        return self.config.display_fields
+        for item in display:
+            line = ""
+            for pobj in item:
+                if 'key' in pobj:
+                    keydisp = self.get_str(self.set()[counter],pobj['key'])
+                    if keydisp:
+                        line += pobj.get('pre','') + keydisp + pobj.get('post','') + " "
+                if 'default' in pobj:
+                    line += pobj.get('default','') + " "
+            if line:
+                output += line.strip().strip(",") + "<br />"
+
+        if self.showkeys():
+            output += '<table>'
+            keys = [i for i in self.showkeys().split(',')]
+            for key in keys:
+                out = self.get_str(self.set()[counter],key)
+                if out:
+                    output += '<tr><td>' + key + ': ' + out + '</td></tr>'
+            output += '</table>'
+        return output
+        
+    '''get all currently available keys in ES'''
+    def get_keys(self):
+        return ""
+    
+    '''get keys to show on results'''
+    def showkeys(self):
+        return self.args.get('showkeys',"")
 
     def get_facet_fields(self):
         return self.config.facet_fields
@@ -130,6 +153,7 @@ class IOManager(object):
             args["field"] = field
             if self.user:
                 args["user"] = self.user
+            args["path"] = self.args["path"]
             func = globals()[func_name]
             return func(res, args)
         else:
@@ -202,8 +226,16 @@ def implicify(value, dict):
     return '<a href="/' + dict.get("field") + "/" + value + '" alt="go to ' + dict.get("field") + " - "  + value + '" title="go to ' + dict.get("field") + " - "  + value + '">' + value + '</a>'
 
 def collectionify(value, dict):
-    # for the given value, make it a link to an implicit facet URL
-    return '<a href="/' + dict.get('user',"missing") + "/" + value + '" alt="go to collection '  + value + '" title="go to collection '  + value + '">' + value + '</a>'
+    # for the given value, make it a link to a collection facet URL
+    res = bibserver.dao.Collection.query(q='slug:"'+value+'"')['hits']['hits']
+    if len(res) != 0:
+        owner = res[0]['_source']['owner']
+        if not dict["path"].startswith(owner+'/'):
+            return '<a href="/' + owner + "/" + value + '" alt="go to collection '  + value + '" title="go to collection '  + value + '">' + value + '</a>'
+        else:
+            return False
+    else:
+        return False
 
 def personify(value, dict):
     # for the given value, make it a link to a person URL
@@ -267,7 +299,7 @@ def linkify(nm, args):
     return message
 
 def bibsoup_links(vals,dict):
-    links = "External links: "
+    links = ""
     for url in vals:
         links += '<a href="' + url['url'] + '">'
         if 'anchor' in url:
