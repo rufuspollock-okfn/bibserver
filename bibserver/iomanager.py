@@ -81,6 +81,10 @@ class IOManager(object):
                 if 'key' in pobj:
                     keydisp = self.get_str(self.set()[counter],pobj['key'])
                     if keydisp:
+                        try:
+                            keydisp = unichr(keydisp)
+                        except:
+                            pass
                         line += pobj.get('pre','') + keydisp + pobj.get('post','') + " "
                 if 'default' in pobj:
                     line += pobj.get('default','') + " "

@@ -2,6 +2,7 @@ import string
 import json
 import chardet
 import unicodedata
+import re
 
 class BibTexParser(object):
 
@@ -62,8 +63,6 @@ class BibTexParser(object):
             key, val = [i.strip().strip('"') for i in record.split('{')[1].strip('\n').strip(',').strip('}').split('=')]
             self.replace_dict[key] = val
             return d
-        # causes unicode decode error
-        #record = record.replace(u'\x00', '')
 
         kvs = [i.strip() for i in record.split(',\n')]
         inkey = ""
@@ -124,17 +123,20 @@ class BibTexParser(object):
         if "keywords" in record:
             record["keywords"] = [i.strip() for i in record["keywords"].replace('\n','').split(",")]
         if "links" in record:
+            if re.match('\\n',record['links']):
+                print "hi"
             links = [i.strip().replace("  "," ") for i in record["links"].split('\n')]
+            del record['links']
             record['links'] = []
             for link in links:
                 parts = link.split(" ")
-                linkobj = { "url":parts[0] }
+                linkobj = { "url":parts[0].strip().strip('\r\n') }
                 if len(parts) > 1:
-                    linkobj["anchor"] = parts[1]
+                    linkobj["anchor"] = parts[1].strip().strip('\r\n')
                 if len(parts) > 2:
-                    linkobj["format"] = parts[2]
+                    linkobj["format"] = parts[2].strip().strip('\r\n')
                 if len(linkobj["url"]) > 0:
-                    record["links"].append( linkobj )
+                    record["links"].append(linkobj)
         if 'doi' in record:
             if 'links' not in record:
                 record['links'] = []
@@ -199,7 +201,8 @@ class BibTexParser(object):
         val = self.strip_braces(val)
         val = self.string_subst(val)
         """alter based on particular key types"""
-        return unicodedata.normalize('NFKD', val).encode('utf-8','ignore')
+        return unicodedata.normalize('NFKD', val).replace(u'\x00', '').replace(u'\x1A', '').encode('utf-8','ignore')
+
 
     def add_key(self, key):
         key = key.strip().strip('@').lower()
