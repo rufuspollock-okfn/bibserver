@@ -53,29 +53,24 @@ class Importer(object):
         elif request.json:
             # see flask repo for further info
             # https://github.com/mitsuhiko/flask/issues/110
+            # TODO: these are not working. see following comment
             fileobj = StringIO(request.json)
         elif request.data:
             fileobj = StringIO(request.data)
-        # there is a problem here. request.data and request.json never appear to have content
-        #print request.input_stream.read(request.headers.get('content-type', type=int) or 0)
-        #print dir(request)
-        #print request.json
-        #print request.data
+
+        if request.values.get('format'):
+            format = request.values.get('format')
+
+        # request.data and request.json never appear to have content
         # can solve by getting it out of the key it appears to get stuck into
         import json
         obj = ''
         for thing in request.values:
             if not request.values[thing] and not obj:
-                try:
-                    obj = json.loads(thing)
-                except:
-                    pass
+                obj = thing
         if obj and not fileobj:
-            fileobj = StringIO(json.dumps(obj))
+            fileobj = StringIO(obj)
         # end of request data oddity
-
-        if request.values.get('format'):
-            format = request.values.get('format')
 
         if not 'collection' in request.values:
             raise ValueError('You must provide a collection label')
@@ -125,7 +120,6 @@ class Importer(object):
     
     def index(self, collection_dict, record_dicts):
         '''Add this collection and its records to the database index.
-
         :return: (collection, records) tuple of collection and associated
         record objects.
         '''
@@ -133,37 +127,41 @@ class Importer(object):
         timestamp = datetime.now().isoformat()
         collection['created'] = timestamp
         assert 'label' in collection, 'Collection must have a label'
-        if not 'slug' in collection:
-            collection['slug'] = util.slugify(collection['label'])
+        if not 'id' in collection:
+            collection['id'] = util.slugify(collection['label'])
         collection['owner'] = self.owner.id
-        # check if there is an existing collection for this user with same
-        # source, or if no source an object with same slug, and if so use that instead
-        oldslug = collection['slug']
+
+        delid = collection['id']
         for coll in self.owner.collections:
-            if 'source' in collection and 'source' in coll:
+            if 'source' in coll and 'source' in collection:
                 if coll['source'] == collection['source']:
-                    collection['id'] = coll['id']
-                    collection.id = coll['id']
-                    if collection['slug'] != coll['slug']:
-                        oldslug = coll['slug']
-                    break
-            else:
-                if coll['slug'] == collection['slug']:
-                    collection['id'] = coll['id']
-                    collection.id = coll['id']
-                    break
+                    if coll['id'] != collection['id']:
+                        delid = coll['id']
+                        bibserver.dao.Collection.delete_by_query('id:' + coll['id'])
+                        break
+                    else:
+                        collection = coll
+                        break
+            if coll['id'] == collection['id']:
+                collection = coll
+                break
+
+        bibserver.dao.Record.delete_by_query('collection.exact:"' + delid + '"')
+
         collection['records'] = len(record_dicts)
         collection['modified'] = timestamp
         collection.save()
-        # delete any old versions of the records
-        # TODO: should we merge (ie. do upsert rather than delete all existing
-        # ones)
-        bibserver.dao.Record.delete_by_query('collection.exact:"' +
-                oldslug + '"')
+
         for rec in record_dicts:
-            rec['collection'] = collection["slug"]
+            if 'collection' in rec:
+                if collection["id"] not in rec["collection"]:
+                    rec['collection'].append(collection["id"])
+            else:
+                rec['collection'] = [collection["id"]]
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
         return collection, records
+
+
 
     # parse potential people out of a record
     # check if they have a person record in bibsoup

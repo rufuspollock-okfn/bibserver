@@ -17,8 +17,9 @@ def jsonp(f):
 
 
 # derived from http://flask.pocoo.org/snippets/5/ (public domain)
+# changed delimiter to _ instead of - due to ES search problem on the -
 _punct_re = re.compile(r'[\t !"#$%&\'()*\-/<=>?@\[\\\]^_`{|},.]+')
-def slugify(text, delim=u'-'):
+def slugify(text, delim=u'_'):
     """Generates an slightly worse ASCII-only slug."""
     result = []
     for word in _punct_re.split(text.lower()):

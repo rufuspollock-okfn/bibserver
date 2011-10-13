@@ -1,0 +1,18 @@
+<div class="list_view">
+    {% for i in range(io.set()|length) %}
+        <div class="list_result_{{'odd' if i % 2 == 0 else 'even'}}">
+            <h3><a href="/{{io.get_str(io.set()[i], 'owner')|safe}}/{{io.get_str(io.set()[i], 'id')|safe}}">{{io.get_str(io.set()[i], 'label')|safe}}</a></h3>
+            <ul>
+            <li>id: {{io.get_str(io.set()[i], 'id')|safe}}</li>
+            <li>owner: {{io.get_str(io.set()[i], 'owner')|safe}}</li>
+            <li>records: {{io.get_str(io.set()[i], 'records')|safe}}</li>
+            <li>created: {{io.get_str(io.set()[i], 'created')|safe}}</li>
+            <li>modified: {{io.get_str(io.set()[i], 'modified')|safe}}</li>
+            <li>source: <a href="{{io.get_str(io.set()[i], 'source')|safe}}">{{io.get_str(io.set()[i], 'source')|safe}}</a></li>
+            <li>source format: {{io.get_str(io.set()[i], 'format')|safe}}</li>
+            </ul>
+
+        </div>
+    {% endfor %}
+
+</div>

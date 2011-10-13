@@ -1,16 +1,16 @@
 <div class="list_view">
-    {% for i in range(c['io'].set()|length) %}
+    {% for i in range(io.set()|length) %}
         <div class="list_result list_result_{{'odd' if i % 2 == 0 else 'even'}}">
-            <div class="list_result_output">{{c['io'].get_result_display(i)|safe}}</div>
+            <div class="list_result_output">{{io.get_result_display(i)|safe}}</div>
 
             <div class="list_result_options">
-            {% if c['io'].get_str(c['io'].set()[i], "citekey") != "" %}
-            <a href="/record/{{c['io'].get_str(c['io'].set()[i], "collection", True)|safe}}/{{c['io'].get_str(c['io'].set()[i], "citekey")|safe}}">View record</a><br />
+            {% if io.get_str(io.set()[i], "citekey") != "" %}
+            <a href="/record/{{io.get_str(io.set()[i], "collection", True)|safe}}/{{io.get_str(io.set()[i], "citekey")|safe}}">View record</a><br />
             {% else %}
-            <a href="/record/{{c['io'].get_str(c['io'].set()[i], "collection", True)|safe}}/{{c['io'].get_str(c['io'].set()[i], "id")|safe}}">View record</a><br />
+            <a href="/record/{{io.get_str(io.set()[i], "collection", True)|safe}}/{{io.get_str(io.set()[i], "id")|safe}}">View record</a><br />
             {% endif %}
-            {% if c['io'].get_str(c['io'].set()[i], "collection") %}
-            in: {{c['io'].get_str(c['io'].set()[i], "collection")|safe}}
+            {% if io.get_str(io.set()[i], "collection") %}
+            in: {{io.get_str(io.set()[i], "collection")|safe}}
             {% endif %}
             
             </div>

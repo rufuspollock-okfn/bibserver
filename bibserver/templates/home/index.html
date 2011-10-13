@@ -26,11 +26,11 @@
           {% if colls %}
           <ul id="collections">
           {% for i in range(colls|length) %}
-          <li><a href="/{{colls[i]['owner']}}/{{colls[i]['slug']}}">{{colls[i]['label']}}</a> ({{colls[i]['total_records']}})</li>
+          <li><a href="/{{colls[i]['owner']}}/{{colls[i]['slug']}}">{{colls[i]['label']}}</a> ({{colls[i]['records']}})</li>
           {% endfor %}
           </ul>
           {% endif %}
-          <p><a href="/collection" class="btn">See more &raquo;</a></p>
+          <p><a href="/collections" class="btn">See more &raquo;</a></p>
         </div>
       </div>
 {% endblock %}

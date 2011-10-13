@@ -25,19 +25,6 @@
   </div>
 </div>
 
-{% if io.implicit_key %}
-    {% if io.implicit_key == "collection" %}
-        <h3>collection : <a href="/{{io.incollection['owner']}}/{{io.implicit_value}}">{{io.implicit_value}}</a></h3>    
-    {% else %}
-        <h3>{{io.implicit_key}} : <a href="/{{io.implicit_key}}/{{io.implicit_value}}">{{io.implicit_value}}</a></h3>
-    {% endif %}
-{% endif %}
-
-    <div id="navigation">
-        {% include "search/facet.html" %}
-        {% include "search/display.html" %}
-    </div>
-    
     <div id="panel">
     
     {% if io.numFound() != 0 %}
@@ -50,15 +37,15 @@
     {% else %}
         
         <!-- the result set itself -->        
-        {% include "search/list-view.html" %}
+        {% include "collections/list-view.html" %}
     
     {% endif %}
 
     </div>
 
-    <div class="resultstrap">
-    {{io.get_meta()|safe}}
+    <div id="resultstrap">
     </div>
+
 {% endblock %}
 
 

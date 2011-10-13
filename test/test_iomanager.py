@@ -21,21 +21,10 @@ class TestIOManager:
         facet_fields = config.facet_fields
         results = bibserver.dao.Record.query('tolstoy',
                 facet_fields=facet_fields)
-        args = None
-        manager = bibserver.iomanager.IOManager(results, args, user=None)
+        manager = bibserver.iomanager.IOManager(results)
 
         assert_equal(manager.numFound(), 1)
-
-        # prev no longer exists after refactor
-        #prev = manager.get_previous(0)
-        #assert_equal(prev, [])
-
         assert_equal(manager.page_size(), 10)
-
-        # commented out this test because ordering comes from ES anyway
-        # this will probably not be needed after refactoring resultmanager
-        #out = manager.get_ordered_facets('collection')
-        #assert_equal(out, [('great',1), ('novels',1)])
 
         recorddicts = manager.set()
         print recorddicts

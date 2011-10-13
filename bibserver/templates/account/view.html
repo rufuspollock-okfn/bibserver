@@ -14,7 +14,7 @@
 {% else %}
 <ul>
 {% for coll in current_user['collections'] %}
-    <li><a href="/{{current_user['id']}}/{{coll['slug']}}">{{coll['label']}}</a> - {{coll['total_records']}} records
+    <li><a href="/{{current_user['id']}}/{{coll['slug']}}">{{coll['label']}}</a> - {{coll['records']}} records
     {% if 'source' in coll %}
      - from <a href="{{coll['source']}}">{{coll['source']}}
     {% endif %}

@@ -123,18 +123,15 @@ class BibTexParser(object):
         if "keywords" in record:
             record["keywords"] = [i.strip() for i in record["keywords"].replace('\n','').split(",")]
         if "links" in record:
-            if re.match('\\n',record['links']):
-                print "hi"
             links = [i.strip().replace("  "," ") for i in record["links"].split('\n')]
-            del record['links']
             record['links'] = []
             for link in links:
                 parts = link.split(" ")
-                linkobj = { "url":parts[0].strip().strip('\r\n') }
+                linkobj = { "url":parts[0] }
                 if len(parts) > 1:
-                    linkobj["anchor"] = parts[1].strip().strip('\r\n')
+                    linkobj["anchor"] = parts[1]
                 if len(parts) > 2:
-                    linkobj["format"] = parts[2].strip().strip('\r\n')
+                    linkobj["format"] = parts[2]
                 if len(linkobj["url"]) > 0:
                     record["links"].append(linkobj)
         if 'doi' in record:

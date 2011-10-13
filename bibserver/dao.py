@@ -70,6 +70,11 @@ class DomainObject(UserDict.IterableUserDict):
                 raise
 
     @classmethod
+    def get_mapping(cls):
+        conn, db = get_conn()
+        return conn.get_mapping(cls.__type__, db)
+
+    @classmethod
     def upsert(cls, data, state=None):
         '''Update backend object with a dictionary of data.
 
@@ -105,17 +110,13 @@ class DomainObject(UserDict.IterableUserDict):
     
     @classmethod
     def delete_by_query(cls, query):
-        try:
-            # how to do this using PYES?
-            url = str(config['ELASTIC_SEARCH_HOST'])
-            loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + query
-            import httplib 
-            conn = httplib.HTTPConnection(url)
-            conn.request('DELETE', loc)
-            resp = conn.getresponse()
-            return resp.read()
-        except:
-            return False
+        url = str(config['ELASTIC_SEARCH_HOST'])
+        loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + query
+        import httplib 
+        conn = httplib.HTTPConnection(url)
+        conn.request('DELETE', loc)
+        resp = conn.getresponse()
+        return resp.read()
         
     @classmethod
     def query(cls, q='', terms=None, facet_fields=None, flt=False, **kwargs):

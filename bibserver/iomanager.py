@@ -6,14 +6,19 @@ import bibserver.config
 import re
 
 class IOManager(object):
-    def __init__(self, results, args, user):
+    def __init__(self, results, args={}, facet_fields=[], showkeys='', incollection="", implicit_key="", implicit_value="", path=""):
         self.results = results
-        self.user = user
+        self.args = args
+        self.facet_fields = facet_fields
+        self.showkeys = showkeys
+        self.incollection = incollection
+        self.implicit_key = implicit_key
+        self.implicit_value = implicit_value
+        self.path = path
         self.config = bibserver.config.Config()
-        self.args = args if args is not None else {}
-        self.facet_fields = {}
+        self.facet_values = {}
         for facet,data in self.results['facets'].items():
-            self.facet_fields[facet.replace(self.config.facet_field,'')] = data["terms"]
+            self.facet_values[facet.replace(self.config.facet_field,'')] = data["terms"]
 
     def get_q(self):
         return self.args.get('q','')
@@ -21,7 +26,7 @@ class IOManager(object):
     def get_safe_terms_object(self):
         terms = {}
         for term in self.args["terms"]:
-            if term.replace(self.config.facet_field,'') not in self.args["path"]:
+            if term.replace(self.config.facet_field,'') not in self.path:
                 theterm = '['
                 for i in self.args['terms'][term]:
                     theterm += '"' + i + '",'
@@ -31,12 +36,12 @@ class IOManager(object):
         return terms    
 
     def get_path_params(self,myargs):
-        param = '/' + myargs["path"] + '?' if (myargs["path"] != '') else self.config.base_url + '?'
+        param = '/' + self.path + '?' if (self.path != '') else self.config.base_url + '?'
         if 'q' in myargs:
             param += 'q=' + myargs['q'] + '&'
         if 'terms' in myargs:
             for term in myargs['terms']:
-                if term.replace(self.config.facet_field,'') not in self.args["path"]:
+                if term.replace(self.config.facet_field,'') not in self.path:
                     val = '[' + ",".join(urllib2.quote('"{0}"'.format(i.encode('utf-8'))) for i in myargs['terms'][term]) + ']'
                     param += term.replace(self.config.facet_field,'') + '=' + val + '&'
         if 'showkeys' in myargs:
@@ -91,9 +96,9 @@ class IOManager(object):
             if line:
                 output += line.strip().strip(",") + "<br />"
 
-        if self.showkeys():
+        if self.get_showkeys():
             output += '<table>'
-            keys = [i for i in self.showkeys().split(',')]
+            keys = [i for i in self.get_showkeys().split(',')]
             for key in keys:
                 out = self.get_str(self.set()[counter],key)
                 if out:
@@ -103,11 +108,11 @@ class IOManager(object):
         
     '''get all currently available keys in ES'''
     def get_keys(self):
-        return ""
+        return [str(i) for i in bibserver.dao.Record.get_mapping()['record']['properties'].keys()]
     
     '''get keys to show on results'''
-    def showkeys(self):
-        return self.args.get('showkeys',"")
+    def get_showkeys(self):
+        return self.showkeys
 
     def get_facet_fields(self):
         return [i['key'] for i in self.config.facet_fields]
@@ -154,9 +159,9 @@ class IOManager(object):
             func_name = d.keys()[0]
             args = d[func_name]
             args["field"] = field
-            if self.user:
-                args["user"] = self.user
-            args["path"] = self.args["path"]
+            if self.config.incollection:
+                args["incollection"] = self.config.incollection
+            args["path"] = self.config.path
             func = globals()[func_name]
             return func(res, args)
         else:
@@ -165,29 +170,25 @@ class IOManager(object):
         return res
         
     def get_meta(self):
-        meta = ""
-        if self.user:
-            coll = self.args['path'].replace(self.user+'/','')
-            res = bibserver.dao.Collection.query(terms={'slug':[coll]})
-            if len(res['hits']['hits']) > 0:
-                rec = res['hits']['hits'][0]['_source']
+        if self.incollection:
+            coll = bibserver.dao.Collection.get(self.incollection.id)
+            if coll:
                 meta = '<p><a href="/'
-                meta += self.args['path'] + '.json?size=' + str(rec['records'])
+                meta += self.path + '.json?size=' + str(coll['records'])
                 meta += '">Download this collection</a><br />'
-                meta += 'This collection was created by <a href="/account/' + rec['owner'] + '">' + rec['owner'] + '</a><br />'
-                if "source" in rec:
+                meta += 'This collection was created by <a href="/account/' + coll['owner'] + '">' + coll['owner'] + '</a><br />'
+                if "source" in coll:
                     meta += 'The source of this collection is <a href="'
-                    meta += rec["source"] + '">' + rec["source"] + '</a>.<br /> '
-                if "modified" in rec:
-                    meta += 'This collection was last updated on ' + rec["modified"] + '. '
-                if "source" in rec:
+                    meta += coll["source"] + '">' + coll["source"] + '</a>.<br /> '
+                if "modified" in coll:
+                    meta += 'This collection was last updated on ' + coll["modified"] + '. '
+                if "source" in coll:
                     meta += '<br />If changes have been made to the source file since then, '
-                    meta += '<a href="/upload?source=' + rec["source"] + '&collection=' + rec["slug"]
+                    meta += '<a href="/upload?source=' + coll["source"] + '&collection=' + coll.id
                     meta += '">refresh this collection</a>.'
-                #meta += '<br /><a class="delete_link" href="/query?delete=true&q=collection.exact:%22' + rec["slug"] + '%22">Delete this collection</a></p>'
             return meta
         else:
-            return meta
+            return ""
         
 
 
@@ -198,9 +199,6 @@ class IOManager(object):
 def authorify(vals, dict):
     return ' and '.join(['<a class="author_name" alt="search for ' + i + '" title="search for ' + i + '" ' + 'href="/search?q=' + i + '">' + i + '</a>' for i in vals])
 
-def wrap(value, dict):
-    return dict['start'] + value + dict['end']
-    
 def doiify(value, dict):
     # dois may start with:
     # 10. - prefix http://dx.doi.org/
@@ -220,86 +218,13 @@ def doiify(value, dict):
     else:
         return value
 
-def searchify(value, dict):
-    # for the given value, make it a link to a search of the value
-    return '<a href="?q=' + value + '" alt="search for ' + value + '" title="search for ' + value + '">' + value + '</a>'
-
-def implicify(value, dict):
-    # for the given value, make it a link to an implicit facet URL
-    return '<a href="/' + dict.get("field") + "/" + value + '" alt="go to ' + dict.get("field") + " - "  + value + '" title="go to ' + dict.get("field") + " - "  + value + '">' + value + '</a>'
-
 def collectionify(value, dict):
     # for the given value, make it a link to a collection facet URL
-    res = bibserver.dao.Collection.query(q='slug:"'+value+'"')['hits']['hits']
-    if len(res) != 0:
-        owner = res[0]['_source']['owner']
-        if not dict["path"].startswith(owner+'/'):
-            return '<a href="/' + owner + "/" + value + '" alt="go to collection '  + value + '" title="go to collection '  + value + '">' + value + '</a>'
-        else:
-            return False
+    if 'incollection' in dict:
+        coll = bibserver.dao.Collection.get(incollection)
+        return '<a href="/' + coll['owner'] + "/" + value + '" alt="go to collection '  + value + '" title="go to collection '  + value + '">' + value + '</a>'
     else:
-        return False
-
-def personify(value, dict):
-    # for the given value, make it a link to a person URL
-    return '<a href="/person/' + value + '" alt="go to '  + value + ' record" title="go to ' + value + ' record">' + value + '</a>'
-
-def _get_location_pairs(message, start_sub, finish_sub):
-    idx = 0
-    pairs = []
-    while message.find(start_sub, idx) > -1:
-        si = message.find(start_sub, idx)
-        sf = message.find(finish_sub, si)
-        pairs.append((si, sf))
-        idx = sf
-    return pairs
-
-def _create_url(url):
-    return "<a href=\"%(url)s\">%(url)s</a>" % {"url" : url}
-
-def linkify(nm, args):
-    parts = _get_location_pairs(nm, "http://", " ")
-    
-    # read into a sortable dictionary
-    dict = {}
-    for (s, f) in parts:
-        dict[s] = f
-    
-    # sort the starting points
-    keys = dict.keys()
-    keys.sort()
-    
-    # determine the splitting points
-    split_at = [0]
-    for s in keys:
-        f = dict.get(s)
-        split_at.append(s)
-        split_at.append(f)
-    
-    # turn the splitting points into pairs
-    pairs = []
-    for i in range(0, len(split_at)):
-        if split_at[i] == -1:
-            break
-        if i + 1 >= len(split_at):
-            end = len(nm)
-        elif split_at[i+1] == -1:
-            end = len(nm)
-        else:
-            end = split_at[i+1]
-        pair = (split_at[i], end)
-        pairs.append(pair)
-    
-    frags = []
-    for s, f in pairs:
-        frags.append(nm[s:f])
-    
-    for i in range(len(frags)):
-        if frags[i].startswith("http://"):
-            frags[i] = _create_url(frags[i])
-    
-    message = "".join(frags)
-    return message
+        return ''
 
 def bibsoup_links(vals,dict):
     links = ""
@@ -313,3 +238,19 @@ def bibsoup_links(vals,dict):
             links += ' (' + url['format'] + ') '
         links += '</a> | '
     return links.strip(' | ')
+
+def searchify(value, dict):
+    # for the given value, make it a link to a search of the value
+    return '<a href="?q=' + value + '" alt="search for ' + value + '" title="search for ' + value + '">' + value + '</a>'
+
+def implicify(value, dict):
+    # for the given value, make it a link to an implicit facet URL
+    return '<a href="/' + dict.get("field") + "/" + value + '" alt="go to ' + dict.get("field") + " - "  + value + '" title="go to ' + dict.get("field") + " - "  + value + '">' + value + '</a>'
+
+def wrap(value, dict):
+    return dict['start'] + value + dict['end']
+    
+def personify(value, dict):
+    # for the given value, make it a link to a person URL
+    return '<a href="/person/' + value + '" alt="go to '  + value + ' record" title="go to ' + value + ' record">' + value + '</a>'
+

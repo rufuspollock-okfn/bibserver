@@ -42,7 +42,6 @@ def standard_authentication():
     # add a check for provision of api key
     elif 'api_key' in request.values:
         res = bibserver.dao.Account.query(q='api_key:"' + request.values['api_key'] + '"')['hits']['hits']
-        print res
         if len(res) == 1:
             user = bibserver.dao.Account.get(res[0]['_source']['id'])
             if user:
@@ -146,7 +145,7 @@ class UploadView(MethodView):
             # e.g. perhaps user has imported to someone else's collection?
             flash('Successfully created collection and imported %s records' %
                     len(records))
-            return redirect('/%s/%s/' % (current_user.id, collection['slug']))
+            return redirect('/%s/%s/' % (current_user.id, collection['id']))
 
 
 # enable upload unless not allowed in config
@@ -163,16 +162,13 @@ def search(path=''):
         path = path.replace(".bibjson","").replace(".json","")
         JSON = True
 
-    # read args from config and params
-    facets = []
+    facet_fields = []
     for item in config["facet_fields"]:
-        new = {}
-        new['key'] = item['key'] + config["facet_field"]
-        new['size'] = item.get('size',100)
-        new['order'] = item.get('order',"count")
-        facets.append(new)
-    args = {"terms":{},"facet_fields" : facets}
-    #args = {"terms":{},"facet_fields" : [i + config["facet_field"] for i in config["facet_fields"]]}
+        new = { "key": item['key']+config["facet_field"], "size": item.get('size',100), "order": item.get('order','count') }
+        facet_fields.append(new)
+    showkeys = request.values.get('showkeys',None)
+
+    args = {"terms":{},"facet_fields" : facet_fields}
     if 'from' in request.values:
         args['start'] = request.values.get('from')
     if 'size' in request.values:
@@ -188,42 +184,40 @@ def search(path=''):
             vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
             args["terms"][param + config["facet_field"]] = vals
     
-    # get implicit facet
-    c = {'implicit_facet': {}}
-    results = None
-    collection = False
+    collections = False
+    incollection = False 
+    implicit_key = False
+    implicit_value = False
     if path != '' and not path.startswith("search"):
         path = path.strip()
         if path.endswith("/"):
             path = path[:-1]
         bits = path.split('/')
         if len(bits) == 2:
-            # check if first bit is a user ID
+            # if first bit is a user ID then this is a collection
             if bibserver.dao.Account.get(bits[0]):
-                c['user'] = bits[0]
+                incollection = bibserver.dao.Collection.get(bits[1])
                 bits[0] = 'collection'
-            # its an implicit facet
+            # otherwise its a normal implicit facet
             args['terms'][bits[0]+config["facet_field"]] = [bits[1]]
-            c['implicit_facet'][bits[0]] = bits[1]
-        elif len(bits) == 1 and bits[0] == "collection":
-            # show collections page
-            results = bibserver.dao.Collection.query(**args)
-            collection = True
+            implicit_key = bits[0]
+            implicit_value = bits[1]
+        elif len(bits) == 1 and bits[0] == "collections":
+            # it is a request for the collections page
+            collections = True
         
-    # get results and render
-    if not results:
+    if collections:
+        results = bibserver.dao.Collection.query(**args)
+    else:
         results = bibserver.dao.Record.query(**args)
-    args['path'] = path
-    if 'showkeys' in request.values:
-        args['showkeys'] = request.values['showkeys']
-    c['io'] = bibserver.iomanager.IOManager(results, args, c.get('user',None))
+    io = bibserver.iomanager.IOManager(results, args, facet_fields, showkeys, incollection, implicit_key, implicit_value, path)
 
     if JSON:
-        return outputJSON(results=results, coll=c['implicit_facet'].get('collection',None))
-    elif collection:
-        return render_template('collection/index.html', c=c)
+        return outputJSON(results=results, coll=incollection)
+    elif collections:
+        return render_template('collections/index.html', io=io)
     else:
-        return render_template('search/index.html', c=c)
+        return render_template('search/index.html', io=io)
 
 def outputJSON(results=None, coll=None):
     '''build a JSON response, with metadata unless specifically asked to suppress'''
