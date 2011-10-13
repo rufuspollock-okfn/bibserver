@@ -163,8 +163,16 @@ def search(path=''):
         path = path.replace(".bibjson","").replace(".json","")
         JSON = True
 
-    # read args from config and params    
-    args = {"terms":{},"facet_fields" : [i + config["facet_field"] for i in config["facet_fields"]]}
+    # read args from config and params
+    facets = []
+    for item in config["facet_fields"]:
+        new = {}
+        new['key'] = item['key'] + config["facet_field"]
+        new['size'] = item.get('size',100)
+        new['order'] = item.get('order',"count")
+        facets.append(new)
+    args = {"terms":{},"facet_fields" : facets}
+    #args = {"terms":{},"facet_fields" : [i + config["facet_field"] for i in config["facet_fields"]]}
     if 'from' in request.values:
         args['start'] = request.values.get('from')
     if 'size' in request.values:
@@ -176,7 +184,7 @@ def search(path=''):
         if len(request.values.get('q')) > 0:
             args['q'] = request.values.get('q')    
     for param in request.values:
-        if param in config["facet_fields"]:
+        if param in [i['key'] for i in config["facet_fields"]]:
             vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
             args["terms"][param + config["facet_field"]] = vals
     

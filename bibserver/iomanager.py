@@ -39,6 +39,8 @@ class IOManager(object):
                 if term.replace(self.config.facet_field,'') not in self.args["path"]:
                     val = '[' + ",".join(urllib2.quote('"{0}"'.format(i.encode('utf-8'))) for i in myargs['terms'][term]) + ']'
                     param += term.replace(self.config.facet_field,'') + '=' + val + '&'
+        if 'showkeys' in myargs:
+            param += 'showkeys=' + myargs['showkeys'] + '&'
         return param
 
     def get_add_url(self, field, value):
@@ -66,9 +68,6 @@ class IOManager(object):
     def in_args(self, facet, value):
         return self.args['terms'].has_key(facet + self.config.facet_field) and value in self.args['terms'][facet + self.config.facet_field]
             
-    def has_values(self, facet):
-        return facet in self.config.facet_fields and facet in self.facet_fields
-
     def get_result_display(self,counter):
         '''use the result_display object as a template for search results'''
         display = self.config.result_display
@@ -94,7 +93,7 @@ class IOManager(object):
             for key in keys:
                 out = self.get_str(self.set()[counter],key)
                 if out:
-                    output += '<tr><td>' + key + ': ' + out + '</td></tr>'
+                    output += '<tr><td><strong>' + key + '</strong>: ' + out + '</td></tr>'
             output += '</table>'
         return output
         
@@ -107,7 +106,7 @@ class IOManager(object):
         return self.args.get('showkeys',"")
 
     def get_facet_fields(self):
-        return self.config.facet_fields
+        return [i['key'] for i in self.config.facet_fields]
 
     def get_rpp_options(self):
         return self.config.results_per_page_options
@@ -169,7 +168,7 @@ class IOManager(object):
             if len(res['hits']['hits']) > 0:
                 rec = res['hits']['hits'][0]['_source']
                 meta = '<p><a href="/'
-                meta += self.args['path'] + '.json?size=' + str(rec['total_records'])
+                meta += self.args['path'] + '.json?size=' + str(rec['records'])
                 meta += '">Download this collection</a><br />'
                 meta += 'This collection was created by <a href="/account/' + rec['owner'] + '">' + rec['owner'] + '</a><br />'
                 if "source" in rec:

@@ -138,23 +138,28 @@ class Importer(object):
         collection['owner'] = self.owner.id
         # check if there is an existing collection for this user with same
         # source, or if no source an object with same slug, and if so use that instead
+        oldslug = collection['slug']
         for coll in self.owner.collections:
             if 'source' in collection and 'source' in coll:
                 if coll['source'] == collection['source']:
                     collection['id'] = coll['id']
+                    collection.id = coll['id']
+                    if collection['slug'] != coll['slug']:
+                        oldslug = coll['slug']
                     break
             else:
                 if coll['slug'] == collection['slug']:
                     collection['id'] = coll['id']
+                    collection.id = coll['id']
                     break
-        collection['total_records'] = len(record_dicts)
+        collection['records'] = len(record_dicts)
         collection['modified'] = timestamp
         collection.save()
         # delete any old versions of the records
         # TODO: should we merge (ie. do upsert rather than delete all existing
         # ones)
         bibserver.dao.Record.delete_by_query('collection.exact:"' +
-                collection['slug'] + '"')
+                oldslug + '"')
         for rec in record_dicts:
             rec['collection'] = collection["slug"]
         records = bibserver.dao.Record.bulk_upsert(record_dicts)

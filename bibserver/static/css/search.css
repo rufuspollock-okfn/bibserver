@@ -283,7 +283,10 @@
 
 a.author_name{
     color:#555555;
-    font-weight:bold;
+    border-bottom:1px dotted #373737;
+}
+a.author_name:hover{
+    border-bottom:none;
 }
 
 a.delete_link{

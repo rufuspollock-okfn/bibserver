@@ -44,12 +44,8 @@ class TestWeb(object):
     def test_upload_post(self):
         bibtex_data = open('test/data/sample.bibtex').read()
         startnum = dao.Record.query()['hits']['total']
-        res = self.app.post('/upload',
-            data=dict(
-                format='bibtex',
-                collection='My Test Collection',
-                data=bibtex_data
-                ),
+        res = self.app.post('/upload?format=bibtex&collection="My Test Collection"',
+            data=bibtex_data,
             headers={'REMOTE_USER': Fixtures.account.id}
             )
         assert res.status == '302 FOUND', res.status

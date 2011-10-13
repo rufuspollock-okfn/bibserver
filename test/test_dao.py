@@ -63,7 +63,7 @@ class TestDAOQuery:
         assert_equal(len(out['hits']['hits']), 1)
 
     def test_query_facet(self):
-        facet_fields = ['type']
+        facet_fields = [{'key':'type'}]
         out = dao.Record.query(facet_fields=facet_fields)
         print pprint.pprint(out)
         facetterms = out['facets']['type']['terms']

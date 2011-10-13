@@ -56,52 +56,54 @@ jQuery(document).ready(function() {
     }
     jQuery('.list_result_field_showall').bind('click',showall);
 
-    // add external search autocomplete box
-    var searchables = {
-        "Google" : "http://www.google.com/search?q=",
-        "Google scholar" : "http://scholar.google.com/scholar?q=",
-        "Google video" : "http://www.google.com/search?tbm=vid&q=",
-        "Google blogs" : "http://www.google.com/search?tbm=blg&q=",
-        "Google books" : "http://www.google.com/search?tbm=bks&q=",
-        "Google images" : "http://www.google.com/search?tbm=isch&q=",
-        "Google + ResearcherID" : "http://www.google.com/search?q=XXXX+site%3Awww.researcherid.com",
-        "Google + ACM Author Profiles" : "http://www.google.com/search?q=XXXX+ACM+author+profile+site%3Adl.acm.org",
-        "Google + Mathemtatics genealogy" : "http://www.google.com/search?q=XXXX+site%3Agenealogy.math.ndsu.nodak.edu",
-        "Microsoft academic search" : "http://academic.research.microsoft.com/Search?query=",
-        "Bing" : "http://www.bing.com/search?q=",
-        "Bing images" : "http://www.bing.com/images/search?q=",
-        "Bing + author" : "http://www.bing.com/search?q=XXXX+author",
-        "Bing + ResearcherID" : "http://www.bing.com/search?q=XXXX+site%3Aresearcherid.com",
-        "Homepage Seer" : "http://thelma.ist.psu.edu/search.php?q=",
-        "Zentralblatt Math" : "http://www.zentralblatt-math.org/zmath/en/search/?q=",
-        "Zentralblatt Math authors" : "http://www.zentralblatt-math.org/zmath/en/authors/?au=",
-        "MathSciNet HTML" : "http://www.ams.org/mathscinet-mref?dataType=mathscinet&ref=",
-        "MathSciNet BibTex" : "http://www.ams.org/mathscinet-mref?mref-submit=Search&dataType=bibtex&ref="          
-    }
-    var searcher = '<span id="ext_srch_0">search <select class="extsrch_target">';
-    for (var item in searchables) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; }
-    searcher += '</select> for <input class="extsrch_value" id="extsrch_value_0" />';
-    searcher += '<a href="" alt="find it" title="find it" class="submit_extsrch btn">go</a></span>';
-    jQuery('#bibsoup_box').append(searcher);
-    var tags = [];
-    jQuery('#bibsoup_box').children('table').find('tr').each(function() {
-        var thing = jQuery(this).children().last().html().replace(/<.*?>/ig,'');
-        if ( thing != "" && thing != null ) {
-            tags.push(thing);
+    // add external search autocomplete box to record display page
+    if ( window.location.pathname.match('record') ) {
+        var searchables = {
+            "Google" : "http://www.google.com/search?q=",
+            "Google scholar" : "http://scholar.google.com/scholar?q=",
+            "Google video" : "http://www.google.com/search?tbm=vid&q=",
+            "Google blogs" : "http://www.google.com/search?tbm=blg&q=",
+            "Google books" : "http://www.google.com/search?tbm=bks&q=",
+            "Google images" : "http://www.google.com/search?tbm=isch&q=",
+            "Google + ResearcherID" : "http://www.google.com/search?q=XXXX+site%3Awww.researcherid.com",
+            "Google + ACM Author Profiles" : "http://www.google.com/search?q=XXXX+ACM+author+profile+site%3Adl.acm.org",
+            "Google + Mathemtatics genealogy" : "http://www.google.com/search?q=XXXX+site%3Agenealogy.math.ndsu.nodak.edu",
+            "Microsoft academic search" : "http://academic.research.microsoft.com/Search?query=",
+            "Bing" : "http://www.bing.com/search?q=",
+            "Bing images" : "http://www.bing.com/images/search?q=",
+            "Bing + author" : "http://www.bing.com/search?q=XXXX+author",
+            "Bing + ResearcherID" : "http://www.bing.com/search?q=XXXX+site%3Aresearcherid.com",
+            "Homepage Seer" : "http://thelma.ist.psu.edu/search.php?q=",
+            "Zentralblatt Math" : "http://www.zentralblatt-math.org/zmath/en/search/?q=",
+            "Zentralblatt Math authors" : "http://www.zentralblatt-math.org/zmath/en/authors/?au=",
+            "MathSciNet HTML" : "http://www.ams.org/mathscinet-mref?dataType=mathscinet&ref=",
+            "MathSciNet BibTex" : "http://www.ams.org/mathscinet-mref?mref-submit=Search&dataType=bibtex&ref="          
         }
-    });
-    jQuery('#extsrch_value_0').autocomplete({source:tags});
-    var dosearch = function(event) {
-        var target = jQuery(this).siblings('.extsrch_target').val();
-        var value = jQuery(this).siblings('.extsrch_value').val();
-        if ( target.match("XXXX") ) {
-            var href = target.replace("XXXX",value);
-        } else {
-            var href = target + value;
+        var searcher = '<span id="ext_srch_0">search <select class="extsrch_target">';
+        for (var item in searchables) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; }
+        searcher += '</select> for <input class="extsrch_value" id="extsrch_value_0" />';
+        searcher += '<a href="" alt="find it" title="find it" class="submit_extsrch btn">go</a></span>';
+        jQuery('#bibsoup_box').append(searcher);
+        var tags = [];
+        jQuery('#bibsoup_box').children('table').find('tr').each(function() {
+            var thing = jQuery(this).children().last().html().replace(/<.*?>/ig,'');
+            if ( thing != "" && thing != null ) {
+                tags.push(thing);
+            }
+        });
+        jQuery('#extsrch_value_0').autocomplete({source:tags});
+        var dosearch = function(event) {
+            var target = jQuery(this).siblings('.extsrch_target').val();
+            var value = jQuery(this).siblings('.extsrch_value').val();
+            if ( target.match("XXXX") ) {
+                var href = target.replace("XXXX",value);
+            } else {
+                var href = target + value;
+            }
+            jQuery(this).attr('href',href);
         }
-        jQuery(this).attr('href',href);
+        jQuery('.submit_extsrch').bind('click',dosearch);
     }
-    jQuery('.submit_extsrch').bind('click',dosearch);
 
     // attach functionality to trigger rpp, page, sort selections
     jQuery('#paging_trigger').remove();

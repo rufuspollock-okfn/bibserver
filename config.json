@@ -21,8 +21,8 @@
                             "mapping" : {
                                 "type" : "multi_field",
                                 "fields" : {
-                                    "{name}" : {"type" : "string", "index" : "analyzed", "store" : "no"},
-                                    "exact" : {"type" : "string", "index" : "not_analyzed", "store" : "no"}
+                                    "{name}" : {"type" : "{dynamic_type}", "index" : "analyzed", "store" : "no"},
+                                    "exact" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "no"}
                                 }
                             }
                         }
@@ -38,12 +38,33 @@
     # base URL of search service
     "base_url" : "/search",
     
-    # default results and paging options (integer - array of integers)
+    # default results and paging options
     "default_results_per_page" : 10,
     "results_per_page_options" : [10, 20, 50, 100],
     
-    # The fields for which faceting should be made available on
-    "facet_fields" : ["collection","type","journal","author","year"],
+    # The fields for which faceting should be made available on, and their default settings
+    "facet_fields" : [
+        {
+            "key":"collection",
+            "order":"term",
+            "size":200
+        },
+        {
+            "key":"type",
+            "order":"count"
+        },
+        {
+            "key":"journal"
+        },
+        {
+            "key":"author",
+            "order":"term"
+        },
+        {
+            "key":"year",
+            "order":"reverse_term"
+        }
+    ],
 
     # fields to offer result sorting on
     # note these must not be list or object fields.
@@ -75,11 +96,10 @@
         ],
         [
             {
-                "key": "howpublished",
-                "post": " in"
+                "key": "howpublished"
             },
             {
-                "pre": "<em>",
+                "pre": "in <em>",
                 "key": "journal",
                 "post": "</em>,"
             },
@@ -94,6 +114,7 @@
         ],
         [
             {
+                "pre": "External links:",
                 "key": "links"
             }
         ]

@@ -150,8 +150,8 @@ class DomainObject(UserDict.IterableUserDict):
 
         ourq = ourq.search(**kwargs)
         if facet_fields:
-            for field in facet_fields:
-                ourq.facet.add_term_facet(field, size=100)
+            for item in facet_fields:
+                ourq.facet.add_term_facet(item['key'], size=item.get('size',100), order=item.get('order',"count"))
         out = conn.search(ourq, db, cls.__type__)
         return out
 
