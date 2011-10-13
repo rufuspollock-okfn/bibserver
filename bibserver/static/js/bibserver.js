@@ -1,5 +1,5 @@
 
-jQuery(document).ready(function() {
+jQuery(document).ready(function() {    
 
     // enable show of upload from PC on upload page
     jQuery('#frompc').hide();
@@ -37,24 +37,26 @@ jQuery(document).ready(function() {
     }
     jQuery('.sourcefile').bind('change',checkformat)
     
-
-    // if there is a msg, display and then hide after delay
-    if ( jQuery('#bibserver_msg').length ) {
-        setTimeout( function() { jQuery('#bibserver_msg').hide('slow'); jQuery('#bibserver_msg').remove(); }, 20000 )
+    // search for collection id related to source on upload page
+    var findcoll = function(event) {
+        jQuery.ajax({
+            url: '/collections.json?q=source:"' + jQuery(this).val() + '"'
+            , type: 'GET'
+            , success: function(json, statusText, xhr) {
+                if (json.records.length != 0) {
+                    jQuery('#collection').val(json.records[0]['id']);
+                }
+            }
+            , error: function(xhr, message, error) {
+            }
+        });
     }
+    jQuery('.sourcefile').bind('keyup',findcoll)
 
-    // show full result content on title click
-    var showall = function(event) {
-        event.preventDefault();
-        if ( $(this).hasClass('opened') ) {
-            $(this).parent().siblings('.list_result_hidden').hide();
-            $(this).removeClass('opened');
-        } else {
-            $(this).parent().siblings('.list_result_hidden').show();
-            $(this).addClass('opened');
-        }
+    // search for collection id similar to that provided, and warn of duplicates controlled by third parties
+    var checkcoll = function(event) {
     }
-    jQuery('.list_result_field_showall').bind('click',showall);
+    jQuery('#collection').bind('change',checkcoll);
 
     // add external search autocomplete box to record display page
     if ( window.location.pathname.match('record') ) {
