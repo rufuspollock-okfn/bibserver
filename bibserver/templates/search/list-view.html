@@ -9,8 +9,10 @@
             {% else %}
             <a href="/record/{{io.get_str(io.set()[i], "collection", True)|safe}}/{{io.get_str(io.set()[i], "id")|safe}}">View record</a><br />
             {% endif %}
-            {% if io.get_str(io.set()[i], "collection") %}
-            in: {{io.get_str(io.set()[i], "collection")|safe}}
+            {% if not io.incollection %}
+                {% if io.get_str(io.set()[i], "collection") %}
+                in: {{io.get_str(io.set()[i], "collection")|safe}}
+                {% endif %}
             {% endif %}
             </div>
             <div class="resultstrap"></div>

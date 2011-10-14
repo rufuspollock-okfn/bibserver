@@ -6,12 +6,13 @@ import bibserver.config
 import re
 
 class IOManager(object):
-    def __init__(self, results, args={}, facet_fields=[], showkeys='', incollection="", implicit_key="", implicit_value="", path=""):
+    def __init__(self, results, args={}, facet_fields=[], showkeys='', incollection=False, implicit_key="", implicit_value="", path=""):
         self.results = results
         self.args = args
         self.facet_fields = facet_fields
         self.showkeys = showkeys
         self.incollection = incollection
+        print self.incollection
         self.implicit_key = implicit_key
         self.implicit_value = implicit_value
         self.path = path
