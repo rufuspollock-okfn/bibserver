@@ -166,7 +166,7 @@ class Importer(object):
                     self.requesturl += '/'
                 rec['url'] = self.requesturl + 'record/'
                 if 'citekey' in rec:
-                    rec['url'] += collection['id'] + rec.get('citekey')
+                    rec['url'] += collection['id'] + '/' + rec.get('citekey')
                 else:
                     rec['url'] += rec['id']
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
