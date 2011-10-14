@@ -11,11 +11,12 @@ import unicodedata
 from bibserver.parser import Parser
 import bibserver.dao
 import bibserver.util as util
-
+from bibserver.config import config
 
 class Importer(object):
-    def __init__(self, owner):
+    def __init__(self, owner, requesturl=False):
         self.owner = owner
+        self.requesturl = requesturl
 
     def upload(self, fileobj, format_, collection=None):
         '''Import a collection into the database.
@@ -158,6 +159,14 @@ class Importer(object):
                     rec['collection'].append(collection["id"])
             else:
                 rec['collection'] = [collection["id"]]
+            if not self.requesturl and 'SITE_URL' in config:
+                self.requesturl = str(config['SITE_URL'])
+            if self.requesturl:
+                rec['url'] = self.requesturl + '/record/'
+                if 'citekey' in rec:
+                    rec['url'] += collection['id'] + '/' + rec.get('citekey')
+                else:
+                    rec['url'] += rec['id']
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
         return collection, records
 

@@ -75,28 +75,25 @@ def content(path):
     return render_template('home/content.html', page=path)
 
 
-@app.route('/record/<collid>/<path:path>')
-def record(collid,path):
+@app.route('/record/<cid>/<path:path>')
+@app.route('/record/<path:path>')
+def record(path,cid=None):
     JSON = False
     if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
         path = path.replace(".bibjson","").replace(".json","")
         JSON = True
 
-    res = bibserver.dao.Record.query(q='collection:"' + collid + '" AND citekey:"' + path + '"')
-    if res["hits"]["total"] == 0:
-        recorddict = bibserver.dao.Record.get(path)
-        if not recorddict:
-            abort(404)
-    elif res["hits"]["total"] == 1:
-        recorddict = res["hits"]["hits"][0]["_source"]
+    if cid:
+        res = bibserver.dao.Record.query(q='collection:"' + cid + '" AND citekey:"' + path + '"')
     else:
-        recorddict = res["hits"]["hits"][0]["_source"]
-        #return render_template('record.html', msg="hmmm... there is more than one record in this collection with that id...")
-    
-    if JSON:
-        return outputJSON(results=res, coll=collid)
+        res = bibserver.dao.Record.query(q='id.exact:"' + path + '"')
 
-    return render_template('record.html', record=recorddict)
+    if res["hits"]["total"] == 0:
+        abort(404)
+    elif JSON:
+        return outputJSON(results=res, coll=cid, record=True)
+    else:
+        return render_template('record.html', record=res['hits']['hits'][0]['_source'])
 
 
 @app.route('/query', methods=['GET','POST'])
@@ -132,7 +129,7 @@ class UploadView(MethodView):
     def post(self):
         if not auth.collection.create(current_user, None):
             abort(401)
-        importer = bibserver.importer.Importer(owner=current_user)
+        importer = bibserver.importer.Importer(owner=current_user,requesturl=request.url)
         try:
             collection, records = importer.upload_from_web(request)
         except Exception, inst:
@@ -213,28 +210,43 @@ def search(path=''):
     io = bibserver.iomanager.IOManager(results, args, facet_fields, showkeys, incollection, implicit_key, implicit_value, path)
 
     if JSON:
-        return outputJSON(results=results, coll=incollection)
+        if incollection:
+            return outputJSON(results=results, coll=incollection.id)
+        else:
+            return outputJSON(results=results)
     elif collections:
         return render_template('collections/index.html', io=io)
     else:
         return render_template('search/index.html', io=io)
 
-def outputJSON(results=None, coll=None):
+
+
+
+
+def outputJSON(results, coll=None, record=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''
-    meta = request.values.get('meta',True)
     # TODO: in some circumstances, people data should be added to collections too.
-    if meta != "False" and meta != "false" and meta != "no" and meta != "No":
-        out = {"metadata":{}}
-        if coll:
-            out['metadata'] = bibserver.dao.Collection.query(q='"'+coll+'"')['hits']['hits'][0]['_source']
-        out['metadata']['query'] = request.base_url + '?' + request.query_string
-        out['records'] = [i['_source'] for i in results['hits']['hits']]
-        if request.values.get('facets','') and results['facets']:
-            out['facets'] = results['facets']
-        out['metadata']['from'] = request.values.get('from',0)
-        out['metadata']['size'] = request.values.get('size',10)
-    else:
-        out = [i['_source'] for i in results['hits']['hits']]
+    out = {"metadata":{}}
+    if coll:
+        out['metadata'] = bibserver.dao.Collection.query(q='"'+coll+'"')['hits']['hits'][0]['_source']
+    out['metadata']['query'] = request.base_url + '?' + request.query_string
+    out['records'] = [i['_source'] for i in results['hits']['hits']]
+    if request.values.get('facets','') and results['facets']:
+        out['facets'] = results['facets']
+    out['metadata']['from'] = request.values.get('from',0)
+    out['metadata']['size'] = request.values.get('size',10)
+
+    # if a single record meta default is false
+    if record and len(out['records']) == 1 and not request.values.get('meta',False):
+        out = out['records'][0]
+
+    # if a search result meta default is true
+    meta = request.values.get('meta',True)
+    if meta == "False" or meta == "false" or meta == "no" or meta == "No" or meta == 0:
+        meta = False
+    if not record and not meta:
+        out = out['records']
+
     resp = make_response( json.dumps(out, indent=4) )
     resp.mimetype = "application/json"
     return resp
