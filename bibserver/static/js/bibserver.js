@@ -44,7 +44,9 @@ jQuery(document).ready(function() {
             , type: 'GET'
             , success: function(json, statusText, xhr) {
                 if (json.records.length != 0) {
-                    jQuery('#collection').val(json.records[0]['id']);
+                    if (json.records[0]['owner'] == jQuery('#current_user').val()) {                    
+                        jQuery('#collection').val(json.records[0]['id']);
+                    }
                 }
             }
             , error: function(xhr, message, error) {
@@ -55,8 +57,46 @@ jQuery(document).ready(function() {
 
     // search for collection id similar to that provided, and warn of duplicates controlled by third parties
     var checkcoll = function(event) {
+        jQuery.ajax({
+            url: '/collections.json?q=id:"' + jQuery(this).val() + '"'
+            , type: 'GET'
+            , success: function(json, statusText, xhr) {
+                if (json.records.length != 0) {
+                    if (json.records[0]['owner'] != jQuery('#current_user').val()) {
+                        if (jQuery('#collwarning').length == 0) {
+                            var where = json.records[0]['owner'] + '/' + json.records[0]['id']
+                            jQuery('#collection').after('&nbsp;&nbsp;<span id="collwarning" class="label warning"><a href="/' + where + '">sorry, in use</a>. Please change.</span>');
+                        }
+                    }
+                } else {
+                    jQuery('#collwarning').remove();
+                }
+            }
+            , error: function(xhr, message, error) {
+            }
+        });
+        
     }
-    jQuery('#collection').bind('change',checkcoll);
+    jQuery('#collection').bind('keyup',checkcoll);
+
+    // trigger showkeys
+    var submit_showkey = function(event) {
+        event.preventDefault();
+        if (jQuery(this).hasClass('notice')) {
+            if (jQuery('#showkeys').val() != "") {
+                jQuery('#showkeys').val(jQuery('#showkeys').val().replace(','+jQuery(this).html(),'').replace(jQuery(this).html()+',','').replace(jQuery(this).html(),''));
+            }
+        } else {
+            if (jQuery('#showkeys').val() != "") {
+                jQuery('#showkeys').val(jQuery('#showkeys').val() + ',' + jQuery(this).html());
+            } else {
+                jQuery('#showkeys').val(jQuery(this).html());
+            }
+        }
+        //jQuery(this).closest('form').trigger('submit');
+        jQuery('#showkeys_form').trigger('submit');
+    }
+    jQuery('.showkeys').bind('click',submit_showkey);
 
     // add external search autocomplete box to record display page
     if ( window.location.pathname.match('record') ) {

@@ -44,8 +44,8 @@ class IOManager(object):
                 if term.replace(self.config.facet_field,'') not in self.path:
                     val = '[' + ",".join(urllib2.quote('"{0}"'.format(i.encode('utf-8'))) for i in myargs['terms'][term]) + ']'
                     param += term.replace(self.config.facet_field,'') + '=' + val + '&'
-        if 'showkeys' in myargs:
-            param += 'showkeys=' + myargs['showkeys'] + '&'
+        if self.showkeys:
+            param += 'showkeys=' + self.showkeys + '&'
         return param
 
     def get_add_url(self, field, value):
@@ -111,8 +111,15 @@ class IOManager(object):
         return [str(i) for i in bibserver.dao.Record.get_mapping()['record']['properties'].keys()]
     
     '''get keys to show on results'''
-    def get_showkeys(self):
-        return self.showkeys
+    def get_showkeys(self,format="string"):
+        if format == "string":
+            if not self.showkeys:
+                return "";
+            return self.showkeys
+        else:
+            if not self.showkeys:
+                return []
+            return [i for i in self.showkeys.split(',')]
 
     def get_facet_fields(self):
         return [i['key'] for i in self.config.facet_fields]

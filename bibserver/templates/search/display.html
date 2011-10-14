@@ -1,18 +1,22 @@
 
 <div id="display">
-    <p>display options - experimental</p>
+    <p>select keys to add to search results display</p>
 
-    <p>enter a comma separated list of the keys you want to add to the result lists</p>
-
-    <form method="get" action="">
+    <form id="showkeys_form" method="get" action="">
         {% for item in io.get_safe_terms_object() %}
               <input type="hidden" name="{{item}}" value='{{io.get_safe_terms_object()[item]}}' />
         {% endfor %}
         <input type="hidden" name="q" value="{{io.get_q()}}" />
-        <input type="text" class="small" name="showkeys" value="{{io.get_showkeys()}}" />
-        <input type="submit" name="submit" value="display" />
+        {% for item in io.get_keys() %}
+            {% if item in io.get_showkeys(format="list") %}
+                <a class="showkeys label notice" href="#">{{item}}</a>
+            {% else %}
+                <a class="showkeys label" href="#">{{item}}</a>
+            {% endif %}
+        {% endfor %}
+
+        <input type="hidden" class="small" id="showkeys" name="showkeys" value="{{io.get_showkeys()}}" />
     </form>
     <br />
-    {{io.get_keys()}}
 
 </div>

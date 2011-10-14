@@ -55,7 +55,7 @@
             </li>
             {% else %}
             <li>
-              <a href="#"><strong>{{current_user.id}}</strong></a>
+              <a alt="view your account" title="view your account" href="/account/{{current_user.id}}"><strong><input type="hidden" id="current_user" value="{{current_user.id}}" />{{current_user.id}}</strong></a>
             </li>
             <li>
               <a href="{{ url_for('account.logout') }}">Logout</a>
