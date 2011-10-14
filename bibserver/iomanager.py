@@ -166,14 +166,16 @@ class IOManager(object):
             func_name = d.keys()[0]
             args = d[func_name]
             args["field"] = field
-            if self.config.incollection:
-                args["incollection"] = self.config.incollection
-            args["path"] = self.config.path
+            if self.incollection:
+                args["incollection"] = self.incollection
+            args["path"] = self.path
             func = globals()[func_name]
             return func(res, args)
         else:
             if isinstance(res,list):
                 return ','.join(res)
+            else:
+                return res
         return res
         
     def get_meta(self):
@@ -227,11 +229,11 @@ def doiify(value, dict):
 
 def collectionify(value, dict):
     # for the given value, make it a link to a collection facet URL
-    if 'incollection' in dict:
-        coll = bibserver.dao.Collection.get(incollection)
-        return '<a href="/' + coll['owner'] + "/" + value + '" alt="go to collection '  + value + '" title="go to collection '  + value + '">' + value + '</a>'
+    coll = bibserver.dao.Collection.get(value[0])
+    if coll:
+        return '<a href="/' + coll['owner'] + "/" + value[0] + '" alt="go to collection '  + value[0] + '" title="go to collection '  + value[0] + '">' + value[0] + '</a>'
     else:
-        return ''
+        return value
 
 def bibsoup_links(vals,dict):
     links = ""

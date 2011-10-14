@@ -94,7 +94,7 @@ def record(collid,path):
         #return render_template('record.html', msg="hmmm... there is more than one record in this collection with that id...")
     
     if JSON:
-        return outputJSON(results=recorddict, coll=collid)
+        return outputJSON(results=res, coll=collid)
 
     return render_template('record.html', record=recorddict)
 
