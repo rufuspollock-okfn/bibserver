@@ -12,7 +12,6 @@ class IOManager(object):
         self.facet_fields = facet_fields
         self.showkeys = showkeys
         self.incollection = incollection
-        print self.incollection
         self.implicit_key = implicit_key
         self.implicit_value = implicit_value
         self.path = path

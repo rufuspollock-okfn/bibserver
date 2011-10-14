@@ -162,9 +162,11 @@ class Importer(object):
             if not self.requesturl and 'SITE_URL' in config:
                 self.requesturl = str(config['SITE_URL'])
             if self.requesturl:
-                rec['url'] = self.requesturl + '/record/'
+                if not self.requesturl.endswith('/'):
+                    self.requesturl += '/'
+                rec['url'] = self.requesturl + 'record/'
                 if 'citekey' in rec:
-                    rec['url'] += collection['id'] + '/' + rec.get('citekey')
+                    rec['url'] += collection['id'] + rec.get('citekey')
                 else:
                     rec['url'] += rec['id']
         records = bibserver.dao.Record.bulk_upsert(record_dicts)

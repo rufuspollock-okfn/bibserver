@@ -1,14 +1,18 @@
 {
-    # name of service
+    # service
     "service_name" : "BibSoup",
+
+    # provide site address URL if you need to overwrite what it might otherwise be calculated to be
+    #"SITE_URL" : "http://bibsoup.net/"
+
+    # base URL of search service
+    "base_url" : "/search",
 
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     "ELASTIC_SEARCH_DB" : "bibserver",
     "default_indices": [],
 
-    # base URL of search service
-    "base_url" : "/search",
     
     # allow_upload - set to "NO" if you dont want frontend upload to your bibserver install
     "allow_upload" : "YES",
