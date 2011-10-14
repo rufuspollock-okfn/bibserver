@@ -204,6 +204,8 @@ class IOManager(object):
         return self.tablify(self.set()[0])
         
     def tablify(self,thing):
+        if not thing:
+            return ""
         try:
             s = '<table>'
             for key,val in thing.iteritems():
