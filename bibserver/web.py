@@ -93,8 +93,10 @@ def record(path,cid=None):
     elif JSON:
         return outputJSON(results=res, coll=cid, record=True)
     else:
-        return render_template('record.html', record=res['hits']['hits'][0]['_source'])
-
+        #out = tablify(res['hits']['hits'][0]['_source'])
+        #return render_template('record.html', record=out)
+        io = bibserver.iomanager.IOManager(res)
+        return render_template('record.html', io=io)
 
 @app.route('/query', methods=['GET','POST'])
 def query():
@@ -247,7 +249,7 @@ def outputJSON(results, coll=None, record=False):
     if not record and not meta:
         out = out['records']
 
-    resp = make_response( json.dumps(out, indent=4) )
+    resp = make_response( json.dumps(out, sort_keys=True, indent=4) )
     resp.mimetype = "application/json"
     return resp
 

@@ -17,8 +17,9 @@ class IOManager(object):
         self.path = path
         self.config = bibserver.config.Config()
         self.facet_values = {}
-        for facet,data in self.results['facets'].items():
-            self.facet_values[facet.replace(self.config.facet_field,'')] = data["terms"]
+        if 'facets' in self.results:
+            for facet,data in self.results['facets'].items():
+                self.facet_values[facet.replace(self.config.facet_field,'')] = data["terms"]
 
     def get_q(self):
         return self.args.get('q','')
@@ -198,7 +199,25 @@ class IOManager(object):
             return meta
         else:
             return ""
+
+    def get_record_as_table(self):
+        return self.tablify(self.set()[0])
         
+    def tablify(self,thing):
+        try:
+            s = '<table>'
+            for key,val in thing.iteritems():
+                s += '<tr><td><strong>' + key + '</strong></td><td>' + self.tablify(val) + '</td></tr>'
+            s += '</table>'
+        except:
+            if isinstance(thing,list):
+                s = '<table>'
+                for item in thing:
+                    s += '<tr><td>' + self.tablify(item) + '</tr></td>'
+                s += '</table>'
+            else:
+                s = thing
+        return s
 
 
 

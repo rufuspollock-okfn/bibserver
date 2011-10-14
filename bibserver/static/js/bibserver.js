@@ -125,9 +125,9 @@ jQuery(document).ready(function() {
         for (var item in searchables) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; }
         searcher += '</select> for <input class="extsrch_value" id="extsrch_value_0" />';
         searcher += '<a href="" alt="find it" title="find it" class="submit_extsrch btn">go</a></span>';
-        jQuery('#bibsoup_box').append(searcher);
+        jQuery('#record_box').append(searcher);
         var tags = [];
-        jQuery('#bibsoup_box').children('table').find('tr').each(function() {
+        jQuery('#record_box').children('table').find('tr').each(function() {
             var thing = jQuery(this).children().last().html().replace(/<.*?>/ig,'');
             if ( thing != "" && thing != null ) {
                 tags.push(thing);

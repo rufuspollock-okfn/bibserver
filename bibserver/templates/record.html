@@ -1,18 +1,8 @@
 {% extends "/base.html" %}
 
 {% block content %}
-<div id="bibsoup_box">
-<table>
-{% for item in record %}
-<tr>
-<td>{{item}}</td>
-<td>
-  {{record[item]}}
-</td>
-</tr>
-{% endfor %}
-</table>
-
+<div id="record_box">
+{{io.get_record_as_table()|safe}}
 </div>
 {% endblock %}
 
