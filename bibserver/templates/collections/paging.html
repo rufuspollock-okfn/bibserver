@@ -1,7 +1,7 @@
 
 <div class="paging">
 
-    {% if io.start()|int  >= io.page_size()|int %}
+    {% if io.start()|int  >= io.page_size() %}
     <form method="get" action="">
           {% for item in io.get_safe_terms_object() %}
           <input type="hidden" name="{{item}}" value='{{io.get_safe_terms_object()[item]}}' />
@@ -56,11 +56,11 @@
      Sort
     <select class="small" name="sort" id="sort_select">
         <option>...</option>
-    {% for sort in io.get_sort_fields() %}
+    {% for sort in io.get_sort_fields('Collection') %}
     {%   if sort == io.sorted_by() %}
-        <option value="{{sort}}.exact" selected>{{sort}}</option>
+        <option selected>{{sort}}</option>
     {%   else %}
-        <option value="{{sort}}.exact">{{sort}}</option>
+        <option value="{{sort}}">{{sort}}</option>
     {%   endif %}
     {% endfor %}
     </select>

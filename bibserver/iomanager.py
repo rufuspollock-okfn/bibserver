@@ -108,8 +108,16 @@ class IOManager(object):
         return output
         
     '''get all currently available keys in ES'''
-    def get_keys(self):
-        return [str(i) for i in bibserver.dao.Record.get_mapping()['record']['properties'].keys()]
+    def get_keys(self,rectype='Record'):
+        if rectype == 'Record':
+            res = bibserver.dao.Record.get_mapping()
+            which = 'record'
+        elif rectype == 'Collection':
+            res = bibserver.dao.Collection.get_mapping()
+            which = 'collection'
+        keys = [str(i) for i in res[which]['properties'].keys()]
+        keys.sort()
+        return keys
     
     '''get keys to show on results'''
     def get_showkeys(self,format="string"):
@@ -128,8 +136,20 @@ class IOManager(object):
     def get_rpp_options(self):
         return self.config.results_per_page_options
 
-    def get_sort_fields(self):
-        return self.config.sort_fields
+    def get_sort_fields(self, rectype='Record'):
+        fields = self.get_keys(rectype)
+        sortfields = []
+        for item in fields:
+            try:
+                if rectype == 'Record':
+                    bibserver.dao.Record.query(sort={item+self.config.facet_field: {"order":"asc"}})
+                elif rectype == 'Collection':
+                    bibserver.dao.Collection.query(sort={item: {"order":"asc"}})
+                sortfields.append(item)
+            except:
+                pass
+        sortfields.sort()
+        return sortfields
 
     def numFound(self):
         return int(self.results['hits']['total'])

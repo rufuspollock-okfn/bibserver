@@ -16,6 +16,7 @@
               <input type="hidden" name="sort" value="{{io.sorted_by()}}" />
               <input type="hidden" name="order" value="{{io.sort_order()}}" />
           {% endif %}
+            <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
           <input type="submit" name="search" value="Search" />
       </form>
       <form method="get" action="">
