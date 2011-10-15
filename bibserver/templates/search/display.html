@@ -15,9 +15,9 @@
         
         {% for item in io.get_keys() %}
             {% if item in io.get_showkeys(format="list") %}
-                <a class="showkeys label notice" href="#">{{item}}</a>
+                <a class="showkeys label notice" href="">{{item}}</a>
             {% else %}
-                <a class="showkeys label" href="#">{{item}}</a>
+                <a class="showkeys label" href="">{{item}}</a>
             {% endif %}
         {% endfor %}
 
