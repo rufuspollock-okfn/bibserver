@@ -5,7 +5,7 @@
     <form id="showkeys_form" method="get" action="">
         <input type="hidden" name="from" value="{{io.start()}}" />
         <input type="hidden" name="size" value="{{io.page_size()}}" />
-        <input type="hidden" name="sort" value="{{io.sorted_by()}}" />
+        <input type="hidden" name="sort" value="{{io.sorted_by()}}{{io.config.facet_field}}" />
         <input type="hidden" name="order" value="{{io.sort_order()}}" />
         
         {% for item in io.get_safe_terms_object() %}

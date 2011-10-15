@@ -9,7 +9,7 @@
           <input type="hidden" name="q" value="{{io.get_q()}}" />
     <input type="hidden" name="from" value="{{io.start() - io.page_size()}}" />
     <input type="hidden" name="size" value="{{io.page_size()}}" />
-    <input type="hidden" name="sort" value="{{io.sorted_by()}}" />
+    <input type="hidden" name="sort" value="{{io.sorted_by()}}{{io.config.facet_field}}" />
     <input type="hidden" name="order" value="{{io.sort_order()}}" />
     <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
     <input type="submit" class="paging_submit_left" name="submit" value="previous" />
@@ -58,9 +58,9 @@
         <option>...</option>
     {% for sort in io.get_sort_fields() %}
     {%   if sort == io.sorted_by() %}
-        <option value="{{sort}}.exact" selected>{{sort}}</option>
+        <option value="{{sort}}{{io.config.facet_field}}" selected>{{sort}}</option>
     {%   else %}
-        <option value="{{sort}}.exact">{{sort}}</option>
+        <option value="{{sort}}{{io.config.facet_field}}">{{sort}}</option>
     {%   endif %}
     {% endfor %}
     </select>
@@ -84,7 +84,7 @@
           <input type="hidden" name="q" value="{{io.get_q()}}" />
     <input type="hidden" name="from" value="{{io.start()|int + io.page_size()|int}}" />
     <input type="hidden" name="size" value="{{io.page_size()}}" />
-    <input type="hidden" name="sort" value="{{io.sorted_by()}}" />
+    <input type="hidden" name="sort" value="{{io.sorted_by()}}{{io.config.facet_field}}" />
     <input type="hidden" name="order" value="{{io.sort_order()}}" />
     <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
     <input type="submit" class="paging_submit_right" name="submit" value="next" />

@@ -13,7 +13,7 @@
               <input type="hidden" name="size" value="{{io.page_size()}}" />
           {% endif %}
           {% if io.sorted_by() != "" %}
-              <input type="hidden" name="sort" value="{{io.sorted_by()}}" />
+              <input type="hidden" name="sort" value="{{io.sorted_by()}}{{io.config.facet_field}}" />
               <input type="hidden" name="order" value="{{io.sort_order()}}" />
           {% endif %}
             <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
