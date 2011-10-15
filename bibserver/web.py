@@ -93,8 +93,6 @@ def record(path,cid=None):
     elif JSON:
         return outputJSON(results=res, coll=cid, record=True)
     else:
-        #out = tablify(res['hits']['hits'][0]['_source'])
-        #return render_template('record.html', record=out)
         io = bibserver.iomanager.IOManager(res)
         return render_template('record.html', io=io)
 
@@ -146,21 +144,29 @@ class UploadView(MethodView):
                     len(records))
             return redirect('/%s/%s/' % (current_user.id, collection['id']))
 
-
 # enable upload unless not allowed in config
 if config["allow_upload"] == "YES":
     app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
 
+@app.route('/collections')
+@app.route('/collections<path:path>')
+def collections(path=''):
+    io = dosearch(path.replace(".bibjson","").replace(".json",""),'Collection')
+    if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
+        return outputJSON(results=io.results, coll=io.incollection.get('id',None))
+    else:
+        return render_template('collections/index.html', io=io)
 
 @app.route('/search')
 @app.route('/<path:path>')
 def search(path=''):
-
-    JSON = False
+    io = dosearch(path.replace(".bibjson","").replace(".json",""),'Record')
     if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
-        path = path.replace(".bibjson","").replace(".json","")
-        JSON = True
+        return outputJSON(results=io.results, coll=io.incollection.get('id',None))
+    else:
+        return render_template('search/index.html', io=io)
 
+def dosearch(path,searchtype='Record'):
     facet_fields = []
     for item in config["facet_fields"]:
         new = { "key": item['key']+config["facet_field"], "size": item.get('size',100), "order": item.get('order','count') }
@@ -183,8 +189,7 @@ def search(path=''):
             vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
             args["terms"][param + config["facet_field"]] = vals
     
-    collections = False
-    incollection = False 
+    incollection = {}
     implicit_key = False
     implicit_value = False
     if path != '' and not path.startswith("search"):
@@ -201,29 +206,12 @@ def search(path=''):
             args['terms'][bits[0]+config["facet_field"]] = [bits[1]]
             implicit_key = bits[0]
             implicit_value = bits[1]
-        elif len(bits) == 1 and bits[0] == "collections":
-            # it is a request for the collections page
-            collections = True
-        
-    if collections:
-        results = bibserver.dao.Collection.query(**args)
-    else:
+
+    if searchtype == 'Record':
         results = bibserver.dao.Record.query(**args)
-    io = bibserver.iomanager.IOManager(results, args, facet_fields, showkeys, incollection, implicit_key, implicit_value, path)
-
-    if JSON:
-        if incollection:
-            return outputJSON(results=results, coll=incollection.id)
-        else:
-            return outputJSON(results=results)
-    elif collections:
-        return render_template('collections/index.html', io=io)
     else:
-        return render_template('search/index.html', io=io)
-
-
-
-
+        results = bibserver.dao.Collection.query(**args)
+    return bibserver.iomanager.IOManager(results, args, facet_fields, showkeys, incollection, implicit_key, implicit_value, path)
 
 def outputJSON(results, coll=None, record=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''

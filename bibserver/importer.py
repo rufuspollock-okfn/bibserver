@@ -147,7 +147,7 @@ class Importer(object):
                 collection = coll
                 break
 
-        bibserver.dao.Record.delete_by_query('collection.exact:"' + delid + '"')
+        bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + delid + '"')
 
         collection['records'] = len(record_dicts)
         collection['modified'] = timestamp
