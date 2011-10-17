@@ -60,7 +60,7 @@ class BibTexParser(object):
             record, rubbish = record.replace('\r\n','\n').replace('\r','\n').rsplit('}\n',1)
 
         if record.lower().startswith('@string'):
-            key, val = [i.strip().strip('"') for i in record.split('{')[1].strip('\n').strip(',').strip('}').split('=')]
+            key, val = [i.strip().strip('"').strip('{').strip('}').replace('\n',' ') for i in record.split('{',1)[1].strip('\n').strip(',').strip('}').split('=')]
             self.replace_dict[key] = val
             return d
 
@@ -117,9 +117,15 @@ class BibTexParser(object):
         if "type" in record:
             record["type"] = record["type"].lower()
         if "author" in record:
-            record["author"] = self.getnames([i.strip() for i in record["author"].replace('\n',' ').split(" and ")])
+            if record["author"]:
+                record["author"] = self.getnames([i.strip() for i in record["author"].replace('\n',' ').split(" and ")])
+            else:
+                del record["author"]
         if "editor" in record:
-            record["editor"] = self.getnames([i.strip() for i in record["editor"].replace('\n',' ').split(" and ")])
+            if record["editor"]:
+                record["editor"] = self.getnames([i.strip() for i in record["editor"].replace('\n',' ').split(" and ")])
+            else:
+                del record["editor"]
         if "keywords" in record:
             record["keywords"] = [i.strip() for i in record["keywords"].replace('\n','').split(",")]
         if "links" in record:
@@ -176,7 +182,11 @@ class BibTexParser(object):
             if val == k:
                 val = self.replace_dict[k]
         if not isinstance(val, unicode):
-            val = unicode(val,chardet.detect(val)["encoding"],'ignore')
+            encoding = chardet.detect(val)["encoding"]
+            print chardet.detect(val)
+            if not encoding:
+                encoding = 'ascii'
+            val = unicode(val,encoding,'ignore')
         if '\\' in val or '{' in val:
             for k, v in self.unicode_to_latex.iteritems():
                 if v in val:
