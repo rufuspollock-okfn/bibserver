@@ -162,7 +162,10 @@ def collections(path=''):
 def search(path=''):
     io = dosearch(path.replace(".bibjson","").replace(".json",""),'Record')
     if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
-        return outputJSON(results=io.results, coll=io.incollection.get('id',None))
+        if io.incollection:
+            return outputJSON(results=io.results, coll=io.incollection['id'])
+        else:
+            return outputJSON(results=io.results, coll=io.incollection['id'])
     else:
         return render_template('search/index.html', io=io)
 
