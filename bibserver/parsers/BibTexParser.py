@@ -4,12 +4,34 @@ import chardet
 import unicodedata
 import re
 
+'''this file can be called as a module or called directly from the command line like so:
+
+python BibTexParser.py /path/to/file.bib
+
+Returns a list of record dicts
+Or just parse a record directly like so:
+
+python BibTexParser.py '@ARTICLE{p72,
+    AUTHOR = {C. R. Heathcote and J. W. Pitman},
+    JOURNAL = {Bull. Aust. Math. Soc.},
+    PAGES = {1-10},
+    TITLE = {An inequality for characteristic functions},
+    VOLUME = {6},
+    YEAR = {1972},
+'
+
+Returns a record dict
+'''
+
 class BibTexParser(object):
 
     def __init__(self):
         self.has_metadata = False
         self.persons = []
+        # if bibtex file has substition strings, they are stored here, 
+        # then the values are checked for those substitions in add_val
         self.replace_dict = {}
+        # pre-defined set of key changes
         self.alt_dict = {
             'keyw':'subjects',
             'authors':'author',
@@ -24,9 +46,10 @@ class BibTexParser(object):
 
     def parse(self, fileobj):
         '''given a fileobject, parse it for bibtex records,
-        and pas them to the record parser'''
+        and pass them to the record parser'''
         records = []
         record = ""
+        # read each line, bundle them up until they form an object, then send for parsing
         for line in fileobj:
             if '--BREAK--' in line:
                 break
@@ -40,6 +63,7 @@ class BibTexParser(object):
                 if len(line.strip()) > 0:
                     record += line
 
+        # catch any remaining record and send it for parsing
         if record != "":
             parsed = self.parse_record(record)
             if parsed:
@@ -55,38 +79,47 @@ class BibTexParser(object):
         if not record.startswith('@'):
             return d
 
+        # prepare record
         record = '\n'.join([i.strip() for i in record.split('\n')])
         if '}\n' in record:
             record, rubbish = record.replace('\r\n','\n').replace('\r','\n').rsplit('}\n',1)
 
+        # if a string record, put it in the replace_dict
         if record.lower().startswith('@string'):
             key, val = [i.strip().strip('"').strip('{').strip('}').replace('\n',' ') for i in record.split('{',1)[1].strip('\n').strip(',').strip('}').split('=')]
             self.replace_dict[key] = val
             return d
 
+        # for each line in record
         kvs = [i.strip() for i in record.split(',\n')]
         inkey = ""
         inval = ""
         for kv in kvs:
             if kv.startswith('@') and not inkey:
+                # it is the start of the record - set the bibtype and citekey
                 bibtype, citekey = kv.split('{',1)
                 bibtype = self.add_key(bibtype)
                 citekey = citekey.strip('}').strip(',')
             elif '=' in kv and not inkey:
+                # it is a line with a key value pair on it
                 key, val = [i.strip() for i in kv.split('=',1)]
                 key = self.add_key(key)
+                # if it looks like the value spans lines, store details for next loop
                 if ( val.startswith('{') and not val.endswith('}') ) or ( val.startswith('"') and not val.replace('}','').endswith('"') ):
                     inkey = key
                     inval = val
                 else:
                     d[key] = self.add_val(val)
             elif inkey:
+                # if this line continues the value from a previous line, append
                 inval += kv
+                # if it looks like this line finishes the value, store it and clear for next loop
                 if ( inval.startswith('{') and inval.endswith('}') ) or ( inval.startswith('"') and inval.endswith('"') ):
                     d[inkey] = self.add_val(inval)
                     inkey = ""
                     inval = ""
 
+        # put author names into persons list
         if 'author_data' in d:
             self.persons = [i for i in d['author_data'].split('\n')]
             del d['author_data']
@@ -100,10 +133,11 @@ class BibTexParser(object):
             if d['type'] == 'personal bibliography' or d['type'] == 'comment':
                 self.has_metadata = True
 
+        # apply any customisations to the record object then return it
         return self.customisations(d)
 
     def customisations(self,record):
-        '''alter some values to fit bibjson format'''
+        '''alters some values to fit bibjson format'''
         if 'eprint' in record and not 'year' in record: 
             yy = '????'
             ss = record['eprint'].split('/')
@@ -183,7 +217,6 @@ class BibTexParser(object):
                 val = self.replace_dict[k]
         if not isinstance(val, unicode):
             encoding = chardet.detect(val)["encoding"]
-            print chardet.detect(val)
             if not encoding:
                 encoding = 'ascii'
             val = unicode(val,encoding,'ignore')
@@ -2604,3 +2637,14 @@ class BibTexParser(object):
         u"\uD7FE": "\\mathtt{8}",
         u"\uD7FF": "\\mathtt{9}",
     }
+    
+# in case file is run directly
+if __name__ == "__main__":
+    import sys
+    parser = BibTexParser()
+    try:
+        fileobj = open(sys.argv[1])
+        print parser.parse(fileobj)
+    except:
+        print parser.parse_record(sys.argv[1])
+
