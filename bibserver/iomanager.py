@@ -142,7 +142,7 @@ class IOManager(object):
         for item in fields:
             try:
                 if rectype == 'Record':
-                    bibserver.dao.Record.query(sort={item+self.config.facet_field: {"order":"asc"}})
+                    bibserver.dao.Record.query(sort={item: {"order":"asc"}})
                 elif rectype == 'Collection':
                     bibserver.dao.Collection.query(sort={item: {"order":"asc"}})
                 sortfields.append(item)

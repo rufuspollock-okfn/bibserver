@@ -186,7 +186,8 @@ def dosearch(path,searchtype='Record'):
             args['sort'] = {request.values.get('sort') : {"order" : request.values.get('order','asc')}}
     if 'q' in request.values:
         if len(request.values.get('q')) > 0:
-            args['q'] = request.values.get('q')    
+            # TODO: add some cleaning to the provided q value
+            args['q'] = request.values.get('q')
     for param in request.values:
         if param in [i['key'] for i in config["facet_fields"]]:
             vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
@@ -204,6 +205,7 @@ def dosearch(path,searchtype='Record'):
             # if first bit is a user ID then this is a collection
             if bibserver.dao.Account.get(bits[0]):
                 incollection = bibserver.dao.Collection.get(bits[1])
+
                 bits[0] = 'collection'
             # otherwise its a normal implicit facet
             args['terms'][bits[0]+config["facet_field"]] = [bits[1]]

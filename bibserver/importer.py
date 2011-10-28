@@ -7,6 +7,7 @@ from datetime import datetime
 import re
 from cStringIO import StringIO
 import unicodedata
+import uuid
 
 from bibserver.parser import Parser
 import bibserver.dao
@@ -30,12 +31,12 @@ class Importer(object):
         :return: same as `index` method.
         '''
         parser = Parser()
-        record_dicts = parser.parse(fileobj, format=format_)
+        record_dicts, metadata = parser.parse(fileobj, format=format_)
         #collection_from_parser = None
         #if collection_from_parser:
         #    collection = collection_from_parser
         # TODO: check authz for write to this collection
-        return self.index(collection, record_dicts)
+        return self.index(collection, record_dicts, metadata)
 
     def upload_from_web(self, request):
         '''
@@ -45,7 +46,10 @@ class Importer(object):
         source = ''
         fileobj = None
         if request.values.get("source"):
-            source = urllib2.unquote(request.values.get("source", ''))
+            src = request.values.get("source")
+            if not src.startswith('http://') and not src.startswith('https://'):
+                src = 'http://' + src
+            source = urllib2.unquote(src)
             fileobj = urllib2.urlopen(source)
             format = self.findformat(source)
         elif request.files.get('upfile'):
@@ -119,12 +123,15 @@ class Importer(object):
             self.upload(fileobj, format_, collection_dict)
         return True
     
-    def index(self, collection_dict, record_dicts):
+    def index(self, collection_dict, record_dicts, metadata):
         '''Add this collection and its records to the database index.
         :return: (collection, records) tuple of collection and associated
         record objects.
         '''
         collection = bibserver.dao.Collection(**collection_dict)
+        if metadata:
+            for key,val in metadata.iteritems():
+                collection[key] = val
         timestamp = datetime.now().isoformat()
         collection['created'] = timestamp
         assert 'label' in collection, 'Collection must have a label'
@@ -167,7 +174,10 @@ class Importer(object):
                 rec['url'] = self.requesturl + 'record/'
                 if 'citekey' in rec:
                     rec['url'] += collection['id'] + '/' + rec.get('citekey')
+                elif 'id' in rec:
+                    rec['url'] += rec['id']
                 else:
+                    rec['id'] = uuid.uuid4().hex
                     rec['url'] += rec['id']
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
         return collection, records

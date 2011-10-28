@@ -2,6 +2,8 @@
 
 from parsers.BibTexParser import BibTexParser
 from parsers.JSONParser import JSONParser
+from parsers.BibJSONParser import BibJSONParser
+from parsers.JSONLDParser import JSONLDParser
 from parsers.CSVParser import CSVParser
 
 class Parser(object):
@@ -14,17 +16,23 @@ class Parser(object):
         '''
         if format == "bibtex" or format == "bib":
             parser = BibTexParser()
-            data = parser.parse(fileobj)
-        elif format == "bibjson" or format == "json":
+            data, metadata = parser.parse(fileobj)
+        elif format == "json":
             parser = JSONParser()
-            data = parser.parse(fileobj)
+            data, metadata = parser.parse(fileobj)        
+        elif format == "bibjson":
+            parser = BibJSONParser()
+            data, metadata = parser.parse(fileobj)
+        elif format == "json-ld":
+            parser = JSONLDParser()
+            data, metadata = parser.parse(fileobj)
         elif format == "csv" or format == "google":
             parser = CSVParser()
-            data = parser.parse(fileobj)
+            data, metadata = parser.parse(fileobj)
         else:
             raise Exception('Unable to convert from format: %s' % format)
 
-        return data
+        return data, metadata
     
     
 

@@ -7,6 +7,6 @@ class JSONParser(object):
         
     def parse(self, fileobj):
         data = json.load(fileobj)
-        return data
+        return data, {}
 
 

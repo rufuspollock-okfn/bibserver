@@ -17,5 +17,5 @@ class CSVParser(object):
             if "editor" in row:
                 row["editor"] = row["editor"].split(",")
             data.append(row)
-        return data
+        return data, {}
 

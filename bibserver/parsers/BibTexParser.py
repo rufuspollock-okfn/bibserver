@@ -68,7 +68,7 @@ class BibTexParser(object):
             parsed = self.parse_record(record)
             if parsed:
                 records.append(parsed)
-        return records
+        return records, {}
 
     def parse_record(self, record):
         '''given a bibtex record, tidy whitespace and other rubbish; 
