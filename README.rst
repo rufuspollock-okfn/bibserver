@@ -36,6 +36,7 @@ Install
 1. Install pre-requisites:
    
    * Python, pip and virtualenv.
+   * git
    * ElasticSearch_ (0.17 series)
 
 2. [optional] Create a virtualenv and enable it::
@@ -55,15 +56,13 @@ Install
     # move to your checkout of bibserver
     cd {myenv}/src/bibserver
     # do a development install from current directory
-    pip install -e .
+    # pip install -e .
     # alternatively if you do not want a development install you could just do
-    # python setup.py install
+    python setup.py install
 
 4. Run the webserver::
 
-    # in the bibserver folder:
-    # don't worry, there is a bibserver subdirectory in bibserver, so this should run fine.
-    python bibserver/web.py
+    python web.py
 
 .. _ElasticSearch: http://www.elasticsearch.org/
 
