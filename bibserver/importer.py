@@ -68,6 +68,7 @@ class Importer(object):
 
         # request.data and request.json never appear to have content
         # can solve by getting it out of the key it appears to get stuck into
+        # update: request.json has content only if content-type is sent on the incoming
         import json
         obj = ''
         for thing in request.values:

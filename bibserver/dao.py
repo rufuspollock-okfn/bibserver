@@ -44,12 +44,21 @@ class DomainObject(UserDict.IterableUserDict):
         '''Initialize a domain object with key/value pairs of attributes.
         '''
         # IterableUserDict expects internal dictionary to be on data attribute
-        self.data = dict(kwargs)
+        if '_source' in kwargs:
+            self.data = dict(kwargs['_source'])
+            self.meta = dict(kwargs)
+            del self.meta['_source']
+        else:
+            self.data = dict(kwargs)
 
     @property
     def id(self):
         '''Get id of this object.'''
         return self.data.get('id', None)
+        
+    @property
+    def version(self):
+        return self.meta.get('_version', None)
 
     def save(self):
         '''Save to backend storage.'''
@@ -62,7 +71,7 @@ class DomainObject(UserDict.IterableUserDict):
         conn, db = get_conn()
         try:
             out = conn.get(db, cls.__type__, id_)
-            return cls(**out['_source'])
+            return cls(**out)
         except pyes.exceptions.ElasticSearchException, inst:
             if inst.status == 404:
                 return None

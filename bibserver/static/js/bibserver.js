@@ -99,7 +99,8 @@ jQuery(document).ready(function() {
     jQuery('.showkeys').bind('click',submit_showkey);
 
     // add external search autocomplete box to record display page
-    if ( window.location.pathname.match('record') ) {
+    //if ( window.location.pathname.match('record') ) {
+    if ( false ) {
         var searchables = {
             "Google" : "http://www.google.com/search?q=",
             "Google scholar" : "http://scholar.google.com/scholar?q=",
@@ -216,7 +217,6 @@ jQuery(document).ready(function() {
         }
     }
     jQuery('.facet_sorting').bind('click',dosort);
-
     
 });
 

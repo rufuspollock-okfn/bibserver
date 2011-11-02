@@ -5,7 +5,7 @@ class TestBibTexParser:
         collection = 'testing'
         sample = open('test/data/sample.bibtex')
         parser = BibTexParser()
-        data = parser.parse(sample)
+        data, metadata = parser.parse(sample)
         print data
         assert data[0]['title'] == 'Visibility to infinity in the hyperbolic plane, despite obstacles'
 

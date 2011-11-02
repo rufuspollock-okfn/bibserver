@@ -1,0 +1,34 @@
+{% extends "/base.html" %}
+
+{% block content %}
+<a href="" id="savenew" class="btn primary span3">save new record</a>
+<div id="record_box" class="clearfix">
+</div>
+<script type="text/javascript">
+jQuery(document).ready(function() {
+    jQuery('#record_box').jtedit({"data":{"author":"","title":""}});
+    var saveit = function(event) {
+        event.preventDefault();
+        var thedata = $.parseJSON(jQuery('#jtedit_json').val());
+        $.ajax({
+            url: '/record/create'
+            , type: 'POST'
+            , data: JSON.stringify(thedata)
+            , contentType: "application/json; charset=utf-8" 
+            , dataType: 'json'
+            , processData: false
+            , success: function(data, statusText, xhr) {
+                alert("New record saved. Redirecting to new record page.");
+                window.location = '/record/' + data.id;
+            }
+            , error: function(xhr, message, error) {
+                alert("failed! " + error);
+            }
+        });
+    }
+    jQuery('#savenew').bind('click',saveit);
+});
+</script>
+
+{% endblock %}
+

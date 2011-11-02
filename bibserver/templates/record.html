@@ -1,8 +1,87 @@
 {% extends "/base.html" %}
 
 {% block content %}
-<div id="record_box">
-{{io.get_record_as_table()|safe}}
-</div>
+<p>Experimental editor in use. If no output visible below, please 
+<a href="http://github.com/okfn/bibserver/issues">log an issue</a> 
+and inform us of your browser version and operating system.</p>
+{% if multiple %}
+    <div id="record_box" class="clearfix">
+        <p>You have requested a record based on the identifier it has in its' collection.
+        Unfortunately, there are multiple records in the collection with the same identifier.
+        If you are the collection owner, you should fix this (every record should have a 
+        unique identifier within your collection).</p>
+        <p>However, we allocate unique identifiers to each record ourselves, too. So, you 
+        can choose which record you would like to view and access it via the unique 
+        identifier we assigned it:</p>
+        <ul>
+        {% for item in io.set() %}
+            <li>{{item['citekey']}} - 
+                <a href="/record/{{item['id']}}">{{item['id']}}</a>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+{% elif edit %}
+    <a href="" id="savethis" class="btn primary span3">update this record</a>
+    <a href="" id="savenew" class="btn primary span3">save as new record</a>
+    <a href="" id="deletethis" class="btn danger span3">delete this record</a>
+    <div id="record_box" class="clearfix">
+    </div>
+    <script type="text/javascript">
+    jQuery(document).ready(function() {
+        jQuery('#record_box').jtedit({"source":window.location.pathname+".json","noedit":["id","collection"]});
+        var saveit = function(event) {
+            event.preventDefault();
+            var thedata = $.parseJSON(jQuery('#jtedit_json').val());
+            if (jQuery(this).attr('id') == "savethis" ) {
+                var saveurl = '/record/{{io.set()[0]['id']}}?version={{io.get_record_version(io.set()[0]['id'])}}';
+            } else {
+                var saveurl = '/record/create';
+            }
+            $.ajax({
+                url: saveurl
+                , type: 'POST'
+                , data: JSON.stringify(thedata)
+                , contentType: "application/json; charset=utf-8" 
+                , dataType: 'json'
+                , processData: false
+                , success: function(data, statusText, xhr) {
+                    if (data.action == "new") {
+                        alert("New record saved. Redirecting to new record page.");
+                        window.location = '/record/' + data.id;
+                    } else {
+                        alert("Record updated.");
+                    }
+                }
+                , error: function(xhr, message, error) {
+                    alert("failed! " + error);
+                }
+            });
+        }
+        var deleteit = function(event) {
+            event.preventDefault();
+            $.ajax({
+                url: '/record/{{io.set()[0]['id']}}?delete=true'
+                , type: 'POST'
+                , success: function(data, statusText, xhr) {
+                    alert("Record deleted. Redirecting to collection.");
+                    window.location = '/{{current_user.id}}/{{io.set()[0]['collection'][0]}}';
+                }
+                , error: function(xhr, message, error) {
+                    alert("failed! " + error);
+                }
+            });            
+        }
+        jQuery('#savethis').bind('click',saveit);
+        jQuery('#savenew').bind('click',saveit);
+        jQuery('#deletethis').bind('click',deleteit);
+    });
+    </script>
+{% else %}
+    <div id="record_box" class="clearfix">
+    {{io.get_record_as_table()|safe}}
+    </div>
+{% endif %}
+
 {% endblock %}
 

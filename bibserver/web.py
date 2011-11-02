@@ -3,6 +3,7 @@ import urllib2
 from copy import deepcopy
 import unicodedata
 import httplib
+import json
 
 from flask import Flask, jsonify, json, request, redirect, abort, make_response
 from flask import render_template, flash
@@ -74,10 +75,95 @@ def account(user):
 def content(path):
     return render_template('home/content.html', page=path)
 
+@app.route('/collections/')
+@app.route('/collections<path:path>')
+@app.route('/collections/<path:path>', methods=['GET','POST'])
+def collections(path=''):
+    path = path.strip('/')
+    JSON = False
+    if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
+        path = path.replace(".bibjson","").replace(".json","")
+        JSON = True
+
+    # do request for specific collection record
+    if path:
+        res = bibserver.dao.Collection.get(path)
+
+        # if POST, do update / create / delete
+        if request.method == "POST":
+            if not auth.collection.create(current_user, None):
+                abort(401)
+            if 'delete' in request.values:
+                host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
+                db_name = config['ELASTIC_SEARCH_DB']
+                fullpath = '/' + db_name + '/collection/' + path
+                c =  httplib.HTTPConnection(host)
+                c.request('DELETE', fullpath)
+                c.getresponse()
+                resp = make_response( '{"id":"' + path + '","deleted":"yes"}' )
+                resp.mimetype = "application/json"
+                return resp
+            
+            # if not deleting, do the update    
+            newrecord = request.json
+            recobj = bibserver.dao.Collection(**newrecord)
+            recobj.save()
+            # TODO: should pass a better success / failure output
+            resp = make_response( '{"id":"' + recobj.id + '","action":"updated"}' )
+            resp.mimetype = "application/json"
+            return resp
+
+        # otherwise just serve collection metadata record
+        if JSON:
+            return outputJSON(results=res, collection=True)
+        else:
+            edit = False
+            coll = bibserver.dao.Collection.get(path)
+            if auth.collection.update(current_user, coll):
+                edit = True
+            return render_template('collections/view.html', id=path, version=coll.version, edit=edit)
+
+    # do overall collections list page
+    io = dosearch(path,'Collection')
+    if JSON:
+        return outputJSON(results=io.results, coll=io.incollection.get('id',None))
+    else:
+        return render_template('collections/index.html', io=io)
 
 @app.route('/record/<cid>/<path:path>')
-@app.route('/record/<path:path>')
+@app.route('/record/<path:path>', methods=['GET','POST'])
 def record(path,cid=None):
+    # POSTs do updates, creates, deletes of records
+    if request.method == "POST":
+        if not auth.collection.create(current_user, None):
+            abort(401)
+        if 'delete' in request.values:
+            host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
+            db_name = config['ELASTIC_SEARCH_DB']
+            fullpath = '/' + db_name + '/record/' + path
+            c =  httplib.HTTPConnection(host)
+            c.request('DELETE', fullpath)
+            c.getresponse()
+            resp = make_response( '{"id":"' + path + '","deleted":"yes"}' )
+            resp.mimetype = "application/json"
+            return resp
+        
+        # if not deleting, do the create / update    
+        newrecord = request.json
+        action = "updated"
+        if path == "create":
+            if 'id' in newrecord:
+                del newrecord['id']
+            action = "new"
+        recobj = bibserver.dao.Record(**newrecord)
+        recobj.save()
+        # TODO: should pass a better success / failure output
+        resp = make_response( '{"id":"' + recobj.id + '","action":"' + action + '"}' )
+        resp.mimetype = "application/json"
+        return resp
+
+        
+    # otherwise do the GET of the record
     JSON = False
     if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
         path = path.replace(".bibjson","").replace(".json","")
@@ -88,13 +174,26 @@ def record(path,cid=None):
     else:
         res = bibserver.dao.Record.query(q='id.exact:"' + path + '"')
 
-    if res["hits"]["total"] == 0:
+    if path == "create":
+        if not auth.collection.create(current_user, None):
+            abort(401)
+        return render_template('create.html')
+    elif res["hits"]["total"] == 0:
         abort(404)
     elif JSON:
         return outputJSON(results=res, coll=cid, record=True)
+    elif res["hits"]["total"] != 1:
+        io = bibserver.iomanager.IOManager(res)
+        return render_template('record.html', io=io, multiple=True)
     else:
         io = bibserver.iomanager.IOManager(res)
-        return render_template('record.html', io=io)
+        coll = bibserver.dao.Collection.get(io.set()[0]['collection'][0])
+        if coll and auth.collection.update(current_user, coll):
+            edit = True
+        else:
+            edit = False
+        return render_template('record.html', io=io, edit=edit)
+
 
 @app.route('/query', methods=['GET','POST'])
 def query():
@@ -147,15 +246,6 @@ class UploadView(MethodView):
 # enable upload unless not allowed in config
 if config["allow_upload"] == "YES":
     app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
-
-@app.route('/collections')
-@app.route('/collections<path:path>')
-def collections(path=''):
-    io = dosearch(path.replace(".bibjson","").replace(".json",""),'Collection')
-    if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
-        return outputJSON(results=io.results, coll=io.incollection.get('id',None))
-    else:
-        return render_template('collections/index.html', io=io)
 
 @app.route('/search')
 @app.route('/<path:path>')
@@ -218,18 +308,22 @@ def dosearch(path,searchtype='Record'):
         results = bibserver.dao.Collection.query(**args)
     return bibserver.iomanager.IOManager(results, args, facet_fields, showkeys, incollection, implicit_key, implicit_value, path)
 
-def outputJSON(results, coll=None, record=False):
+def outputJSON(results, coll=None, record=False, collection=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''
     # TODO: in some circumstances, people data should be added to collections too.
     out = {"metadata":{}}
     if coll:
         out['metadata'] = bibserver.dao.Collection.query(q='"'+coll+'"')['hits']['hits'][0]['_source']
     out['metadata']['query'] = request.base_url + '?' + request.query_string
-    out['records'] = [i['_source'] for i in results['hits']['hits']]
     if request.values.get('facets','') and results['facets']:
         out['facets'] = results['facets']
     out['metadata']['from'] = request.values.get('from',0)
     out['metadata']['size'] = request.values.get('size',10)
+
+    if collection:
+        out = dict(**results)
+    else:
+        out['records'] = [i['_source'] for i in results['hits']['hits']]
 
     # if a single record meta default is false
     if record and len(out['records']) == 1 and not request.values.get('meta',False):

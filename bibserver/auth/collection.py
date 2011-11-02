@@ -4,7 +4,7 @@ def read(account, collection):
     return True
 
 def update(account, collection):
-    allowed = not account.is_anonymous() and collection.owner.id == account.id
+    allowed = not account.is_anonymous() and collection["owner"] == account.id
     return allowed
 
 def create(account, collection):

@@ -14,11 +14,8 @@
 {% else %}
 <ul>
 {% for coll in current_user['collections'] %}
-    <li><a href="/{{current_user['id']}}/{{coll['slug']}}">{{coll['label']}}</a> - {{coll['records']}} records
-    {% if 'source' in coll %}
-     - from <a href="{{coll['source']}}">{{coll['source']}}
-    {% endif %}
-    </a></li>
+    <li><a href="/{{current_user['id']}}/{{coll.id}}">{{coll['label']}}</a> - {{coll['records']}} records 
+    (<a href="/collections/{{coll.id}}">edit the metadata record</a> of this collection)</a></li>
 {% endfor %}
 </ul>
 {% endif %}

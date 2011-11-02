@@ -220,8 +220,14 @@ class IOManager(object):
         else:
             return ""
 
-    def get_record_as_table(self):
-        return self.tablify(self.set()[0])
+    def get_record_version(self,recordid):
+        record = bibserver.dao.Record.get(recordid)
+        if not record:
+            record = bibserver.dao.Collection.get(recordid)
+        return record.version
+
+    def get_record_as_table(self,which=0):
+        return self.tablify(self.set()[which])
         
     def tablify(self,thing):
         if not thing:
