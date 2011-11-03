@@ -48,16 +48,18 @@
     ],
 
     # search result display layout
+    # a list of lists. each list represents a line on the display.
+    # in each line, there are objects for each key to include on the line.
+    # must specify the key, and optional "pre" and "post" params for displaying round it
     "result_display" : [
         [
             {
-                "key": "author",
                 "pre": "",
-                "post": ""
+                "key": "author"
             },
             {
-                "key": "year",
                 "pre": "(",
+                "key": "year",
                 "post": ")"
             }
         ],
@@ -78,14 +80,14 @@
                 "post": "</em>,"
             },
             {
-                "key": "booktitle",
                 "pre": "<em>",
+                "key": "booktitle",
                 "post": "</em>,"
             },
             {
                 "pre": "vol. ",
                 "key": "volume",
-                "post": ", "
+                "post": ","
             },
             {
                 "key": "pages"

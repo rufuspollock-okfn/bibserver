@@ -14,10 +14,18 @@
 {% else %}
 <ul>
 {% for coll in current_user['collections'] %}
-    <li><a href="/{{current_user['id']}}/{{coll.id}}">{{coll['label']}}</a> - {{coll['records']}} records 
-    (<a href="/collections/{{coll.id}}">edit the metadata record</a> of this collection)</a></li>
+    <li><a href="/{{current_user['id']}}/{{coll.id}}">{{coll['label']}}</a> - {{coll['records']}} records. 
+    <a href="/collections/{{coll.id}}">Edit the metadata</a> of this collection</a>.
+    {% if 'source' in coll and coll['source'] %}
+        <a href="/upload?source={{coll["source"]}}&collection={{coll.id}}">Refresh </a> this collection (overwrites local changes).</li>
+    {% endif %}
 {% endfor %}
 </ul>
 {% endif %}
 
 {% endblock %}
+
+            if "source" in self.incollection:
+                meta += '<br />If changes have been made to the source file since then, '
+                meta += '<a href=>refresh this collection</a>.'
+

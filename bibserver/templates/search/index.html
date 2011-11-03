@@ -40,8 +40,8 @@
     </div>
     
     <div id="panel">
-    
-    {% if io.numFound() != 0 %}
+
+    {% if io.numFound() != 0 and not io.viewfacet %}
       {% include "search/paging.html" %}
     {% endif %}
 
@@ -50,8 +50,12 @@
         No results
     {% else %}
         
-        <!-- the result set itself -->        
-        {% include "search/list-view.html" %}
+        <!-- the result set itself -->
+        {% if io.viewfacet %}
+            {% include "search/viewfacet.html" %}
+        {% else %}
+            {% include "search/list-view.html" %}
+        {% endif %}
     
     {% endif %}
 

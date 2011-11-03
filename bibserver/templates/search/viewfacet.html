@@ -1,0 +1,11 @@
+<div class="list_view">
+    {% for item in io.facet_values[io.viewfacet] %}
+        <div class="list_result">
+            {% if item['term'] %}
+                <div class="list_result_output"><a href="?q={{item['term']}}">{{item['term']}}</a> ({{item['count']}})</div>
+                <!-- should add a get to the io for further info about this entity -->
+            {% endif %}
+        <div class="resultstrap"></div>
+        </div>
+    {% endfor %}
+</div>

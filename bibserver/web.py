@@ -283,6 +283,12 @@ def dosearch(path,searchtype='Record'):
             vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
             args["terms"][param + config["facet_field"]] = vals
     
+    # option to catch a view of just a facet
+    viewfacet = False
+    if 'viewfacet' in request.values:
+        #facet_fields = [{"key":request.values['viewfacet']+config["facet_field"], "size": request.values.get('size',10), "order":"term"}]
+        viewfacet = request.values['viewfacet']
+    
     incollection = {}
     implicit_key = False
     implicit_value = False
@@ -306,7 +312,7 @@ def dosearch(path,searchtype='Record'):
         results = bibserver.dao.Record.query(**args)
     else:
         results = bibserver.dao.Collection.query(**args)
-    return bibserver.iomanager.IOManager(results, args, facet_fields, showkeys, incollection, implicit_key, implicit_value, path)
+    return bibserver.iomanager.IOManager(results, args, facet_fields, showkeys, incollection, implicit_key, implicit_value, viewfacet, path)
 
 def outputJSON(results, coll=None, record=False, collection=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''

@@ -6,7 +6,7 @@ import bibserver.config
 import re
 
 class IOManager(object):
-    def __init__(self, results, args={}, facet_fields=[], showkeys='', incollection=False, implicit_key="", implicit_value="", path=""):
+    def __init__(self, results, args={}, facet_fields=[], showkeys='', incollection=False, implicit_key="", implicit_value="", viewfacet=False, path=""):
         self.results = results
         self.args = args
         self.showkeys = showkeys
@@ -28,6 +28,17 @@ class IOManager(object):
         if 'facets' in self.results:
             for facet,data in self.results['facets'].items():
                 self.facet_values[facet.replace(self.config.facet_field,'')] = data["terms"]
+
+        '''for request to view a facet output directly, get any additional data about the entity'''
+        self.viewfacet = viewfacet
+        if viewfacet:
+            self.facetinfo = {}
+            for item in self.facet_values[self.viewfacet]:
+                # do a search for the item['term']
+                # set the discovered info as "term":{info}
+                # for use in the viewfacet template
+                pass
+        
 
     def get_q(self):
         return self.args.get('q','')
@@ -123,7 +134,6 @@ class IOManager(object):
         for record in self.set():
             for key in record.keys():
                 if key not in seenkey:
-                    print record[key]
                     if isinstance(record[key],basestring):
                         keys.append({"key":key,"sortable":True})
                     else:
@@ -208,10 +218,6 @@ class IOManager(object):
                 meta += self.incollection["source"] + '">' + self.incollection["source"] + '</a>.<br /> '
             if "modified" in self.incollection:
                 meta += 'This collection was last updated on ' + self.incollection["modified"] + '. '
-            if "source" in self.incollection:
-                meta += '<br />If changes have been made to the source file since then, '
-                meta += '<a href="/upload?source=' + self.incollection["source"] + '&collection=' + self.incollection.id
-                meta += '">refresh this collection</a>.'
             return meta
         else:
             return ""
