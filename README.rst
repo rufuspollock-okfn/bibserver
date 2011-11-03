@@ -72,7 +72,7 @@ Install
 Install example
 ===============
 
-Install commands on a clean installation of Ubuntu_11.10_
+Install commands on a clean installation of Ubuntu_11.10_::
 
     sudo apt-get install python-pip python-dev build-essential 
     sudo pip install --upgrade pip 
