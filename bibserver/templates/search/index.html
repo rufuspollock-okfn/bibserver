@@ -36,7 +36,10 @@
 
     <div id="navigation">
         {% include "search/facet.html" %}
-        {% include "search/display.html" %}
+
+        {% if not io.viewfacet %}
+            {% include "search/display.html" %}
+        {% endif %}
     </div>
     
     <div id="panel">
