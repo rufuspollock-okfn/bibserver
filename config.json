@@ -83,6 +83,14 @@
                 "post": "</em>,"
             },
             {
+                "pre": "vol. ",
+                "key": "volume",
+                "post": ", "
+            },
+            {
+                "key": "pages"
+            },
+            {
                 "key": "publisher"
             }
         ],
