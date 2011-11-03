@@ -15,10 +15,10 @@
         <input type="hidden" name="q" value="{{io.get_q()}}" />
         
         {% for item in io.get_keys() %}
-            {% if item in io.get_showkeys(format="list") %}
-                <a class="showkeys label notice" href="">{{item}}</a>
+            {% if item['key'] in io.get_showkeys(format="list") %}
+                <a class="showkeys label notice" href="">{{item['key']}}</a>
             {% else %}
-                <a class="showkeys label" href="">{{item}}</a>
+                <a class="showkeys label" href="">{{item['key']}}</a>
             {% endif %}
         {% endfor %}
 

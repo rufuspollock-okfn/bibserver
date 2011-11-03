@@ -58,12 +58,14 @@
      Sort
     <select class="small" name="sort" id="sort_select">
         <option>...</option>
-    {% for sort in io.get_sort_fields() %}
-    {%   if sort == io.sorted_by() %}
-        <option value="{{sort}}{{io.config.facet_field}}" selected>{{sort}}</option>
-    {%   else %}
-        <option value="{{sort}}{{io.config.facet_field}}">{{sort}}</option>
-    {%   endif %}
+    {% for sort in io.get_keys() %}
+        {% if sort['sortable'] %}
+            {%   if sort['key'] == io.sorted_by() %}
+                <option value="{{sort['key']}}{{io.config.facet_field}}" selected>{{sort['key']}}</option>
+            {%   else %}
+                <option value="{{sort['key']}}{{io.config.facet_field}}">{{sort['key']}}</option>
+            {%   endif %}
+        {% endif %}
     {% endfor %}
     </select>
 

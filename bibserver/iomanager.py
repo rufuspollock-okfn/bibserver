@@ -116,16 +116,20 @@ class IOManager(object):
             output += '</table>'
         return output
         
-    '''get all currently available keys in ES'''
-    def get_keys(self,rectype='Record'):
-        if rectype == 'Record':
-            res = bibserver.dao.Record.get_mapping()
-            which = 'record'
-        elif rectype == 'Collection':
-            res = bibserver.dao.Collection.get_mapping()
-            which = 'collection'
-        keys = [str(i) for i in res[which]['properties'].keys()]
-        keys.sort()
+    '''get all currently available keys in ES, and see if they are searchable'''
+    def get_keys(self,rectype='Record',collection=None):
+        keys = []
+        seenkey = []
+        for record in self.set():
+            for key in record.keys():
+                if key not in seenkey:
+                    print record[key]
+                    if isinstance(record[key],basestring):
+                        keys.append({"key":key,"sortable":True})
+                    else:
+                        keys.append({"key":key,"sortable":False})
+                    seenkey.append(key)
+        keys.sort(key=lambda x: x['key'])
         return keys
     
     '''get keys to show on results'''
@@ -144,21 +148,6 @@ class IOManager(object):
 
     def get_rpp_options(self):
         return self.config.results_per_page_options
-
-    def get_sort_fields(self, rectype='Record'):
-        fields = self.get_keys(rectype)
-        sortfields = []
-        for item in fields:
-            try:
-                if rectype == 'Record':
-                    bibserver.dao.Record.query(sort={item: {"order":"asc"}})
-                elif rectype == 'Collection':
-                    bibserver.dao.Collection.query(sort={item: {"order":"asc"}})
-                sortfields.append(item)
-            except:
-                pass
-        sortfields.sort()
-        return sortfields
 
     def numFound(self):
         return int(self.results['hits']['total'])
