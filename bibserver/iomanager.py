@@ -9,13 +9,21 @@ class IOManager(object):
     def __init__(self, results, args={}, facet_fields=[], showkeys='', incollection=False, implicit_key="", implicit_value="", path=""):
         self.results = results
         self.args = args
-        self.facet_fields = facet_fields
         self.showkeys = showkeys
         self.incollection = incollection
         self.implicit_key = implicit_key
         self.implicit_value = implicit_value
         self.path = path
+        self.facet_fields = facet_fields
         self.config = bibserver.config.Config()
+        self.result_display = self.config.result_display
+
+        '''check for specific settings related to this collection, if in a collection'''
+        if self.incollection:
+            if 'display_settings' in self.incollection:
+                if 'result_display' in self.incollection['display_settings']:
+                    self.result_display = self.incollection['display_settings']['result_display']
+
         self.facet_values = {}
         if 'facets' in self.results:
             for facet,data in self.results['facets'].items():
@@ -76,7 +84,8 @@ class IOManager(object):
             
     def get_result_display(self,counter):
         '''use the result_display object as a template for search results'''
-        display = self.config.result_display
+        display = self.result_display
+
         output = ""
         if not display:
             return output
@@ -201,21 +210,19 @@ class IOManager(object):
         
     def get_meta(self):
         if self.incollection:
-            coll = bibserver.dao.Collection.get(self.incollection.id)
-            if coll:
-                meta = '<p><a href="/'
-                meta += self.path + '.json?size=' + str(coll['records'])
-                meta += '">Download this collection</a><br />'
-                meta += 'This collection was created by <a href="/account/' + coll['owner'] + '">' + coll['owner'] + '</a><br />'
-                if "source" in coll:
-                    meta += 'The source of this collection is <a href="'
-                    meta += coll["source"] + '">' + coll["source"] + '</a>.<br /> '
-                if "modified" in coll:
-                    meta += 'This collection was last updated on ' + coll["modified"] + '. '
-                if "source" in coll:
-                    meta += '<br />If changes have been made to the source file since then, '
-                    meta += '<a href="/upload?source=' + coll["source"] + '&collection=' + coll.id
-                    meta += '">refresh this collection</a>.'
+            meta = '<p><a href="/'
+            meta += self.path + '.json?size=' + str(self.incollection['records'])
+            meta += '">Download this collection</a><br />'
+            meta += 'This collection was created by <a href="/account/' + self.incollection['owner'] + '">' + self.incollection['owner'] + '</a><br />'
+            if "source" in self.incollection:
+                meta += 'The source of this collection is <a href="'
+                meta += self.incollection["source"] + '">' + self.incollection["source"] + '</a>.<br /> '
+            if "modified" in self.incollection:
+                meta += 'This collection was last updated on ' + self.incollection["modified"] + '. '
+            if "source" in self.incollection:
+                meta += '<br />If changes have been made to the source file since then, '
+                meta += '<a href="/upload?source=' + self.incollection["source"] + '&collection=' + self.incollection.id
+                meta += '">refresh this collection</a>.'
             return meta
         else:
             return ""

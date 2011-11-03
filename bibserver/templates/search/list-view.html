@@ -1,7 +1,15 @@
 <div class="list_view">
     {% for i in range(io.set()|length) %}
         <div class="list_result list_result_{{'odd' if i % 2 == 0 else 'even'}}">
-            <div class="list_result_output">{{io.get_result_display(i)|safe}}</div>
+            {% if not io.get_result_display(i) %}
+                {% if 'citekey' in io.set()[i] %}
+                    <div class="list_result_output">{{io.set()[i]['citekey']}}</div>
+                {% else %}
+                    <div class="list_result_output">{{io.set()[i]['id']}}</div>
+                {% endif %}
+            {% else %}
+                <div class="list_result_output">{{io.get_result_display(i)|safe}}</div>
+            {% endif %}
 
             <div class="list_result_options">
             {% if io.get_str(io.set()[i], "citekey") != "" %}

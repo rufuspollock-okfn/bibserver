@@ -42,19 +42,21 @@ Install
 2. [optional] Create a virtualenv and enable it::
 
     # in bash
-    virtualenv {myenv}
-    . {myenv}/bin/activate
+    # virtualenv {myenv}
+    # . {myenv}/bin/activate
 
 3. Get the source::
 
     # by convention we put it in the virtualenv but you can put anywhere
-    mkdir {myenv}/src
-    git clone https://github.com/okfn/bibserver {myenv}/src/
+    # mkdir {myenv}/src
+    # git clone https://github.com/okfn/bibserver {myenv}/src/
+    git clone https://github.com/okfn/bibserver
 
 3. Install the app::
 
     # move to your checkout of bibserver
-    cd {myenv}/src/bibserver
+    # cd {myenv}/src/bibserver
+    cd bibserver
     # do a development install from current directory
     # pip install -e .
     # alternatively if you do not want a development install you could just do
@@ -62,9 +64,17 @@ Install
 
 4. Run the webserver::
 
-    python web.py
+    python bibserver/web.py
 
 .. _ElasticSearch: http://www.elasticsearch.org/
+
+
+Install example
+===============
+
+Install commands on a clean installation of Ubuntu_11.10_
+
+.. _Ubuntu_11.10: http:ubuntu.com
 
 
 Command Line Usage
