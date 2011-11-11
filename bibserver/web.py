@@ -121,7 +121,13 @@ def collections(path=''):
             coll = bibserver.dao.Collection.get(path)
             if auth.collection.update(current_user, coll):
                 edit = True
-            return render_template('collections/view.html', id=path, version=coll.version, edit=edit)
+            if request.values.get('display_settings',''):
+                # display the page for editing collection layout
+                results = bibserver.dao.Record.query(q='collection.exact:"'+coll.id+'"',size=1000)
+                io = bibserver.iomanager.IOManager(results=results, incollection=coll)
+                return render_template('collections/display_settings.html', id=path, coll=coll, edit=edit, io=io)
+            else:
+                return render_template('collections/view.html', id=path, version=coll.version, edit=edit)
 
     # do overall collections list page
     io = dosearch(path,'Collection')
@@ -188,7 +194,7 @@ def record(path,cid=None):
     else:
         io = bibserver.iomanager.IOManager(res)
         coll = bibserver.dao.Collection.get(io.set()[0]['collection'][0])
-        if coll and auth.collection.update(current_user, coll):
+        if coll and auth.collection.update(current_user, coll) and config["allow_edit"] == "YES":
             edit = True
         else:
             edit = False
@@ -260,13 +266,8 @@ def search(path=''):
         return render_template('search/index.html', io=io)
 
 def dosearch(path,searchtype='Record'):
-    facet_fields = []
-    for item in config["facet_fields"]:
-        new = { "key": item['key']+config["facet_field"], "size": item.get('size',100), "order": item.get('order','count') }
-        facet_fields.append(new)
     showkeys = request.values.get('showkeys',None)
-
-    args = {"terms":{},"facet_fields" : facet_fields}
+    args = {"terms":{}}
     if 'from' in request.values:
         args['start'] = request.values.get('from')
     if 'size' in request.values:
@@ -274,21 +275,19 @@ def dosearch(path,searchtype='Record'):
     if 'sort' in request.values:
         if request.values.get("sort") != "..." and request.values.get("sort") != "":
             args['sort'] = {request.values.get('sort') : {"order" : request.values.get('order','asc')}}
+    if 'default_operator' in request.values:
+        args['default_operator'] = request.values['default_operator']
     if 'q' in request.values:
         if len(request.values.get('q')) > 0:
-            # TODO: add some cleaning to the provided q value
             args['q'] = request.values.get('q')
-    for param in request.values:
-        if param in [i['key'] for i in config["facet_fields"]]:
-            vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
-            args["terms"][param + config["facet_field"]] = vals
-    
-    # option to catch a view of just a facet
-    viewfacet = False
-    if 'viewfacet' in request.values:
-        #facet_fields = [{"key":request.values['viewfacet']+config["facet_field"], "size": request.values.get('size',10), "order":"term"}]
-        viewfacet = request.values['viewfacet']
-    
+            args['q'] = args['q'].replace('!','')
+            if '"' in args['q'] and args['q'].count('"')%2 != 0:
+                args['q'] = args['q'].replace('"','')
+            if ' OR ' in request.values['q']:
+                args['default_operator'] = 'OR'
+            if ' AND ' in request.values['q']:
+                args['default_operator'] = 'AND'
+        
     incollection = {}
     implicit_key = False
     implicit_value = False
@@ -301,18 +300,31 @@ def dosearch(path,searchtype='Record'):
             # if first bit is a user ID then this is a collection
             if bibserver.dao.Account.get(bits[0]):
                 incollection = bibserver.dao.Collection.get(bits[1])
-
                 bits[0] = 'collection'
-            # otherwise its a normal implicit facet
-            args['terms'][bits[0]+config["facet_field"]] = [bits[1]]
             implicit_key = bits[0]
             implicit_value = bits[1]
+
+    args['facet_fields'] = []
+    try:
+        facets = incollection['display_settings']['facet_fields']
+    except:
+        facets = config["facet_fields"]
+    for item in facets:
+        new = { "key": item['key']+config["facet_field"], "size": item.get('size',100), "order": item.get('order','count') }
+        args['facet_fields'].append(new)
+    for param in request.values:
+        if param in [i['key'].replace(config['facet_field'],'') for i in args['facet_fields']]:
+            vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
+            args['terms'][param + config['facet_field']] = vals
+    if implicit_key:
+        args['terms'][implicit_key+config["facet_field"]] = [implicit_value]
+
 
     if searchtype == 'Record':
         results = bibserver.dao.Record.query(**args)
     else:
         results = bibserver.dao.Collection.query(**args)
-    return bibserver.iomanager.IOManager(results, args, facet_fields, showkeys, incollection, implicit_key, implicit_value, viewfacet, path)
+    return bibserver.iomanager.IOManager(results, args, showkeys, incollection, implicit_key, implicit_value, path, request.values.get('showopts',''))
 
 def outputJSON(results, coll=None, record=False, collection=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''

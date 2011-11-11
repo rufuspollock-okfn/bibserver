@@ -1,0 +1,153 @@
+<style type="text/css">
+.facet_value{
+    display:none;
+}
+.facet{
+    display:inline;
+    float:left;
+    margin:5px 20px 20px 10px;
+    padding:5px;
+}
+#facet_choices{
+    width:auto;
+    max-width:740px;
+    margin-top:20px;
+}
+.facet_heading{
+    font-size:1.2em;
+}
+a.facet_heading{
+    color:#0069d6;
+}
+#panel{
+    width:100%;
+}
+.facet_selected{
+    max-width:150px;
+    border-bottom:1px dotted #aaa;
+}
+#bibserver_search{
+    background:#ccc;
+   -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
+</style>
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+    var dofacetchoice = function(facetinfo) {
+        var facetchoices = '<h2>';
+        facetchoices += facetinfo.type + ' <small>';
+        facetchoices += '<a class="label sort_" href="">sort alphabetical</a> ';
+        facetchoices += '<a class="label" href="">descending</a> ';
+        facetchoices += '<a class="remove_facetchoices label" href="">';
+        facetchoices += 'close </a></small></h2><ul class="scroll-pane">';
+        for (var item in facetinfo.data) {
+            if (facetinfo.data[item].anchor.length != 0) {
+                facetchoices += '<li><a href="' + facetinfo.data[item].url + '">';
+                facetchoices += facetinfo.data[item].anchor + '</a> (';
+                facetchoices += facetinfo.data[item].count + ')</li>';
+            }
+        }
+        facetchoices += '</ul>';
+        jQuery('.facet').hide();
+        jQuery('#facet_choices').append(facetchoices);
+        jQuery('#facet_choices ul').jScrollPane();
+    }
+    var showfacets = function(event) {
+        event.preventDefault();
+        var facetinfo = {
+            'type':jQuery(this).attr('id').replace('fh_',''),
+            'data':[],
+            'fitem':jQuery(this)
+        }
+        jQuery(this).parent().siblings('.facet_value').children('li').children('a').each(function() {
+            var newobj = {
+                'anchor': jQuery.trim(jQuery(this).html().replace('\n','')),
+                'url': jQuery(this).attr('href'),
+                'count': jQuery(this).siblings('.count').html()
+            };
+            facetinfo.data.push(newobj);
+        });
+        dofacetchoice(facetinfo);
+    }
+    jQuery(".facet_heading").bind('click',showfacets);
+
+    // redesign facet headers if they have no further options
+    jQuery('.facet').each(function() {
+        if ( jQuery(this).children().last().children().size() < 2 ) {
+            var standard = jQuery(this).children('.facet_heading').children('a').html();
+            jQuery(this).children('.facet_heading').html(standard);
+        }
+    });
+
+    // add in-page sorting to the facet selections
+    var sorts = '<a class="facet_sorting btn info" href="">a-z | hi-lo</a>';
+    jQuery('div.facet_selected').after(sorts);
+    jQuery('.facet_sorting').hide();
+    var dosort = function(event) {
+        event.preventDefault();
+        if (jQuery(this).hasClass('sorted')) {
+            if (jQuery(this).hasClass('reversed')) {
+                if (jQuery(this).hasClass('numbered')) {
+                    jQuery(this).next('ul.facet_value').children().tsort("span.count",{order:'desc'});
+                    jQuery(this).removeClass('numbered');
+                    jQuery(this).removeClass('reversed');
+                    jQuery(this).removeClass('sorted');
+                } else {
+                    jQuery(this).next('ul.facet_value').children().tsort("span.count");
+                    jQuery(this).addClass('numbered');
+                }
+            } else {
+                jQuery(this).next('ul.facet_value').children().tsort({order:'desc'});
+                jQuery(this).addClass('reversed');
+            }
+        } else {
+            jQuery(this).next('ul.facet_value').children().tsort();
+            jQuery(this).addClass('sorted');
+        }
+    }
+    jQuery('.facet_sorting').bind('click',dosort);
+
+});
+</script>
+
+<div id="facet_choices">
+{% for facet in io.get_facet_fields() %}
+  {% if facet != io.implicit_key %}
+        <div class="facet">
+
+            <div class="facet_heading">
+                <a href="" class="facet_heading" id="fh_{{facet}}">{{facet}}</a>
+            </div>
+            <div id="selected_{{facet}}" class="facet_selected">
+                        
+            {% for item in io.facet_values[facet] %}
+              {% if io.in_args(facet, item["term"]) %}
+                    <em>
+                    {{item["term"]}} ({{item["count"]}})
+                    </em>
+                    &nbsp;<a class="delete_url" href="{{io.get_delete_url(facet, item['term'])}}">x</a>
+                    <br/>
+                {% endif %}
+            {% endfor %}
+                
+            </div>
+                        
+            <ul id="fr_{{facet}}" class="facet_value">
+
+            {% for item in io.facet_values[facet] %}
+              {% if not io.in_args(facet, item["term"]) %}
+                    <li><a href="{{io.get_add_url(facet, item['term'])}}">
+                    {{item['term']}}</a> (<span class="count">{{item['count']}}</span>)
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            </li>
+                
+        </div>
+    {% endif %}
+{% endfor %}
+</div>

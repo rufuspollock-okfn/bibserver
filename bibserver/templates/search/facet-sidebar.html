@@ -1,0 +1,98 @@
+<script type="text/javascript">
+jQuery(document).ready(function() {
+    // do the facet list toggling
+    jQuery('.facet_value').hide();
+    var showfacets = function(event) {
+        event.preventDefault();
+        if ( $(this).hasClass('opened') ) {
+            $(this).removeClass('opened');
+            $(this).parent().siblings('.facet_value').hide('slow');
+            $(this).siblings().next('.facet_sorting').hide('slow');
+            $(this).children('.facet_pm').html('+&nbsp;');
+        } else {
+            $(this).addClass('opened');
+            $(this).parent().siblings('.facet_value').show('slow');
+            $(this).siblings().next('.facet_sorting').show('slow');
+            $(this).children('.facet_pm').html('-&nbsp;');
+        }
+    }
+    jQuery(".facet_heading").bind('click',showfacets);
+
+    // redesign facet headers if they have no further options
+    jQuery('.facet').each(function() {
+        if ( jQuery(this).children().last().children().size() < 2 ) {
+            jQuery(this).children('.facet_heading').children('a').children('.facet_pm').remove();
+            var title = jQuery(this).children('.facet_heading').children('a').html();
+            var standard = '<strong>' + title + '</strong>';
+            jQuery(this).children('.facet_heading').html(standard)
+        }
+    });
+    
+    // add in-page sorting to the facet selections
+    var sorts = '<a class="facet_sorting btn info" href="">a-z | hi-lo</a>';
+    jQuery('div.facet_selected').after(sorts);
+    jQuery('.facet_sorting').hide();
+    var dosort = function(event) {
+        event.preventDefault();
+        if (jQuery(this).hasClass('sorted')) {
+            if (jQuery(this).hasClass('reversed')) {
+                if (jQuery(this).hasClass('numbered')) {
+                    jQuery(this).next('ul.facet_value').children().tsort("span.count",{order:'desc'});
+                    jQuery(this).removeClass('numbered');
+                    jQuery(this).removeClass('reversed');
+                    jQuery(this).removeClass('sorted');
+                } else {
+                    jQuery(this).next('ul.facet_value').children().tsort("span.count");
+                    jQuery(this).addClass('numbered');
+                }
+            } else {
+                jQuery(this).next('ul.facet_value').children().tsort({order:'desc'});
+                jQuery(this).addClass('reversed');
+            }
+        } else {
+            jQuery(this).next('ul.facet_value').children().tsort();
+            jQuery(this).addClass('sorted');
+        }
+    }
+    jQuery('.facet_sorting').bind('click',dosort);
+
+});
+</script>
+
+{% for facet in io.get_facet_fields() %}
+  {% if facet != io.implicit_key %}
+        <div class="facet">
+
+            <div class="facet_heading">
+                <a href="" class="facet_heading" id="fh_{{facet}}">
+                <span class="facet_pm">+&nbsp;</span>{{facet}}</a>
+            </div>
+            <div id="selected_{{facet}}" class="facet_selected">
+                        
+            {% for item in io.facet_values[facet] %}
+              {% if io.in_args(facet, item["term"]) %}
+                    <em>
+                    {{item["term"]}} ({{item["count"]}})
+                    </em>
+                    &nbsp;<a class="delete_url" href="{{io.get_delete_url(facet, item['term'])}}">x</a>
+                    <br/>
+                {% endif %}
+            {% endfor %}
+                
+            </div>
+                        
+            <ul id="fr_{{facet}}" class="facet_value">
+
+            {% for item in io.facet_values[facet] %}
+              {% if not io.in_args(facet, item["term"]) %}
+                    <li><a href="{{io.get_add_url(facet, item['term'])}}">
+                    {{item['term']}}</a> (<span class="count">{{item['count']}}</span>)
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            </li>
+                
+        </div>
+    {% endif %}
+{% endfor %}

@@ -79,6 +79,24 @@ jQuery(document).ready(function() {
     }
     jQuery('#collection').bind('keyup',checkcoll);
 
+    // show search options
+    if ( jQuery('input[name="showopts"]').val() != undefined && jQuery('input[name="showopts"]').val() != "" ) {
+        jQuery('#search_options').addClass('shown').show();
+    }
+    var show_search_options = function(event) {
+        event.preventDefault();
+        if ( jQuery('#search_options').hasClass('shown') ) {
+            jQuery('#search_options').removeClass('shown').hide();
+            jQuery('input[name="showopts"]').remove();
+        } else {
+            jQuery('#search_options').addClass('shown').show();
+            if ( jQuery('input[name="showopts"]').val() == undefined) {
+                jQuery('form').append('<input type="hidden" name="showopts" value="true" />');
+            }
+        }
+    }
+    jQuery('#show_search_options').bind('click',show_search_options);
+
     // trigger showkeys
     var submit_showkey = function(event) {
         event.preventDefault();
@@ -93,10 +111,20 @@ jQuery(document).ready(function() {
                 jQuery('#showkeys').val(jQuery(this).html());
             }
         }
-        //jQuery(this).closest('form').trigger('submit');
         jQuery('#showkeys_form').trigger('submit');
     }
     jQuery('.showkeys').bind('click',submit_showkey);
+
+    var show_view_options = function(event) {
+        event.preventDefault();
+        if (jQuery('.view_options').hasClass('shown')) {
+            jQuery('.view_options').removeClass('shown').hide();
+        } else {
+            jQuery('.view_options').addClass('shown').show();
+        }
+    }
+    jQuery('#show_view_options').bind('click',show_view_options);
+
 
     // add external search autocomplete box to record display page
     //if ( window.location.pathname.match('record') ) {
@@ -162,62 +190,63 @@ jQuery(document).ready(function() {
     jQuery('#order_select').bind('change',rpp_select);
     jQuery('#page_select').bind('change',page_select);
 
-    // do the facet list toggling
-    jQuery('.facet_value').hide();
-    var showfacets = function(event) {
+    // do search options
+    var fixmatch = function(event) {
         event.preventDefault();
-        if ( $(this).hasClass('opened') ) {
-            $(this).removeClass('opened');
-            $(this).parent().siblings('.facet_value').hide('slow');
-            $(this).siblings().next('.facet_sorting').hide('slow');
-            $(this).children('.facet_pm').html('+&nbsp;');
-        } else {
-            $(this).addClass('opened');
-            $(this).parent().siblings('.facet_value').show('slow');
-            $(this).siblings().next('.facet_sorting').show('slow');
-            $(this).children('.facet_pm').html('-&nbsp;');
-        }
-    }
-    jQuery(".facet_heading").bind('click',showfacets);
-
-    // redesign facet headers if they have no further options
-    jQuery('.facet').each(function() {
-        if ( jQuery(this).children().last().children().size() < 2 ) {
-            jQuery(this).children('.facet_heading').children('a').children('.facet_pm').remove();
-            var title = jQuery(this).children('.facet_heading').children('a').html();
-            var standard = '<strong>' + title + '</strong>';
-            jQuery(this).children('.facet_heading').html(standard)
-        }
-    });
-    
-    // add in-page sorting to the facet selections
-    var sorts = '<a class="facet_sorting btn info" href="">a-z | hi-lo</a>';
-    jQuery('div.facet_selected').after(sorts);
-    jQuery('.facet_sorting').hide();
-    var dosort = function(event) {
-        event.preventDefault();
-        if (jQuery(this).hasClass('sorted')) {
-            if (jQuery(this).hasClass('reversed')) {
-                if (jQuery(this).hasClass('numbered')) {
-                    jQuery(this).next('ul.facet_value').children().tsort("span.count",{order:'desc'});
-                    jQuery(this).removeClass('numbered');
-                    jQuery(this).removeClass('reversed');
-                    jQuery(this).removeClass('sorted');
-                } else {
-                    jQuery(this).next('ul.facet_value').children().tsort("span.count");
-                    jQuery(this).addClass('numbered');
+        if ( jQuery(this).attr('id') == "partial_match" ) {
+            var newvals = jQuery('#searchbox').val().replace(/"/gi,'').replace(/\*/gi,'').split(' ');
+            var newstring = "";
+            for (item in newvals) {
+                if (newvals[item].length > 0 && newvals[item] != ' ') {
+                    if (newvals[item] == 'OR' || newvals[item] == 'AND') {
+                        newstring += newvals[item] + ' ';
+                    } else {
+                        newstring += '*' + newvals[item] + '* ';
+                    }
                 }
-            } else {
-                jQuery(this).next('ul.facet_value').children().tsort({order:'desc'});
-                jQuery(this).addClass('reversed');
             }
-        } else {
-            jQuery(this).next('ul.facet_value').children().tsort();
-            jQuery(this).addClass('sorted');
+            jQuery('#searchbox').val(newstring);
+        } else if ( jQuery(this).attr('id') == "exact_match" ) {
+            var newvals = jQuery('#searchbox').val().replace(/"/gi,'').replace(/\*/gi,'').split(' ');
+            var newstring = "";
+            for (item in newvals) {
+                if (newvals[item].length > 0 && newvals[item] != ' ') {
+                    if (newvals[item] == 'OR' || newvals[item] == 'AND') {
+                        newstring += newvals[item] + ' ';
+                    } else {
+                        newstring += '"' + newvals[item] + '" ';
+                    }
+                }
+            }
+            $.trim(newstring,' ');
+            jQuery('#searchbox').val(newstring);
+        } else if ( jQuery(this).attr('id') == "match_any" ) {
+            jQuery('#default_operator').remove();
+            if (jQuery(this).hasClass('match_all')) {
+                jQuery('#searchform').append('<input type="hidden" id="default_operator" name="default_operator" value="OR" />');
+                jQuery('#searchbox').val(jQuery.trim(jQuery('#searchbox').val().replace(/ AND /gi,' ')));
+                jQuery('#searchbox').val(jQuery('#searchbox').val().replace(/ /gi,' OR '));
+            } else {
+                jQuery('#searchbox').val(jQuery.trim(jQuery('#searchbox').val().replace(/ OR /gi,' ')));
+                jQuery('#searchbox').val(jQuery('#searchbox').val().replace(/ /gi,' AND '));
+            }
         }
+        jQuery('#submit_main_search').trigger('click');
     }
-    jQuery('.facet_sorting').bind('click',dosort);
+    jQuery('#partial_match').bind('click',fixmatch);
+    jQuery('#exact_match').bind('click',fixmatch);
+    jQuery('#match_any').bind('click',fixmatch);
     
+    var search_key = function(event) {
+        event.preventDefault();
+        var val = jQuery('#searchbox').val().replace(/"/gi,'').replace(/\*/gi,'').replace(/.*\.exact:/,'');
+        if ( !(val[0] == '"' && val[val.length-1] == '"') ) {
+            val = '"' + val + '"';
+        }
+        jQuery('#searchbox').val(jQuery(this).val() + ':' + val);
+        jQuery('#submit_main_search').trigger('click');
+    }
+    jQuery('#search_key').bind('change',search_key);
 });
 
 

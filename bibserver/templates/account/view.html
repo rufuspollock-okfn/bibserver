@@ -12,20 +12,24 @@
 {% if current_user['collections']|length == 0 %}
 <p>You have no collections yet. <a href="/upload">Create one!</a></p>
 {% else %}
-<ul>
+<table>
 {% for coll in current_user['collections'] %}
-    <li><a href="/{{current_user['id']}}/{{coll.id}}">{{coll['label']}}</a> - {{coll['records']}} records. 
-    <a href="/collections/{{coll.id}}">Edit the metadata</a> of this collection</a>.
+    <tr>
+    <td>
+    <h4><a href="/{{current_user['id']}}/{{coll.id}}">{{coll['label']}}</a></h4>
+    </td>
+    <td>
+    <p>{{coll['records']}} records.<br /> 
+    <a href="/collections/{{coll.id}}?display_settings=edit">Customise the display</a> of this collection</a>.<br />    
+    <a href="/collections/{{coll.id}}">Edit the metadata</a> of this collection</a>.<br />
     {% if 'source' in coll and coll['source'] %}
-        <a href="/upload?source={{coll["source"]}}&collection={{coll.id}}">Refresh </a> this collection (overwrites local changes).</li>
+    <a href="/upload?source={{coll["source"]}}&collection={{coll.id}}">Refresh </a> this collection (overwrites any local changes).</li>
     {% endif %}
+    </td>
+    </tr>
 {% endfor %}
-</ul>
+</table>
 {% endif %}
 
 {% endblock %}
-
-            if "source" in self.incollection:
-                meta += '<br />If changes have been made to the source file since then, '
-                meta += '<a href=>refresh this collection</a>.'
 

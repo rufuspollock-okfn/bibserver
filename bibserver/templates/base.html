@@ -18,18 +18,27 @@
     <link rel="stylesheet" type="text/css" href="/static/css/bibserver.css">
     <link rel="stylesheet" type="text/css" href="/static/css/search.css"/>
 
-    <link rel="stylesheet" type="text/css" href="/static/vendor/jquery-ui/jquery-ui.css"/>
 
     <script type="text/javascript" src="/static/vendor/jquery.js"></script>
     <script type="text/javascript" src="/static/vendor/jquery.tinysort.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/static/vendor/jquery-ui/jquery-ui.css"/>
     <script type="text/javascript" src="/static/vendor/jquery-ui/jquery-ui.min.js"></script>
+
     <script type="text/javascript" src="/static/vendor/bootstrap/1.3.0/bootstrap-alerts.js"></script>
+
     <script type="text/javascript" src="/static/js/bibserver.js"></script>
         
-    <link rel="stylesheet" href="http://test.cottagelabs.com/jtedit/jtedit.css">
-    <script type="text/javascript" src="http://test.cottagelabs.com/jtedit/jquery.autoResize.js"></script>
-    <script type="text/javascript" src="http://test.cottagelabs.com/jtedit/jquery.xdomainajax.js"></script>
-    <script type="text/javascript" src="http://test.cottagelabs.com/jtedit/jquery.jtedit.js"></script>
+    <script type="text/javascript" src="/static/vendor/jquery.autoResize.js"></script>
+    <script type="text/javascript" src="/static/vendor/jquery.xdomainajax.js"></script>
+
+    <link rel="stylesheet" href="/static/vendor/jtedit/jtedit.css">
+    <script type="text/javascript" src="/static/vendor/jtedit/jquery.jtedit.js"></script>
+
+    <link type="text/css" href="/static/vendor/jscrollpane/jquery.jscrollpane.css" rel="stylesheet" media="all" />
+    <script type="text/javascript" src="/static/vendor/jquery.mousewheel.js"></script>
+    <script type="text/javascript" src="/static/vendor/mwheelIntent.js"></script>
+    <script type="text/javascript" src="/static/vendor/jscrollpane/jquery.jscrollpane.min.js"></script>
 
         
   </head>
@@ -48,7 +57,7 @@
           </ul>
           <ul class="nav secondary-nav">
             <li>
-              <form action="/search" method="GET">
+              <form id="topsearch" name="topsearch" action="/search" method="GET">
                 <input type="text" name="q" placeholder="search" />
               </form>
             </li>

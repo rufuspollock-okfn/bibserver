@@ -3,48 +3,120 @@
 {% block content %}
 
 <div id="bibserver_search">
-  <div class="search_box">
-      <form method="get" action="">
-          <input type="text" id="searchbox" name="q" value='{{io.get_q()}}' />
-          {% for item in io.get_safe_terms_object() %}
-          <input type="hidden" name="{{item}}" value='{{io.get_safe_terms_object()[item]}}' />
-          {% endfor %}
-          {% if io.page_size() != 10 %}
-              <input type="hidden" name="size" value="{{io.page_size()}}" />
-          {% endif %}
-          {% if io.sorted_by() != "" %}
-              <input type="hidden" name="sort" value="{{io.sorted_by()}}{{io.config.facet_field}}" />
-              <input type="hidden" name="order" value="{{io.sort_order()}}" />
-          {% endif %}
-            <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
-          <input type="submit" name="search" value="Search" />
-      </form>
-      <form method="get" action="">
-            <input type="submit" name="submit" value="clear" />
-      </form>
+    <div class="search_box">
 
-  </div>
+        {% if io.implicit_key and io.config.facet_topbar %}
+            {% if io.implicit_key == "collection" %}
+                <h3>collection : <a href="/{{io.incollection['owner']}}/{{io.implicit_value}}">{{io.implicit_value}}</a>
+                {% for item in current_user['collections'] %}
+                    {% if item['id'] == io.incollection['id'] %}
+                        <small>( <a href="/collections/{{io.incollection['id']}}">edit</a> )</small>
+                    {% endif %}
+                {% endfor %}
+                </h3>    
+            {% else %}
+                <h3>{{io.implicit_key}} : <a href="/{{io.implicit_key}}/{{io.implicit_value}}">{{io.implicit_value}}</a></h3>
+            {% endif %}
+        {% endif %}
+
+        <form id="searchform" method="get" action="">
+            <input type="text" id="searchbox" name="q" value='{{io.get_q()}}' />
+            {% for item in io.get_safe_terms_object() %}
+                <input type="hidden" name="{{item}}" value='{{io.get_safe_terms_object()[item]}}' />
+            {% endfor %}
+            {% if io['showopts'] %}
+                <input type="hidden" name="showopts" value="{{io['showopts']}}" />
+            {% endif %}
+            {% if io.page_size() != 10 %}
+                <input type="hidden" name="size" value="{{io.page_size()}}" />
+            {% endif %}
+            {% if io.sorted_by() != "" %}
+                <input type="hidden" name="sort" value="{{io.sorted_by()}}{{io.config.facet_field}}" />
+                <input type="hidden" name="order" value="{{io.sort_order()}}" />
+            {% endif %}
+            <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
+            <input class="btn" id="submit_main_search" type="submit" name="submit" value="submit" />
+        </form>
+
+        <form id="clearform" method="get" action="">
+            <input class="btn" type="submit" name="submit" value="clear" />
+        </form>
+
+        <a id="show_search_options" class="btn" href="">options</a>
+
+        <div id="search_options">
+            <p><a id="partial_match" href="">partial match</a> | 
+            <a id="exact_match" href="">exact match</a> | 
+            <a id="match_any" 
+            {% if not 'default_operator' in io.args or io.args['default_operator'] != 'OR' %}
+                class="match_all" 
+            {% endif %}
+            href="">
+            {% if 'default_operator' in io.args and io.args['default_operator'] == 'OR' %}
+                match all
+            {% else %}
+                match any
+            {% endif %}
+            </a> | 
+            search on: <select id="search_key" name="search_key" class="small">
+            <option>...</option>
+            {% for sort in io.get_keys() %}
+                {% if sort['key'] + ':' in io.get_q() %}
+                <option value="{{sort['key']}}{{io.config.facet_field}}" selected>{{sort['key']}}</option>
+                {% else %}
+                <option value="{{sort['key']}}{{io.config.facet_field}}">{{sort['key']}}</option>
+                {% endif %}
+            {% endfor %}
+            </select>
+            </p>
+
+            <!-- results display keys -->    
+            <form id="showkeys_form" method="get" action="">
+                {% if io['showopts'] %}
+                <input type="hidden" name="showopts" value="{{io['showopts']}}" />
+                {% endif %}
+                <input type="hidden" name="from" value="{{io.start()}}" />
+                <input type="hidden" name="size" value="{{io.page_size()}}" />
+                {% if io.sorted_by() != "" %}
+                    <input type="hidden" name="sort" value="{{io.sorted_by()}}{{io.config.facet_field}}" />
+                    <input type="hidden" name="order" value="{{io.sort_order()}}" />
+                {% endif %}        
+                {% for item in io.get_safe_terms_object() %}
+                    <input type="hidden" name="{{item}}" value='{{io.get_safe_terms_object()[item]}}' />
+                {% endfor %}
+                <input type="hidden" name="q" value="{{io.get_q()}}" />
+                Add to results view:<br /> 
+                {% for item in io.get_keys() %}
+                {% if item['key'] in io.get_showkeys(format="list") %}
+                    <a class="label notice showkeys" href="">{{item['key']}}</a>
+                {% else %}
+                    <a class="label showkeys" href="">{{item['key']}}</a>
+                {% endif %}
+                {% endfor %}
+            <input type="hidden" class="small" id="showkeys" name="showkeys" value="{{io.get_showkeys()}}" />
+            </form>    
+        </div>
+
+        {% if io.config.facet_topbar %}
+            <div id="facet_topbar" class="clearfix">
+            {% include "search/facet-topbar.html" %}
+            </div>
+        {% endif %}
+        
+    </div>
 </div>
 
-{% if io.implicit_key %}
+{% if io.implicit_key and io.config.facet_sidebar %}
     {% if io.implicit_key == "collection" %}
         <h3>collection : <a href="/{{io.incollection['owner']}}/{{io.implicit_value}}">{{io.implicit_value}}</a></h3>    
     {% else %}
         <h3>{{io.implicit_key}} : <a href="/{{io.implicit_key}}/{{io.implicit_value}}">{{io.implicit_value}}</a></h3>
     {% endif %}
 {% endif %}
-
-    <div id="navigation">
-        {% include "search/facet.html" %}
-
-        {% if not io.viewfacet %}
-            {% include "search/display.html" %}
-        {% endif %}
-    </div>
     
     <div id="panel">
 
-    {% if io.numFound() != 0 and not io.viewfacet %}
+    {% if io.numFound() != 0 %}
       {% include "search/paging.html" %}
     {% endif %}
 
@@ -54,18 +126,22 @@
     {% else %}
         
         <!-- the result set itself -->
-        {% if io.viewfacet %}
-            {% include "search/viewfacet.html" %}
-        {% else %}
-            {% include "search/list-view.html" %}
-        {% endif %}
+        {% include "search/list-view.html" %}
     
     {% endif %}
 
     </div>
 
+    {% if io.config.facet_sidebar %}
+        <div id="navigation">
+        {% include "search/facet-sidebar.html" %}
+        </div>
+    {% endif %}
+
     <div class="resultstrap">
-    {{io.get_meta()|safe}}
+    {% if io.numFound() != 0 %}
+        {{io.get_meta()|safe}}
+    {% endif %}
     </div>
 {% endblock %}
 

@@ -11,14 +11,21 @@
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     "ELASTIC_SEARCH_DB" : "bibserver",
-    "default_indices": [],
 
-    
+    # bibserver functionality settings
     # allow_upload - set to "NO" if you dont want frontend upload to your bibserver install
+    # allow_edit - Yes / No for edit of individual records in bibsoup
+    # allow upload user to override display config
     "allow_upload" : "YES",
+    "allow_edit" : "NO",
+    "allow_display_config" : "YES",
+
+    # set some display template configs
+    "facet_topbar":true,
+    "facet_sidebar":false,
 
     # default results and paging options
-    "default_results_per_page" : 10,
+    "results_per_page" : 10,
     "results_per_page_options" : [10, 20, 50, 100],    
     
     # The fields for which faceting should be made available on, and their default settings
@@ -39,7 +46,7 @@
         {
             "key":"author",
             "order":"term",
-            "size":500
+            "size":1000
         },
         {
             "key":"year",
@@ -107,7 +114,6 @@
     # functions to perform on particular result fields on display - these are defined in iomanager
     "display_value_functions" : {
         "author":{"authorify":{}},
-        "doi" : {"doiify" : {"resolver" : "http://dx.doi.org/"}},
         "collection": {"collectionify":{}},
         "links": {"bibsoup_links":{}}
     },
@@ -149,7 +155,7 @@
         }
     },
 
-    # identify how non-analyzed fields for faceting are differenetiated in the mappings
+    # identifier for how non-analyzed fields for faceting are differenetiated in the mappings
     "facet_field" : ".exact"
         
 }

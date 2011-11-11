@@ -128,7 +128,7 @@ class DomainObject(UserDict.IterableUserDict):
         return resp.read()
         
     @classmethod
-    def query(cls, q='', terms=None, facet_fields=None, flt=False, **kwargs):
+    def query(cls, q='', terms=None, facet_fields=None, flt=False, default_operator='AND', **kwargs):
         '''Perform a query on backend.
 
         :param q: maps to query_string parameter.
@@ -143,7 +143,7 @@ class DomainObject(UserDict.IterableUserDict):
             if flt:
                 ourq = pyes.query.FuzzyLikeThisQuery(like_text=q,**kwargs)
             else:
-                ourq = pyes.query.StringQuery(q, default_operator='AND')
+                ourq = pyes.query.StringQuery(q, default_operator=default_operator)
         if terms:
             for term in terms:
                 for val in terms[term]:
@@ -184,8 +184,7 @@ class Record(DomainObject):
 
 class Collection(DomainObject):
     __type__ = 'collection'
-
-
+    
 class Account(DomainObject, UserMixin):
     __type__ = 'account'
 

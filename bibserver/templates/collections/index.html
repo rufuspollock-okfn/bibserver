@@ -2,6 +2,12 @@
 
 {% block content %}
 
+<style type="text/css">
+#panel{
+    width:100%;
+}
+</style>
+
 <div id="bibserver_search">
   <div class="search_box">
       <form method="get" action="">
@@ -16,10 +22,10 @@
               <input type="hidden" name="sort" value="{{io.sorted_by()}}" />
               <input type="hidden" name="order" value="{{io.sort_order()}}" />
           {% endif %}
-          <input type="submit" name="search" value="Search" />
+          <input class="btn" type="submit" name="search" value="Search" />
       </form>
       <form method="get" action="">
-            <input type="submit" name="submit" value="clear" />
+            <input class="btn" type="submit" name="submit" value="clear" />
       </form>
 
   </div>

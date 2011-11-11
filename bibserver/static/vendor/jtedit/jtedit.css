@@ -1,0 +1,137 @@
+#jtedit{
+    padding:5px;
+    margin:5px;
+    border:none;
+}
+#jtedit_help{
+    background:#ffeeee;
+    border:2px solid #ccc;
+    -webkit-border-radius:5px;-moz-border-radius:5px;border-radius:5px;
+    margin:0;
+    padding:5px;
+    float:left;
+    width:400px;
+}
+#jtedit_json{
+    float:left;
+    width:300px;
+    height:600px;
+    border:none;
+    margin:5px;
+}
+#jtedit_menu{
+    margin:5px;
+    background:#ffeeee;
+    position:absolute;
+    padding:0;
+    border:1px solid #ccc;
+}
+.jtedit_buttons{
+    padding:5px;
+}
+.jtedit_nomenu{
+    display:block;
+    width:100%;
+    background-color:#ccc;
+    margin:0;
+    padding:0;
+    text-align:right;
+}
+.jtedit_nomenu a{
+    color:black;
+    margin:0 0 5px 0;
+}
+.jtedit_nomenu a:hover{
+    color:red;
+}
+.text_empty{
+    outline:1px dotted red;
+}
+.jtedit_key{
+    font-weight:bold;
+    color:#666;
+    float:left;
+}
+.jtedit_field{
+    /*color:green;*/
+}
+.jtedit_noedit{
+    margin:0 20px 0 5px;
+    color:#ccc;
+}
+.jtedit_focus{
+    background:#ffeeee;
+}
+#jtedit table input{
+    border:none;
+    -webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none;
+    background:none;
+    width:10px;
+    cursor:pointer;
+}
+#jtedit table input[disabled='disabled']{
+    color:#ccc;
+}
+#jtedit table textarea{
+    border:none;
+    -webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none;
+    background:none;
+    margin:3px 0 0 0;
+    padding:0 0 4px 0;
+    height:10px;
+    cursor:pointer;
+}
+#jtedit table textarea[disabled='disabled']{
+    color:#ccc;
+}
+#jtedit table{
+    width:auto;
+    margin:5px;
+    padding:0 0 0 2px;
+    border-collapse:separate;
+    float:left;
+    -webkit-border-radius:5px;-moz-border-radius:5px;border-radius:5px;
+    border:none;
+    border-left:1px dotted #666;
+}
+#jtedit .jtedit_listtable{
+    clear:none;
+    margin:0 0 5px 0;
+    border:none;
+    border-left:1px solid #666666;
+}
+#jtedit table tr{
+    margin:0;
+    padding:0;
+}
+#jtedit table tr td{
+    margin:0;
+    padding:0;
+    vertical-align:top;
+}
+#jtedit table th+th,table td+td{border:none;}
+#jtedit table tr+tr td{border:none;}
+#jtedit table table{
+    /*clear:both;
+    margin:0 0 0 40px;*/
+}
+.clearfix:after {
+	content: ".";
+	display: block;
+	clear: both;
+	visibility: hidden;
+	line-height: 0;
+	height: 0;
+}
+ 
+.clearfix {
+	display: inline-block;
+}
+ 
+html[xmlns] .clearfix {
+	display: block;
+}
+ 
+* html .clearfix {
+	height: 1%;
+}

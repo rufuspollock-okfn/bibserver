@@ -6,38 +6,32 @@ import bibserver.config
 import re
 
 class IOManager(object):
-    def __init__(self, results, args={}, facet_fields=[], showkeys='', incollection=False, implicit_key="", implicit_value="", viewfacet=False, path=""):
+    def __init__(self, results, args={}, showkeys='', incollection=False, implicit_key="", implicit_value="", path="", showopts=""):
         self.results = results
         self.args = args
+        self.showopts = showopts
         self.showkeys = showkeys
         self.incollection = incollection
         self.implicit_key = implicit_key
         self.implicit_value = implicit_value
         self.path = path
-        self.facet_fields = facet_fields
+        self.facet_fields = args.get('facet_fields','')
         self.config = bibserver.config.Config()
         self.result_display = self.config.result_display
+        self.facet_fields = self.config.facet_fields
 
         '''check for specific settings related to this collection, if in a collection'''
         if self.incollection:
             if 'display_settings' in self.incollection:
                 if 'result_display' in self.incollection['display_settings']:
                     self.result_display = self.incollection['display_settings']['result_display']
+                if 'facet_fields' in self.incollection['display_settings']:
+                    self.facet_fields = self.incollection['display_settings']['facet_fields']
 
         self.facet_values = {}
         if 'facets' in self.results:
             for facet,data in self.results['facets'].items():
                 self.facet_values[facet.replace(self.config.facet_field,'')] = data["terms"]
-
-        '''for request to view a facet output directly, get any additional data about the entity'''
-        self.viewfacet = viewfacet
-        if viewfacet:
-            self.facetinfo = {}
-            for item in self.facet_values[self.viewfacet]:
-                # do a search for the item['term']
-                # set the discovered info as "term":{info}
-                # for use in the viewfacet template
-                pass
         
 
     def get_q(self):
@@ -93,11 +87,12 @@ class IOManager(object):
     def in_args(self, facet, value):
         return self.args['terms'].has_key(facet + self.config.facet_field) and value in self.args['terms'][facet + self.config.facet_field]
             
-    def get_result_display(self,counter):
+    def get_result_display(self,counter,display=None):
         '''use the result_display object as a template for search results'''
-        display = self.result_display
-
         output = ""
+
+        if not display:
+            display = self.result_display            
         if not display:
             return output
 
@@ -128,19 +123,27 @@ class IOManager(object):
         return output
         
     '''get all currently available keys in ES, and see if they are searchable'''
-    def get_keys(self,rectype='Record',collection=None):
-        keys = []
-        seenkey = []
+    def get_keys(self):
+        self.seenkey = []
+        self.keys = []
         for record in self.set():
             for key in record.keys():
-                if key not in seenkey:
+                if key not in self.seenkey:
                     if isinstance(record[key],basestring):
-                        keys.append({"key":key,"sortable":True})
+                        self.keys.append({"key":key,"sortable":True})
                     else:
-                        keys.append({"key":key,"sortable":False})
-                    seenkey.append(key)
-        keys.sort(key=lambda x: x['key'])
-        return keys
+                        self.keys.append({"key":key,"sortable":False})
+                        if isinstance(record[key],dict):
+                            for thing in record[key].keys():
+                                if key+'.'+thing not in self.seenkey:
+                                    if isinstance(record[key][thing],basestring):
+                                        self.keys.append({"key":key+'.'+thing,"sortable":True})
+                                    else:
+                                        self.keys.append({"key":key+'.'+thing,"sortable":False})
+                                    self.seenkey.append(key+'.'+thing)
+                    self.seenkey.append(key)
+        self.keys.sort(key=lambda x: x['key'])
+        return self.keys
     
     '''get keys to show on results'''
     def get_showkeys(self,format="string"):
@@ -154,7 +157,7 @@ class IOManager(object):
             return [i for i in self.showkeys.split(',')]
 
     def get_facet_fields(self):
-        return [i['key'] for i in self.config.facet_fields]
+        return [i['key'] for i in self.facet_fields]
 
     def get_rpp_options(self):
         return self.config.results_per_page_options
@@ -213,7 +216,7 @@ class IOManager(object):
             meta += self.path + '.json?size=' + str(self.incollection['records'])
             meta += '">Download this collection</a><br />'
             meta += 'This collection was created by <a href="/account/' + self.incollection['owner'] + '">' + self.incollection['owner'] + '</a><br />'
-            if "source" in self.incollection:
+            if "source" in self.incollection and self.incollection['source']:
                 meta += 'The source of this collection is <a href="'
                 meta += self.incollection["source"] + '">' + self.incollection["source"] + '</a>.<br /> '
             if "modified" in self.incollection:

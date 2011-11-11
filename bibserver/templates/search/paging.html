@@ -1,6 +1,7 @@
 
 <div class="paging">
 
+    <!-- previous page button -->
     {% if io.start()|int  >= io.page_size()|int %}
     <form method="get" action="">
           {% for item in io.get_safe_terms_object() %}
@@ -9,21 +10,28 @@
           <input type="hidden" name="q" value="{{io.get_q()}}" />
     <input type="hidden" name="from" value="{{io.start() - io.page_size()}}" />
     <input type="hidden" name="size" value="{{io.page_size()}}" />
+          {% if io['showopts'] %}
+          <input type="hidden" name="showopts" value="{{io['showopts']}}" />
+          {% endif %}
     {% if io.sorted_by() != "" %}
         <input type="hidden" name="sort" value="{{io.sorted_by()}}{{io.config.facet_field}}" />
         <input type="hidden" name="order" value="{{io.sort_order()}}" />
     {% endif %}
     <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
-    <input type="submit" class="paging_submit_left" name="submit" value="previous" />
+    <input type="submit" class="paging_submit_left" name="submit" value="&laquo; prev" />
     </form>
     {% endif %}
 
-    <form method="get" action="">
+    <!-- paging -->
+    <form id="options" method="get" action="">
           {% for item in io.get_safe_terms_object() %}
           <input type="hidden" name="{{item}}" value='{{io.get_safe_terms_object()[item]}}' />
           {% endfor %}
+          {% if io['showopts'] %}
+          <input type="hidden" name="showopts" value="{{io['showopts']}}" />
+          {% endif %}
           <input type="hidden" name="q" value="{{io.get_q()}}" />
-        <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
+            <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
     <select class="small" name="from" id="page_select">
 
 {% for i in range(0, io.paging_range() ) %}
@@ -43,8 +51,10 @@
     
     </select>
 
-    <span class="io_total">of {{io.numFound()}} results. </span><span>Show </span>
-
+    <span class="io_total">of {{io.numFound()}}.</span>
+            
+    <!-- page size -->
+    Show 
     <select class="small" name="size" id="rpp_select">
     {% for rpp in io.get_rpp_options() %}
     {%   if rpp == io.page_size()|int %}
@@ -55,7 +65,8 @@
     {% endfor %}
     </select>
 
-     Sort
+    <!-- sort by -->
+    Sort by
     <select class="small" name="sort" id="sort_select">
         <option>...</option>
     {% for sort in io.get_keys() %}
@@ -69,23 +80,27 @@
     {% endfor %}
     </select>
 
-     desc: 
-
+    <!-- sort order -->
     {% if io.sort_order() == "desc" %}
-    <input id="order_select" type="checkbox" name="order" value="desc" checked />
+        descending: <input id="order_select" type="checkbox" name="order" value="desc" checked />
     {% else %}
-    <input id="order_select" type="checkbox" name="order" value="desc" />
+        descending: <input id="order_select" type="checkbox" name="order" value="desc" />
     {% endif %}
     
-    <input type="submit" name="submit" value="update" id="paging_trigger" />
+    
+    <input type="submit" name="submit" value="submit" id="paging_trigger" />
     </form>
 
+    <!-- next page button -->
     {% if ( io.start()|int + io.page_size()|int ) < io.numFound() %}
     <form method="get" action="">
           {% for item in io.get_safe_terms_object() %}
           <input type="hidden" name="{{item}}" value='{{io.get_safe_terms_object()[item]}}' />
           {% endfor %}
           <input type="hidden" name="q" value="{{io.get_q()}}" />
+          {% if io['showopts'] %}
+          <input type="hidden" name="showopts" value="{{io['showopts']}}" />
+          {% endif %}
     <input type="hidden" name="from" value="{{io.start()|int + io.page_size()|int}}" />
     <input type="hidden" name="size" value="{{io.page_size()}}" />
     {% if io.sorted_by() != "" %}
@@ -93,9 +108,10 @@
         <input type="hidden" name="order" value="{{io.sort_order()}}" />
     {% endif %}
     <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
-    <input type="submit" class="paging_submit_right" name="submit" value="next" />
+    <input type="submit" class="paging_submit_right" name="submit" value="next &raquo;" />
     </form>
     {% endif %}
+
 
 </div>
 
