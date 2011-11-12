@@ -42,8 +42,8 @@ Install
 2. [optional] Create a virtualenv and enable it::
 
     # in bash
-    # virtualenv {myenv}
-    # . {myenv}/bin/activate
+    virtualenv {myenv}
+    . {myenv}/bin/activate
 
 3. Get the source::
 
@@ -58,9 +58,10 @@ Install
     # cd {myenv}/src/bibserver
     cd bibserver
     # do a development install from current directory
-    # pip install -e .
-    # alternatively if you do not want a development install you could just do
-    python setup.py install
+    pip install -e .
+    # alternatively if you do not want a development install
+    # note there is an error with this at the moment - do dev install
+    # python setup.py install
 
 4. Run the webserver::
 
@@ -85,11 +86,11 @@ Install commands on a clean installation of Ubuntu_11.10_::
 
     git clone https://github.com/okfn/bibserver
     cd bibserver
-    sudo python setup.py install
+    pip install -e .
     
     python bibserver/web.py
     
-You will now find your bibserver at localhost:5000.
+You will now find your bibserver running at localhost:5000.
 
 Note that this gets the service up and running, but you will probably want to 
 ensure it comes up whenever the server starts, and that there is a web server 
