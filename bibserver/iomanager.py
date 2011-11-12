@@ -205,7 +205,17 @@ class IOManager(object):
             return func(res, args)
         else:
             if isinstance(res,list):
-                return ','.join(res)
+                if isinstance(res[0],dict):
+                    out = ""
+                    for item in res:
+                        if item.get('id','').startswith('http'):
+                            theid = '<a href="' + item['id'] + '">' + item['id'] + '</a>'
+                        else:
+                            theid = item.get('id','')
+                        out += item.get('type','') + ": " + theid + "<br />"
+                    return out
+                else:
+                    return ','.join(res)
             else:
                 return res
         return res

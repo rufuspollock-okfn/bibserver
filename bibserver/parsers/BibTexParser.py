@@ -43,6 +43,8 @@ class BibTexParser(object):
             'subjects':'keywords',
             'subject':'keywords'
         }
+        # list of identifier types to find in bibtex files
+        self.identifier_types = ['doi','issn','isbn']
 
     def parse(self, fileobj):
         '''given a fileobject, parse it for bibtex records,
@@ -177,17 +179,26 @@ class BibTexParser(object):
         if 'doi' in record:
             if 'links' not in record:
                 record['links'] = []
-            nodoi = False
+            nodoi = True
             for item in record['links']:
-                if 'doi' not in item:
-                    nodoi = True
+                if 'doi' in item:
+                    nodoi = False
             if nodoi:
                 link = record['doi']
-                if link.startswith("10."):
+                if link.startswith('10'):
                     link = 'http://dx.doi.org/' + link
-                if link.startswith("doi:"):
-                    link = 'http://dx.doi.org/' + link[4:]
-                record["links"].append( {"url": link,"anchor":"doi"} )
+                record['links'].append( {"url": link, "anchor":"doi"} )
+        for ident in self.identifier_types:
+            if ident in record:
+                if 'identifiers' not in record:
+                    record['identifiers'] = []
+                noident = True
+                for item in record['identifiers']:
+                    if ident in item:
+                        noident = False
+                if noident:
+                    record['identifiers'].append({"id":record[ident], "type":ident})
+                    del record[ident]
         
         return record
 
