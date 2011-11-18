@@ -97,23 +97,6 @@ jQuery(document).ready(function() {
     }
     jQuery('#show_search_options').bind('click',show_search_options);
 
-    // trigger showkeys
-    var submit_showkey = function(event) {
-        event.preventDefault();
-        if (jQuery(this).hasClass('notice')) {
-            if (jQuery('#showkeys').val() != "") {
-                jQuery('#showkeys').val(jQuery('#showkeys').val().replace(','+jQuery(this).html(),'').replace(jQuery(this).html()+',','').replace(jQuery(this).html(),''));
-            }
-        } else {
-            if (jQuery('#showkeys').val() != "") {
-                jQuery('#showkeys').val(jQuery('#showkeys').val() + ',' + jQuery(this).html());
-            } else {
-                jQuery('#showkeys').val(jQuery(this).html());
-            }
-        }
-        jQuery('#showkeys_form').trigger('submit');
-    }
-    jQuery('.showkeys').bind('click',submit_showkey);
 
     var show_view_options = function(event) {
         event.preventDefault();

@@ -6,7 +6,16 @@ class JSONParser(object):
         pass
         
     def parse(self, fileobj):
-        data = json.load(fileobj)
-        return data, {}
+        incoming = json.load(fileobj)
+
+        # check if the incoming is bibjson
+        if 'records' in incoming:
+            data = incoming['records']
+            metadata = incoming.get('metadata',{})
+        else:
+            data = incoming
+            metadata = {}
+    
+        return data, metadata
 
 

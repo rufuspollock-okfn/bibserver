@@ -18,6 +18,7 @@
         <input type="hidden" name="order" value="{{io.sort_order()}}" />
     {% endif %}
     <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
+    <input type="hidden" name="showfacets" value="{{io.get_showfacets()}}" />
     <input type="submit" class="paging_submit_left" name="submit" value="&laquo; prev" />
     </form>
     {% endif %}
@@ -31,7 +32,8 @@
           <input type="hidden" name="showopts" value="{{io['showopts']}}" />
           {% endif %}
           <input type="hidden" name="q" value="{{io.get_q()}}" />
-            <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
+        <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
+        <input type="hidden" name="showfacets" value="{{io.get_showfacets()}}" />
     <select class="small" name="from" id="page_select">
 
 {% for i in range(0, io.paging_range() ) %}
@@ -108,6 +110,7 @@
         <input type="hidden" name="order" value="{{io.sort_order()}}" />
     {% endif %}
     <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
+    <input type="hidden" name="showfacets" value="{{io.get_showfacets()}}" />
     <input type="submit" class="paging_submit_right" name="submit" value="next &raquo;" />
     </form>
     {% endif %}

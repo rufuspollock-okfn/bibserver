@@ -6,16 +6,17 @@ import bibserver.config
 import re
 
 class IOManager(object):
-    def __init__(self, results, args={}, showkeys='', incollection=False, implicit_key="", implicit_value="", path="", showopts=""):
+    def __init__(self, results, args={}, showkeys='', showfacets="", incollection=False, implicit_key="", implicit_value="", path="", showopts=""):
         self.results = results
         self.args = args
         self.showopts = showopts
         self.showkeys = showkeys
+        self.showfacets = showfacets
         self.incollection = incollection
         self.implicit_key = implicit_key
         self.implicit_value = implicit_value
         self.path = path
-        self.facet_fields = args.get('facet_fields','')
+        #self.facet_fields = args.get('facet_fields','')
         self.config = bibserver.config.Config()
         self.result_display = self.config.result_display
         self.facet_fields = self.config.facet_fields
@@ -60,6 +61,8 @@ class IOManager(object):
                     param += term.replace(self.config.facet_field,'') + '=' + val + '&'
         if self.showkeys:
             param += 'showkeys=' + self.showkeys + '&'
+        if self.showfacets:
+            param += 'showfacets=' + self.showfacets + '&'
         return param
 
     def get_add_url(self, field, value):
@@ -156,8 +159,20 @@ class IOManager(object):
                 return []
             return [i for i in self.showkeys.split(',')]
 
-    def get_facet_fields(self):
-        return [i['key'] for i in self.facet_fields]
+    def get_showfacets(self,format="string"):
+        if not self.showfacets:
+            self.showfacets = ""
+            for item in self.facet_fields:
+                self.showfacets += item['key'] + ','
+            self.showfacets.strip(',')
+        if format == "string":
+            if not self.showfacets:
+                return "";
+            return self.showfacets
+        else:
+            if not self.showfacets:
+                return []
+            return [i for i in self.showfacets.split(',')]
 
     def get_rpp_options(self):
         return self.config.results_per_page_options
@@ -268,7 +283,7 @@ class IOManager(object):
 # to perform various functions upon a field for display
 
 def authorify(vals, dict):
-    return ' and '.join(['<a class="author_name" alt="search for ' + i + '" title="search for ' + i + '" ' + 'href="/search?q=' + i + '">' + i + '</a>' for i in vals])
+    return ' and '.join(['<a class="author_name" alt="search for ' + i + '" title="search for ' + i + '" ' + 'href="?q=' + i + '">' + i + '</a>' for i in vals])
 
 def doiify(value, dict):
     # dois may start with:

@@ -2,8 +2,6 @@
 
 from parsers.BibTexParser import BibTexParser
 from parsers.JSONParser import JSONParser
-from parsers.BibJSONParser import BibJSONParser
-from parsers.JSONLDParser import JSONLDParser
 from parsers.CSVParser import CSVParser
 
 class Parser(object):
@@ -20,12 +18,6 @@ class Parser(object):
         elif format == "json":
             parser = JSONParser()
             data, metadata = parser.parse(fileobj)        
-        elif format == "bibjson":
-            parser = BibJSONParser()
-            data, metadata = parser.parse(fileobj)
-        elif format == "json-ld":
-            parser = JSONLDParser()
-            data, metadata = parser.parse(fileobj)
         elif format == "csv" or format == "google":
             parser = CSVParser()
             data, metadata = parser.parse(fileobj)

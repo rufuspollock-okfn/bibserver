@@ -81,8 +81,8 @@ def content(path):
 def collections(path=''):
     path = path.strip('/')
     JSON = False
-    if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
-        path = path.replace(".bibjson","").replace(".json","")
+    if path.endswith(".json") or request.values.get('format',"") == "json":
+        path = path.replace(".json","")
         JSON = True
 
     # do request for specific collection record
@@ -171,8 +171,8 @@ def record(path,cid=None):
         
     # otherwise do the GET of the record
     JSON = False
-    if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
-        path = path.replace(".bibjson","").replace(".json","")
+    if path.endswith(".json") or request.values.get('format',"") == "json":
+        path = path.replace(".json","")
         JSON = True
 
     if cid:
@@ -256,17 +256,22 @@ if config["allow_upload"] == "YES":
 @app.route('/search')
 @app.route('/<path:path>')
 def search(path=''):
-    io = dosearch(path.replace(".bibjson","").replace(".json",""),'Record')
-    if path.endswith(".json") or path.endswith(".bibjson") or request.values.get('format',"") == "json" or request.values.get('format',"") == "bibjson":
+    io = dosearch(path.replace(".json",""),'Record')
+    if path.endswith(".json") or request.values.get('format',"") == "json":
         if io.incollection:
             return outputJSON(results=io.results, coll=io.incollection['id'])
         else:
             return outputJSON(results=io.results, coll=io.incollection['id'])
     else:
-        return render_template('search/index.html', io=io)
+        edit = False
+        if io.incollection:
+            if auth.collection.update(current_user, io.incollection):
+                edit = True
+        return render_template('search/index.html', io=io, edit=edit, coll=io.incollection)
 
 def dosearch(path,searchtype='Record'):
     showkeys = request.values.get('showkeys',None)
+    showfacets = request.values.get('showfacets',None)
     args = {"terms":{}}
     if 'from' in request.values:
         args['start'] = request.values.get('from')
@@ -309,9 +314,17 @@ def dosearch(path,searchtype='Record'):
         facets = incollection['display_settings']['facet_fields']
     except:
         facets = config["facet_fields"]
-    for item in facets:
+    for key,item in enumerate(facets):
+        if showfacets:
+            if item['key'] not in showfacets.split(','):
+                del facets[key]
         new = { "key": item['key']+config["facet_field"], "size": item.get('size',100), "order": item.get('order','count') }
         args['facet_fields'].append(new)
+    if showfacets:
+        for item in showfacets.split(','):
+            if item and item+config["facet_field"] not in [i['key'] for i in args['facet_fields']]:
+                args['facet_fields'].append({ "key": item+config["facet_field"], "size": "100", "order": "count" })
+                facets.append({ "key": item, "size": "100", "order": "count" })
     for param in request.values:
         if param in [i['key'].replace(config['facet_field'],'') for i in args['facet_fields']]:
             vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
@@ -324,7 +337,7 @@ def dosearch(path,searchtype='Record'):
         results = bibserver.dao.Record.query(**args)
     else:
         results = bibserver.dao.Collection.query(**args)
-    return bibserver.iomanager.IOManager(results, args, showkeys, incollection, implicit_key, implicit_value, path, request.values.get('showopts',''))
+    return bibserver.iomanager.IOManager(results, args, showkeys, showfacets, incollection, implicit_key, implicit_value, path, request.values.get('showopts',''))
 
 def outputJSON(results, coll=None, record=False, collection=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''

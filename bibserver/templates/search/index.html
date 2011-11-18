@@ -70,31 +70,6 @@
             </select>
             </p>
 
-            <!-- results display keys -->    
-            <form id="showkeys_form" method="get" action="">
-                {% if io['showopts'] %}
-                <input type="hidden" name="showopts" value="{{io['showopts']}}" />
-                {% endif %}
-                <input type="hidden" name="from" value="{{io.start()}}" />
-                <input type="hidden" name="size" value="{{io.page_size()}}" />
-                {% if io.sorted_by() != "" %}
-                    <input type="hidden" name="sort" value="{{io.sorted_by()}}{{io.config.facet_field}}" />
-                    <input type="hidden" name="order" value="{{io.sort_order()}}" />
-                {% endif %}        
-                {% for item in io.get_safe_terms_object() %}
-                    <input type="hidden" name="{{item}}" value='{{io.get_safe_terms_object()[item]}}' />
-                {% endfor %}
-                <input type="hidden" name="q" value="{{io.get_q()}}" />
-                Add to results view:<br /> 
-                {% for item in io.get_keys() %}
-                {% if item['key'] in io.get_showkeys(format="list") %}
-                    <a class="label notice showkeys" href="">{{item['key']}}</a>
-                {% else %}
-                    <a class="label showkeys" href="">{{item['key']}}</a>
-                {% endif %}
-                {% endfor %}
-            <input type="hidden" class="small" id="showkeys" name="showkeys" value="{{io.get_showkeys()}}" />
-            </form>    
         </div>
 
         {% if io.config.facet_topbar %}
@@ -135,6 +110,7 @@
     {% if io.config.facet_sidebar %}
         <div id="navigation">
         {% include "search/facet-sidebar.html" %}
+        {% include "search/display.html" %}
         </div>
     {% endif %}
 

@@ -32,11 +32,21 @@ class Importer(object):
         '''
         parser = Parser()
         record_dicts, metadata = parser.parse(fileobj, format=format_)
+
         #collection_from_parser = None
         #if collection_from_parser:
         #    collection = collection_from_parser
         # TODO: check authz for write to this collection
-        return self.index(collection, record_dicts, metadata)
+
+        # if metadata provided from file, roll it into the collection object
+        if metadata:
+            print metadata, collection
+            metadata.update(collection)
+            collection = metadata
+            collection['id'] = collection['label']
+            print collection
+        
+        return self.index(collection, record_dicts)
 
     def upload_from_web(self, request):
         '''
@@ -90,7 +100,6 @@ class Importer(object):
 
     def findformat(self,filename):
         if filename.endswith(".json"): return "json"
-        if filename.endswith(".bibjson"): return "bibjson"
         if filename.endswith(".bibtex"): return "bibtex"
         if filename.endswith(".bib"): return "bibtex"
         if filename.endswith(".csv"): return "csv"
@@ -124,15 +133,12 @@ class Importer(object):
             self.upload(fileobj, format_, collection_dict)
         return True
     
-    def index(self, collection_dict, record_dicts, metadata):
+    def index(self, collection_dict, record_dicts):
         '''Add this collection and its records to the database index.
         :return: (collection, records) tuple of collection and associated
         record objects.
         '''
         collection = bibserver.dao.Collection(**collection_dict)
-        if metadata:
-            for key,val in metadata.iteritems():
-                collection[key] = val
         timestamp = datetime.now().isoformat()
         collection['created'] = timestamp
         assert 'label' in collection, 'Collection must have a label'

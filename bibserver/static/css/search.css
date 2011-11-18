@@ -199,6 +199,13 @@
     padding:0 3px 1px 3px;
     margin:5px 0 5px 22px;
 }
+.facet_alpha{
+    border:1px solid #ccc;
+    padding:2px;
+}
+.facet_alpha a{
+    margin:0px 2px 0px 0px;
+}
 
 .facet_selected {
     padding-left: 20px;
@@ -353,3 +360,4 @@ a.delete_link{
     margin:0 20px 5px 0;
     border-bottom:1px dotted #fff;
 }
+
