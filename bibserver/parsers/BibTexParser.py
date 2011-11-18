@@ -26,6 +26,8 @@ Returns a record dict
 class BibTexParser(object):
 
     def __init__(self):
+        # set which bibjson schema this parser parses to
+        self.schema = "v0.81"
         self.has_metadata = False
         self.persons = []
         # if bibtex file has substition strings, they are stored here, 
@@ -70,7 +72,7 @@ class BibTexParser(object):
             parsed = self.parse_record(record)
             if parsed:
                 records.append(parsed)
-        return records, {}
+        return records, {"schema":self.schema}
 
     def parse_record(self, record):
         '''given a bibtex record, tidy whitespace and other rubbish; 
