@@ -136,14 +136,17 @@ class IOManager(object):
                         self.keys.append({"key":key,"sortable":True})
                     else:
                         self.keys.append({"key":key,"sortable":False})
-                        if isinstance(record[key],dict):
-                            for thing in record[key].keys():
-                                if key+'.'+thing not in self.seenkey:
-                                    if isinstance(record[key][thing],basestring):
-                                        self.keys.append({"key":key+'.'+thing,"sortable":True})
-                                    else:
-                                        self.keys.append({"key":key+'.'+thing,"sortable":False})
-                                    self.seenkey.append(key+'.'+thing)
+                        if not isinstance(record[key],list):
+                            record[key] = [record[key]]
+                        for each in record[key]:
+                            if isinstance(each,dict):
+                                for thing in each.keys():
+                                    if key+'.'+thing not in self.seenkey:
+                                        if isinstance(each[thing],basestring):
+                                            self.keys.append({"key":key+'.'+thing,"sortable":True})
+                                        else:
+                                            self.keys.append({"key":key+'.'+thing,"sortable":False})
+                                        self.seenkey.append(key+'.'+thing)
                     self.seenkey.append(key)
         self.keys.sort(key=lambda x: x['key'])
         return self.keys
@@ -164,7 +167,7 @@ class IOManager(object):
             self.showfacets = ""
             for item in self.facet_fields:
                 self.showfacets += item['key'] + ','
-            self.showfacets.strip(',')
+            self.showfacets = self.showfacets.strip(',')
         if format == "string":
             if not self.showfacets:
                 return "";
@@ -230,7 +233,7 @@ class IOManager(object):
                         out += item.get('type','') + ": " + theid + "<br />"
                     return out
                 else:
-                    return ','.join(res)
+                    return ','.join([str(i) for i in res])
             else:
                 return res
         return res

@@ -121,7 +121,6 @@ class DomainObject(UserDict.IterableUserDict):
     def delete_by_query(cls, query):
         url = str(config['ELASTIC_SEARCH_HOST'])
         loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + query
-        import httplib 
         conn = httplib.HTTPConnection(url)
         conn.request('DELETE', loc)
         resp = conn.getresponse()

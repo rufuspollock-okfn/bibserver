@@ -40,11 +40,9 @@ class Importer(object):
 
         # if metadata provided from file, roll it into the collection object
         if metadata:
-            print metadata, collection
             metadata.update(collection)
             collection = metadata
             collection['id'] = collection['label']
-            print collection
         
         return self.index(collection, record_dicts)
 
@@ -168,10 +166,10 @@ class Importer(object):
 
         for rec in record_dicts:
             if 'collection' in rec:
-                if collection["id"] not in rec["collection"]:
-                    rec['collection'].append(collection["id"])
+                if collection["id"] != rec["collection"]:
+                    rec['collection'] = collection["id"]
             else:
-                rec['collection'] = [collection["id"]]
+                rec['collection'] = collection["id"]
             if not self.requesturl and 'SITE_URL' in config:
                 self.requesturl = str(config['SITE_URL'])
             if self.requesturl:
@@ -188,54 +186,4 @@ class Importer(object):
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
         return collection, records
 
-
-
-    # parse potential people out of a record
-    # check if they have a person record in bibsoup
-    # if not create one
-    # append person IDs to a person attribute of every record
-    def parse_people(self,record):
-        if "person" not in record:
-            record["person"] = []
-        if "author" in record:
-            record["person"].extend(self.do_people(record["author"]))
-        if "advisor" in record:
-            record["person"].extend(self.do_people(record["advisor"]))
-        if "editor" in record:
-            record["person"].extend(self.do_people(record["editor"]))
-        return record
-    
-    def do_people(self,people):
-        persons = []
-        if isinstance(people,str):
-            persons = self.do_person(people)
-        if isinstance(people,list):
-            for person in people:
-                persons.append(self.do_person(person))
-        return persons
-    
-    def do_person(self,person_string):
-        try:
-            results = bibserver.dao.Record.query(q='type.exact:"person" AND alias.exact:"' + person_string + '"')
-            if results["hits"]["total"] != 0:
-                return results["hits"]["hits"][0]["_source"]["person"]
-
-            looseresults = bibserver.dao.Record.query(q='type.exact:"person" AND "*' + person_string + '*"',flt=True,fields=["person"])
-            if looseresults["hits"]["total"] != 0:
-                tid = looseresults["hits"]["hits"][0]["_id"]
-                data = bibserver.dao.Record.get(tid)
-                if "alias" in data:
-                    if person_string not in data["alias"]:
-                        data["alias"].append(person_string)
-                bibserver.dao.Record.upsert(data)
-
-                return data["person"]
-
-            ident = person_string.replace(" ","").replace(",","").replace(".","")
-            data = {"person":ident,"type":"person","alias":[person_string]}
-            bibserver.dao.Record.upsert(data)
-            return ident
-
-        except:
-            return []
 

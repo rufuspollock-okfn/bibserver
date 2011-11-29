@@ -332,7 +332,6 @@ def dosearch(path,searchtype='Record'):
     if implicit_key:
         args['terms'][implicit_key+config["facet_field"]] = [implicit_value]
 
-
     if searchtype == 'Record':
         results = bibserver.dao.Record.query(**args)
     else:
