@@ -163,7 +163,6 @@ class Importer(object):
 
         bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + delid + '"')
 
-        collection['records'] = len(record_dicts)
         collection['modified'] = timestamp
         collection.save()
 

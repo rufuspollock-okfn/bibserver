@@ -185,6 +185,12 @@ class Record(DomainObject):
 class Collection(DomainObject):
     __type__ = 'collection'
     
+    def __len__(self):
+        conn, db = get_conn()
+        collection_query = pyes.query.StringQuery(self.id, search_fields='collection')
+        result = conn.search(collection_query.search(), db, 'record')
+        return result.get('hits', {'total':0})['total']
+    
 class Account(DomainObject, UserMixin):
     __type__ = 'account'
 
