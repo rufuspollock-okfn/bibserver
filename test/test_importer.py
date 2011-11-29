@@ -43,7 +43,6 @@ class TestImporter:
         assert len(records) == 1
         assert records[0]['collection'][0] == original_coll_id
         # still should have only one record in it
-        print coll, newcoll
         recs_for_collection = dao.Record.query(terms={
             'collection': [coll.id]
             })
