@@ -4,3 +4,5 @@ store/*
 .*.swp
 sandbox/*
 src*
+.DS_Store
+.Python
