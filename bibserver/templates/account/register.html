@@ -8,7 +8,10 @@
       {{ render_field(form.email, placeholder="hello@mywebsite.org") }}
       {{ render_field(form.password, placeholder="********") }}
       {{ render_field(form.confirm, placeholder="********") }}
-    <input type="submit" value="Signup" class="btn" />
+    <div class="actions">
+      <input type="submit" value="Signup" class="btn primary" />
+      <input type="reset" value="Cancel" class="btn" />
+    </div>
   </form>
 {% endblock %}
 
