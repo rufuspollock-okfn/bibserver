@@ -31,7 +31,7 @@ class TestImporter:
         recid = records[0]['id']
         out = bibserver.dao.Record.get(recid)
         assert out["year"] == '2008', out
-        assert out['collection'][0] == coll['id']
+        assert out['collection'] == coll['id']
 
         # now try uploading exactly the same data again
         bibtex = open('test/data/sample.bibtex')
@@ -41,7 +41,7 @@ class TestImporter:
         assert len(owner.collections) == 1
         assert newcoll.id == original_coll_id
         assert len(records) == 1
-        assert records[0]['collection'][0] == original_coll_id
+        assert records[0]['collection'] == original_coll_id
         # still should have only one record in it
         recs_for_collection = dao.Record.query(terms={
             'collection': [coll.id]

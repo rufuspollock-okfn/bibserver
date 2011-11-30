@@ -3,6 +3,7 @@ import json
 import uuid
 import UserDict
 import httplib
+import urllib
 
 import pyes
 from werkzeug import generate_password_hash, check_password_hash
@@ -95,7 +96,7 @@ class DomainObject(UserDict.IterableUserDict):
         else:
             id_ = uuid.uuid4().hex
             data['id'] = id_
-        conn.index(data, db, cls.__type__, id_)
+        conn.index(data, db, cls.__type__, urllib.quote_plus(id_))
         # TODO: ES >= 0.17 automatically re-indexes on GET so this not needed
         conn.refresh()
         # TODO: should we really do a cls.get() ?
@@ -120,7 +121,7 @@ class DomainObject(UserDict.IterableUserDict):
     @classmethod
     def delete_by_query(cls, query):
         url = str(config['ELASTIC_SEARCH_HOST'])
-        loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + query
+        loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + urllib.quote_plus(query)
         conn = httplib.HTTPConnection(url)
         conn.request('DELETE', loc)
         resp = conn.getresponse()
