@@ -35,17 +35,14 @@ class TestImporter:
 
         # now try uploading exactly the same data again
         bibtex = open('test/data/sample.bibtex')
-        original_coll_id = coll.id
         newcoll, records = i.upload(bibtex, format_, collection_in)
         # still should have only one collection
         assert len(owner.collections) == 1
-        assert newcoll.id == original_coll_id
+        assert newcoll.id == coll.id
         assert len(records) == 1
-        assert records[0]['collection'] == original_coll_id
+        assert records[0]['collection'] == coll.id
         # still should have only one record in it
-        recs_for_collection = dao.Record.query(terms={
-            'collection': [coll.id]
-            })
+        recs_for_collection = dao.Record.query(q='my_test_collection')
         assert recs_for_collection['hits']['total'] == 1, recs_for_collection
 
     def test_bulkupload(self):

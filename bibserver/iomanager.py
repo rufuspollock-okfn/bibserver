@@ -240,8 +240,9 @@ class IOManager(object):
         
     def get_meta(self):
         if self.incollection:
+            print self.incollection
             meta = '<p><a href="/'
-            meta += self.path + '.json?size=' + str(self.incollection['records'])
+            meta += self.path + '.json?size=' + str(len(self.incollection))
             meta += '">Download this collection</a><br />'
             meta += 'This collection was created by <a href="/account/' + self.incollection['owner'] + '">' + self.incollection['owner'] + '</a><br />'
             if "source" in self.incollection and self.incollection['source']:

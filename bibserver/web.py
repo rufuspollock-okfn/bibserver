@@ -267,7 +267,7 @@ def search(path=''):
         if io.incollection:
             if auth.collection.update(current_user, io.incollection):
                 edit = True
-        return render_template('search/index.html', io=io, edit=edit, coll=io.incollection)
+        return render_template('search/index.html', io=io, edit=edit)
 
 def dosearch(path,searchtype='Record'):
     showkeys = request.values.get('showkeys',None)

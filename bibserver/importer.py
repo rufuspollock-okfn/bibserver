@@ -42,7 +42,6 @@ class Importer(object):
         if metadata:
             metadata.update(collection)
             collection = metadata
-            collection['id'] = collection['label']
         
         return self.index(collection, record_dicts)
 
@@ -158,7 +157,6 @@ class Importer(object):
             if coll['id'] == collection['id']:
                 collection = coll
                 break
-
         bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + delid + '"')
 
         collection['modified'] = timestamp
