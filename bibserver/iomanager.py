@@ -6,12 +6,11 @@ import bibserver.config
 import re
 
 class IOManager(object):
-    def __init__(self, results, args={}, showkeys='', showfacets="", incollection=False, implicit_key="", implicit_value="", path="", showopts=""):
+    def __init__(self, results, args={}, showkeys='', incollection=False, implicit_key="", implicit_value="", path="", showopts=""):
         self.results = results
         self.args = args
         self.showopts = showopts
         self.showkeys = showkeys
-        self.showfacets = showfacets
         self.incollection = incollection
         self.implicit_key = implicit_key
         self.implicit_value = implicit_value
@@ -19,15 +18,20 @@ class IOManager(object):
         #self.facet_fields = args.get('facet_fields','')
         self.config = bibserver.config.Config()
         self.result_display = self.config.result_display
-        self.facet_fields = self.config.facet_fields
+        '''self.facet_fields = self.config.facet_fields
 
-        '''check for specific settings related to this collection, if in a collection'''
+        # check for specific settings related to this collection, if in a collection
         if self.incollection:
             if 'display_settings' in self.incollection:
                 if 'result_display' in self.incollection['display_settings']:
                     self.result_display = self.incollection['display_settings']['result_display']
                 if 'facet_fields' in self.incollection['display_settings']:
-                    self.facet_fields = self.incollection['display_settings']['facet_fields']
+                    self.facet_fields = self.incollection['display_settings']['facet_fields']'''
+
+        self.facet_fields = self.args.get('facet_fields',self.config.facet_fields)
+        for item in self.facet_fields:
+            if item['key'].endswith(self.config.facet_field):
+                item['key'] = item['key'].replace(self.config.facet_field, '')
 
         self.facet_values = {}
         if 'facets' in self.results:
@@ -61,8 +65,8 @@ class IOManager(object):
                     param += term.replace(self.config.facet_field,'') + '=' + val + '&'
         if self.showkeys:
             param += 'showkeys=' + self.showkeys + '&'
-        if self.showfacets:
-            param += 'showfacets=' + self.showfacets + '&'
+        if self.get_showfacets():
+            param += 'showfacets=' + self.get_showfacets(format='string') + '&'
         return param
 
     def get_add_url(self, field, value):
@@ -163,18 +167,13 @@ class IOManager(object):
             return [i for i in self.showkeys.split(',')]
 
     def get_showfacets(self,format="string"):
-        if not self.showfacets:
-            self.showfacets = ""
-            for item in self.facet_fields:
-                self.showfacets += item['key'] + ','
-            self.showfacets = self.showfacets.strip(',')
+        self.showfacets = ""
+        for item in self.args['facet_fields']:
+            self.showfacets += item['key'] + ','
+        self.showfacets = self.showfacets.strip(',')
         if format == "string":
-            if not self.showfacets:
-                return "";
             return self.showfacets
         else:
-            if not self.showfacets:
-                return []
             return [i for i in self.showfacets.split(',')]
 
     def get_rpp_options(self):
@@ -240,7 +239,6 @@ class IOManager(object):
         
     def get_meta(self):
         if self.incollection:
-            print self.incollection
             meta = '<p><a href="/'
             meta += self.path + '.json?size=' + str(len(self.incollection))
             meta += '">Download this collection</a><br />'

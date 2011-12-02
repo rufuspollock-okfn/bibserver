@@ -37,15 +37,29 @@ jQuery(document).ready(function() {
     // trigger showfacets
     var submit_showfacet = function(event) {
         event.preventDefault();
+        var facets = jQuery('#showfacets').val();
+        var facet = jQuery(this).html();
         if (jQuery(this).hasClass('notice')) {
-            if (jQuery('#showfacets').val() != "") {
-                jQuery('#showfacets').val(jQuery('#showfacets').val().replace(','+jQuery(this).html(),'').replace(jQuery(this).html()+',','').replace(jQuery(this).html(),''));
+            if (facets != "") {
+                if (facets == facet) {
+                    jQuery('#showfacets').val("");
+                } else {
+                    //if ( facets.indexOf(','+facet, facets.length - facet.length) !== -1 ) {
+                    //    jQuery('#showfacets').val(facets.replace(facet+',',''));
+                    //}
+                    alert(facets.indexOf(','+facet, facets.length - facet.length - 1));
+                    if ( facets.indexOf(','+facet, facets.length - facet.length - 1) !== -1 ) {
+                        jQuery('#showfacets').val(facets.replace(','+facet,''));
+                    } else {
+                        jQuery('#showfacets').val(facets.replace(','+facet+',',','));
+                    }
+                }
             }
         } else {
-            if (jQuery('#showfacets').val() != "") {
-                jQuery('#showfacets').val(jQuery('#showfacets').val() + ',' + jQuery(this).html());
+            if (facets != "") {
+                jQuery('#showfacets').val(facets+','+facet);
             } else {
-                jQuery('#showfacets').val(jQuery(this).html());
+                jQuery('#showfacets').val(facet);
             }
         }
         jQuery('#showfacets_form').trigger('submit');
@@ -75,7 +89,7 @@ jQuery(document).ready(function() {
         <input type="hidden" name="q" value="{{io.get_q()}}" />
         
         {% for item in io.get_keys() %}
-            {% if item['key'] in io.get_showkeys(format="list") %}
+            {% if item['key'] in io.get_showkeys() %}
                 <a class="showkeys label notice" href="">{{item['key']}}</a>
             {% else %}
                 <a class="showkeys label" href="">{{item['key']}}</a>
@@ -103,7 +117,7 @@ jQuery(document).ready(function() {
         <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
         
         {% for item in io.get_keys() %}
-            {% if item['key'] in io.get_showfacets(format="list") %}
+            {% if item['key'] in io.get_showfacets() %}
                 <a class="showfacets label notice" href="">{{item['key']}}</a>
             {% else %}
                 <a class="showfacets label" href="">{{item['key']}}</a>
@@ -114,8 +128,8 @@ jQuery(document).ready(function() {
     </form>
     </div>
 
-{% if edit %}
-    <!--<a class="btn info" href="">save current display settings as the default view for this collection</a>-->
+{% if edit and True %}
+    <a class="btn info" id="save_display" href="">save current display settings as the default view for this collection</a>
 {% endif %}
 
 </div>

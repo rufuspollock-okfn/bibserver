@@ -19,22 +19,30 @@ jQuery(document).ready(function() {
     jQuery(".facet_heading").bind('click',showfacets);
 
     // add in-page sorting to the facet selections
-    var sorts = '<div class="facet_alpha">';
-    var alphabet = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-    for (item in alphabet) {
-        sorts += '<a class="facet_restrict label" href="' + alphabet[item] + '">' + alphabet[item] + '</a>';
-        if (item == 12) {
-            sorts += '<br>';
-        }
-    }
-    sorts += '<br>';
-    for (var i = 0; i < 10; i++) {
-        sorts += '<a class="facet_restrict label" href="' + i + '">' + i + '</a>';
-    }
-    sorts += '<br>sort: <a id="asc" class="facet_sort label" href="">A &raquo;</a> <a id="desc" class="facet_sort label" href="">Z &raquo;</a> ';
-    sorts += '<a id="term" class=" facet_type label" href="">by term</a> <a id="count" class="facet_type label" href="">by count</a>';
-    sorts += '</div>';
-    jQuery('div.facet_selected').after(sorts);
+    jQuery('ul.facet_value').each(function() {
+        var sorts = '<div class="facet_alpha">';
+        var sorted = jQuery(this).children();
+        sorted.tsort();
+        var letters = [];
+        var count = 0;
+        sorted.children('a').each(function() {
+            var letter = jQuery(this).html()[0];
+            if (letters.indexOf(letter) == -1) {
+                letters.push(letter);
+                sorts += '<a class="facet_restrict label" href="' + letter + '">' + letter + '</a>';
+                count += 1;
+                if (count == 14) {
+                    sorts += '<br>';
+                    count = 0;
+                }
+            }
+        });
+        sorts += '<br>sort: <a id="asc" class="facet_sort label" href="">A &raquo;</a> <a id="desc" class="facet_sort label" href="">Z &raquo;</a> ';
+        sorts += '<a id="term" class=" facet_type label" href="">by term</a> <a id="count" class="facet_type label" href="">by count</a>';
+        //sorts += '<br>Show <input id="_size" class="span1 facet_sizer" type="text" value="" /> of ';
+        sorts += '</div>';
+        jQuery(this).before(sorts);
+    });
     jQuery('.facet_alpha').hide();
 
     // redesign facet headers if they have no further options
@@ -139,7 +147,6 @@ jQuery(document).ready(function() {
             {% endfor %}
 
             </li>
-            <!--<p>Retrieve <input id="{{facet['key']}}_size" class="span1 facet_sizer" type="text" value="{{facet['size']}}" /> of {{io.results['facets'][facet['key']+io.config.facet_field]['total']}}</p>-->
                 
         </div>
     {% endif %}

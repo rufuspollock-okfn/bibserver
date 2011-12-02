@@ -10,6 +10,8 @@ from flask import render_template, flash
 from flask.views import View, MethodView
 from flaskext.login import login_user, current_user
 
+from copy import deepcopy
+
 import bibserver.dao
 from bibserver.config import config
 import bibserver.iomanager
@@ -271,7 +273,6 @@ def search(path=''):
 
 def dosearch(path,searchtype='Record'):
     showkeys = request.values.get('showkeys',None)
-    showfacets = request.values.get('showfacets',None)
     args = {"terms":{}}
     if 'from' in request.values:
         args['start'] = request.values.get('from')
@@ -309,22 +310,24 @@ def dosearch(path,searchtype='Record'):
             implicit_key = bits[0]
             implicit_value = bits[1]
 
+    # set facet fields from params or from collections settings or from general config
     args['facet_fields'] = []
     try:
-        facets = incollection['display_settings']['facet_fields']
+        facets = deepcopy(incollection['display_settings']['facet_fields'])
     except:
-        facets = config["facet_fields"]
-    for key,item in enumerate(facets):
-        if showfacets:
-            if item['key'] not in showfacets.split(','):
-                del facets[key]
-        new = { "key": item['key']+config["facet_field"], "size": item.get('size',100), "order": item.get('order','count') }
-        args['facet_fields'].append(new)
-    if showfacets:
-        for item in showfacets.split(','):
-            if item and item+config["facet_field"] not in [i['key'] for i in args['facet_fields']]:
+        facets = deepcopy(config["facet_fields"])
+    if request.values.get('showfacets',None):
+        for item in request.values['showfacets'].split(','):
+            if item in facets:
+                args['facet_fields'].append(facets[item])
+            else:
                 args['facet_fields'].append({ "key": item+config["facet_field"], "size": "100", "order": "count" })
-                facets.append({ "key": item, "size": "100", "order": "count" })
+    else:
+        args['facet_fields'] = facets
+    for item in args['facet_fields']:
+        if not item['key'].endswith(config["facet_field"]):
+            item['key'] = item['key']+config["facet_field"]
+
     for param in request.values:
         if param in [i['key'].replace(config['facet_field'],'') for i in args['facet_fields']]:
             vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
@@ -336,7 +339,7 @@ def dosearch(path,searchtype='Record'):
         results = bibserver.dao.Record.query(**args)
     else:
         results = bibserver.dao.Collection.query(**args)
-    return bibserver.iomanager.IOManager(results, args, showkeys, showfacets, incollection, implicit_key, implicit_value, path, request.values.get('showopts',''))
+    return bibserver.iomanager.IOManager(results, args, showkeys, incollection, implicit_key, implicit_value, path, request.values.get('showopts',''))
 
 def outputJSON(results, coll=None, record=False, collection=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''
