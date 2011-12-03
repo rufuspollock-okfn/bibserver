@@ -46,7 +46,8 @@
         {
             "key":"author",
             "order":"term",
-            "size":1000
+            "size":1000,
+            "display_name":"authors"
         },
         {
             "key":"year",

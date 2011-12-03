@@ -54,13 +54,13 @@ def standard_authentication():
 @app.route('/')
 def home():
     # get list of available collections
+    colls = None
     try:
         result = bibserver.dao.Collection.query(q="*",sort={"created":{"order":"desc"}})
         if result["hits"]["total"] != 0:
-            colls = [i["_source"]  for i in result["hits"]["hits"]]
+            colls = [bibserver.dao.Collection.get(i['_source']['id']) for i in result["hits"]["hits"]]
     except:
-        colls = None
-        counts = None
+        pass
     return render_template('home/index.html', colls=colls, upload=config["allow_upload"] )
 
 @app.route('/account/<user>')
@@ -272,7 +272,7 @@ def search(path=''):
         return render_template('search/index.html', io=io, edit=edit)
 
 def dosearch(path,searchtype='Record'):
-    showkeys = request.values.get('showkeys',None)
+    # set query info
     args = {"terms":{}}
     if 'from' in request.values:
         args['start'] = request.values.get('from')
@@ -292,8 +292,9 @@ def dosearch(path,searchtype='Record'):
             if ' OR ' in request.values['q']:
                 args['default_operator'] = 'OR'
             if ' AND ' in request.values['q']:
-                args['default_operator'] = 'AND'
-        
+                args['default_operator'] = 'AND'        
+    
+    # set implicit keys / collections
     incollection = {}
     implicit_key = False
     implicit_value = False
@@ -335,11 +336,25 @@ def dosearch(path,searchtype='Record'):
     if implicit_key:
         args['terms'][implicit_key+config["facet_field"]] = [implicit_value]
 
+    # save current display settings if requested
+    if incollection:
+        if 'savedisplay' in request.values:
+            if auth.collection.update(current_user, incollection):
+                if 'display_settings' not in incollection:
+                    incollection['display_settings'] = {}
+                incollection['display_settings']['facet_fields'] = args['facet_fields']
+                for item in incollection['display_settings']['facet_fields']:
+                    if item['key'].endswith(config["facet_field"]):
+                        item['key'] = item['key'].replace(config["facet_field"],'')
+                incollection.save()
+                flash('Display settings saved.')
+
+
     if searchtype == 'Record':
         results = bibserver.dao.Record.query(**args)
     else:
         results = bibserver.dao.Collection.query(**args)
-    return bibserver.iomanager.IOManager(results, args, showkeys, incollection, implicit_key, implicit_value, path, request.values.get('showopts',''))
+    return bibserver.iomanager.IOManager(results, args, request.values.get('showkeys',None), incollection, implicit_key, implicit_value, path, request.values.get('showopts',''))
 
 def outputJSON(results, coll=None, record=False, collection=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''

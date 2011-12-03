@@ -22,7 +22,7 @@ jQuery(document).ready(function() {
     jQuery('ul.facet_value').each(function() {
         var sorts = '<div class="facet_alpha">';
         var sorted = jQuery(this).children();
-        sorted.tsort();
+        sorted = sorted.tsort();
         var letters = [];
         var count = 0;
         sorted.children('a').each(function() {

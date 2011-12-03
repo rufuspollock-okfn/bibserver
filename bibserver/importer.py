@@ -89,6 +89,7 @@ class Importer(object):
             raise ValueError('You must provide a collection label')
         collection = {
             'label': request.values['collection'],
+            'description': request.values.get('description',""),
             'source': source,
             'format': format
             }

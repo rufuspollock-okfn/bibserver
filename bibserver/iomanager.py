@@ -54,7 +54,9 @@ class IOManager(object):
                 terms[term.replace(self.config.facet_field,'')] = theterm
         return terms    
 
-    def get_path_params(self,myargs):
+    def get_path_params(self,myargs={}):
+        if not myargs:
+            myargs = self.args
         param = '/' + self.path + '?' if (self.path != '') else self.config.base_url + '?'
         if 'q' in myargs:
             param += 'q=' + myargs['q'] + '&'
@@ -139,7 +141,7 @@ class IOManager(object):
                     if isinstance(record[key],basestring):
                         self.keys.append({"key":key,"sortable":True})
                     else:
-                        self.keys.append({"key":key,"sortable":False})
+                        #self.keys.append({"key":key,"sortable":False})
                         if not isinstance(record[key],list):
                             record[key] = [record[key]]
                         for each in record[key]:
@@ -251,6 +253,13 @@ class IOManager(object):
             return meta
         else:
             return ""
+
+    def get_coll_recordcount(self,collid):
+        coll = bibserver.dao.Collection.get(collid)
+        if coll:
+            return len(coll)
+        else:
+            return ''
 
     def get_record_version(self,recordid):
         record = bibserver.dao.Record.get(recordid)

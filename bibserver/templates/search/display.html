@@ -47,7 +47,6 @@ jQuery(document).ready(function() {
                     //if ( facets.indexOf(','+facet, facets.length - facet.length) !== -1 ) {
                     //    jQuery('#showfacets').val(facets.replace(facet+',',''));
                     //}
-                    alert(facets.indexOf(','+facet, facets.length - facet.length - 1));
                     if ( facets.indexOf(','+facet, facets.length - facet.length - 1) !== -1 ) {
                         jQuery('#showfacets').val(facets.replace(','+facet,''));
                     } else {
@@ -129,7 +128,7 @@ jQuery(document).ready(function() {
     </div>
 
 {% if edit and True %}
-    <a class="btn info" id="save_display" href="">save current display settings as the default view for this collection</a>
+    <a class="btn info" id="save_display" href="{{io.get_path_params()}}&savedisplay=true">save current display settings as the default view for this collection</a>
 {% endif %}
 
 </div>

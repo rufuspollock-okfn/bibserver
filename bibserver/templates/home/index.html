@@ -4,31 +4,35 @@
       <div class="hero-unit">
         <h1>Welcome to BibSoup!</h1>
         <p>BibSoup makes it easy to find, manage and share bibliographies.</p>
-        <p><a class="btn primary large" href="/content/howto">Learn more &raquo;</a></p>
       </div>
 
       <!-- Example row of columns -->
       <div class="row">
         <div class="span-one-third column">
-          <h2>Search records</h3>
-          <p>Search shared collections and records. Find material relevant to your interests.</p>
-          <p><a href="/search" class="btn">Search now &raquo;</a></p>
-        </div>
         {% if upload == "YES" %}
-        <div class="span-one-third column">
-          <h2>Upload your collection</h2>
+          <h2>Upload a collection</h2>
           <p>Build collections for your group, for your research, for your students; share them with everyone. Collections can be created from your own files, such as BibTex, and then be managed online or re-exported.</p>
           <p><a href="/upload" class="btn">Upload now &raquo;</a></p>
-        </div>
         {% endif %}
-        <div class="span-one-third column">
-          <h2>Recent Collections</h2>
+          <h2>Search all records</h3>
+          <p>Search shared collections and records. Find material relevant to your interests.</p>
+          <p><a href="/search" class="btn">Search now &raquo;</a></p>
+          <h2>Create a new collection</h3>
+          <p>(coming soon) Search available records, select your favourites to creat a new collection - or, combine two or more collections to make a super-collection.</p>
+          <h2>Share collection admin</h3>
+          <p>(coming soon) Collaboratively create and edit a collection by giving other users admin rights.</p>
+        </div>
+        <div class="span-two-thirds column">
+          <h2>Browse recent Collections</h2>
           {% if colls %}
-          <ul id="collections">
+          <table class="zebra-striped">
           {% for i in range(colls|length) %}
-          <li><a href="/{{colls[i]['owner']}}/{{colls[i]['id']}}">{{colls[i]['id']}}</a> ({{colls[i]['records']}})</li>
+          <tr><td>
+            <h3><a href="/{{colls[i]['owner']}}/{{colls[i]['id']}}">{{colls[i]['label']}}</a> <small>({{colls[i]|length}} records)</small></h3>
+            <p>{{colls[i]['description']}}</p>
+          </td></tr>
           {% endfor %}
-          </ul>
+          </table>
           {% endif %}
           <p><a href="/collections" class="btn">See more &raquo;</a></p>
         </div>
