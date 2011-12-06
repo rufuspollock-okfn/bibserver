@@ -35,15 +35,14 @@ class BibTexParser(object):
         self.replace_dict = {}
         # pre-defined set of key changes
         self.alt_dict = {
-            'keyw':'subjects',
+            'keyw':'keywords',
+            'keyword':'keywords',
             'authors':'author',
             'editors':'editor',
             'url':'links',
-            'link':'links',
             'urls':'links',
-            'keyword':'keywords',
-            'subjects':'keywords',
-            'subject':'keywords'
+            'link':'links',
+            'subject':'subjects'
         }
         # list of identifier types to find in bibtex files
         self.identifier_types = ['doi','issn','isbn']
@@ -100,10 +99,10 @@ class BibTexParser(object):
         inval = ""
         for kv in kvs:
             if kv.startswith('@') and not inkey:
-                # it is the start of the record - set the bibtype and citekey
-                bibtype, citekey = kv.split('{',1)
+                # it is the start of the record - set the bibtype and citekey (id)
+                bibtype, cid = kv.split('{',1)
                 bibtype = self.add_key(bibtype)
-                citekey = citekey.strip('}').strip(',')
+                cid = cid.strip('}').strip(',')
             elif '=' in kv and not inkey:
                 # it is a line with a key value pair on it
                 key, val = [i.strip() for i in kv.split('=',1)]
@@ -132,7 +131,7 @@ class BibTexParser(object):
             return d
 
         d['type'] = bibtype
-        d['citekey'] = citekey
+        d['cid'] = cid
         if not self.has_metadata and 'type' in d:
             if d['type'] == 'personal bibliography' or d['type'] == 'comment':
                 self.has_metadata = True
@@ -157,15 +156,26 @@ class BibTexParser(object):
         if "author" in record:
             if record["author"]:
                 record["author"] = self.getnames([i.strip() for i in record["author"].replace('\n',' ').split(" and ")])
+                # convert author to object
+                record["author"] = [{"name":i,"id":i.replace(',','').replace(' ','').replace('.','')} for i in record["author"]]
             else:
                 del record["author"]
         if "editor" in record:
             if record["editor"]:
                 record["editor"] = self.getnames([i.strip() for i in record["editor"].replace('\n',' ').split(" and ")])
+                # convert editor to object
+                record["editor"] = [{"name":i,"id":i.replace(',','').replace(' ','').replace('.','')} for i in record["editor"]]
             else:
                 del record["editor"]
+        if "journal" in record:
+            # switch journal to object
+            if record["journal"]:
+                record["journal"] = {"name":record["journal"],"id":record["journal"].replace(',','').replace(' ','').replace('.','')}
         if "keywords" in record:
             record["keywords"] = [i.strip() for i in record["keywords"].replace('\n','').split(",")]
+        if "subjects" in record:
+            if record["subjects"]:
+                record["subjects"] = {"name":record["subjects"],"id":record["subjects"].replace(',','').replace(' ','').replace('.','')}
         if "links" in record:
             links = [i.strip().replace("  "," ") for i in record["links"].split('\n')]
             record['links'] = []

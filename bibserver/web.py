@@ -178,7 +178,7 @@ def record(path,cid=None):
         JSON = True
 
     if cid:
-        res = bibserver.dao.Record.query(q='collection:"' + cid + '" AND citekey:"' + path + '"')
+        res = bibserver.dao.Record.query(q='collection:"' + cid + '" AND cid:"' + path + '"')
     else:
         res = bibserver.dao.Record.query(q='id.exact:"' + path + '"')
 
@@ -354,7 +354,7 @@ def dosearch(path,searchtype='Record'):
         results = bibserver.dao.Record.query(**args)
     else:
         results = bibserver.dao.Collection.query(**args)
-    return bibserver.iomanager.IOManager(results, args, request.values.get('showkeys',None), incollection, implicit_key, implicit_value, path, request.values.get('showopts',''))
+    return bibserver.iomanager.IOManager(results, args, request.values.get('showkeys',None), incollection, implicit_key, implicit_value, path, request.values.get('showopts',''), facets)
 
 def outputJSON(results, coll=None, record=False, collection=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''

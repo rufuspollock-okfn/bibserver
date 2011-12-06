@@ -1,5 +1,6 @@
 <script type="text/javascript">
 jQuery(document).ready(function() {
+    
     // do the facet list toggling
     jQuery('.facet_value').hide();
     var showfacets = function(event) {
@@ -39,7 +40,7 @@ jQuery(document).ready(function() {
         });
         sorts += '<br>sort: <a id="asc" class="facet_sort label" href="">A &raquo;</a> <a id="desc" class="facet_sort label" href="">Z &raquo;</a> ';
         sorts += '<a id="term" class=" facet_type label" href="">by term</a> <a id="count" class="facet_type label" href="">by count</a>';
-        //sorts += '<br>Show <input id="_size" class="span1 facet_sizer" type="text" value="" /> of ';
+        sorts += '<br>show: <input id="_size" class="facet_sizer" type="text" value="" /> of ';
         sorts += '</div>';
         jQuery(this).before(sorts);
     });
@@ -111,7 +112,6 @@ jQuery(document).ready(function() {
     jQuery('.facet_sort').bind('click',dosort);
     jQuery('.facet_type').bind('click',dotype);
     jQuery('.facet_restrict').bind('click',facet_restrict);
-
 });
 </script>
 
@@ -121,7 +121,7 @@ jQuery(document).ready(function() {
 
             <div class="facet_heading">
                 <a href="" class="facet_heading" id="fh_{{facet['key']}}">
-                <span class="facet_pm">+&nbsp;</span>{{facet['key']}}</a>
+                <span class="facet_pm">+&nbsp;</span>{{io.get_facet_display_name(facet['key'])}}</a>
             </div>
             <div id="selected_{{facet['key']}}" class="facet_selected">
                         

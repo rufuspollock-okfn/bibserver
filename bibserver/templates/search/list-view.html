@@ -12,8 +12,8 @@
             {% endif %}
 
             <div class="list_result_options">
-            {% if io.get_str(io.set()[i], "citekey") != "" %}
-            <a href="/record/{{io.get_str(io.set()[i], "collection", True)|safe}}/{{io.get_str(io.set()[i], "citekey")|safe}}">View record</a><br />
+            {% if io.get_str(io.set()[i], "cid") != "" %}
+            <a href="/record/{{io.get_str(io.set()[i], "collection", True)|safe}}/{{io.get_str(io.set()[i], "cid")|safe}}">View record</a><br />
             {% else %}
             <a href="/record/{{io.get_str(io.set()[i], "id")|safe}}">View record</a><br />
             {% endif %}

@@ -41,10 +41,11 @@
             "order":"count"
         },
         {
-            "key":"journal"
+            "key":"journal.name",
+            "display_name":"journals"
         },
         {
-            "key":"author",
+            "key":"author.name",
             "order":"term",
             "size":1000,
             "display_name":"authors"
@@ -63,7 +64,7 @@
         [
             {
                 "pre": "",
-                "key": "author"
+                "key": "author.name"
             },
             {
                 "pre": "(",
@@ -84,7 +85,7 @@
             },
             {
                 "pre": "in <em>",
-                "key": "journal",
+                "key": "journal.name",
                 "post": "</em>,"
             },
             {
@@ -113,7 +114,7 @@
     
     # functions to perform on particular result fields on display - these are defined in iomanager
     "display_value_functions" : {
-        "author":{"authorify":{}},
+        "author.name":{"authorify":{}},
         "collection": {"collectionify":{}},
         "links": {"bibsoup_links":{}}
     },

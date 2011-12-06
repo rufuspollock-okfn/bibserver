@@ -6,7 +6,7 @@ import bibserver.config
 import re
 
 class IOManager(object):
-    def __init__(self, results, args={}, showkeys='', incollection=False, implicit_key="", implicit_value="", path="", showopts=""):
+    def __init__(self, results, args={}, showkeys='', incollection=False, implicit_key="", implicit_value="", path="", showopts="", facets=[]):
         self.results = results
         self.args = args
         self.showopts = showopts
@@ -15,6 +15,7 @@ class IOManager(object):
         self.implicit_key = implicit_key
         self.implicit_value = implicit_value
         self.path = path
+        self.facets = facets
         #self.facet_fields = args.get('facet_fields','')
         self.config = bibserver.config.Config()
         self.result_display = self.config.result_display
@@ -115,6 +116,7 @@ class IOManager(object):
                             keydisp = unichr(keydisp)
                         except:
                             pass
+                        print keydisp
                         line += pobj.get('pre','') + keydisp + pobj.get('post','') + " "
                 if 'default' in pobj:
                     line += pobj.get('default','') + " "
@@ -141,7 +143,6 @@ class IOManager(object):
                     if isinstance(record[key],basestring):
                         self.keys.append({"key":key,"sortable":True})
                     else:
-                        #self.keys.append({"key":key,"sortable":False})
                         if not isinstance(record[key],list):
                             record[key] = [record[key]]
                         for each in record[key]:
@@ -149,10 +150,17 @@ class IOManager(object):
                                 for thing in each.keys():
                                     if key+'.'+thing not in self.seenkey:
                                         if isinstance(each[thing],basestring):
-                                            self.keys.append({"key":key+'.'+thing,"sortable":True})
+                                            self.keys.append({"key":key+'.'+thing,"sortable":True,"nodisplay":True})
                                         else:
-                                            self.keys.append({"key":key+'.'+thing,"sortable":False})
+                                            self.keys.append({"key":key+'.'+thing,"sortable":False,"nodisplay":True})
                                         self.seenkey.append(key+'.'+thing)
+                                if key not in self.seenkey:
+                                    self.keys.append({"key":key,"sortable":False,"nofacet":True})
+                                    self.seenkey.append(key)
+                            else:
+                                if key not in self.seenkey:
+                                    self.keys.append({"key":key,"sortable":False})
+                                    self.seenkey.append(key)
                     self.seenkey.append(key)
         self.keys.sort(key=lambda x: x['key'])
         return self.keys
@@ -208,8 +216,25 @@ class IOManager(object):
         return [rec['_source'] for rec in self.results['hits']['hits']]
 
 
+    def get_facet_display_name(self,facetkey):
+        for item in self.facets:
+            if 'key' in item:
+                if item['key'] == facetkey:
+                    if 'display_name' in item:
+                        return item['display_name']
+        return facetkey
+
     def get_str(self, result, field, raw=False):
-        res = result.get(field,"")
+        parts = field.split('.')
+        if len(parts) == 2:
+            res = result.get(parts[0],'')
+            if isinstance(res,list):
+                res = [i[parts[1]] for i in res]
+            elif isinstance(res,dict):
+                res = res.get(parts[1],'')
+            print res
+        else:
+            res = result.get(field,"")
         if not res:
             return ""
         if self.config.display_value_functions.has_key(field) and not raw:

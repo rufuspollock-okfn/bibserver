@@ -175,8 +175,8 @@ class Importer(object):
                 if not self.requesturl.endswith('/'):
                     self.requesturl += '/'
                 rec['url'] = self.requesturl + 'record/'
-                if 'citekey' in rec:
-                    rec['url'] += collection['id'] + '/' + rec.get('citekey')
+                if 'cid' in rec:
+                    rec['url'] += collection['id'] + '/' + rec.get('cid')
                 elif 'id' in rec:
                     rec['url'] += rec['id']
                 else:
