@@ -24,8 +24,9 @@
     <a href="/collections/{{coll.id}}?display_settings=edit">Customise the display</a> of this collection</a>.<br />    
     <a href="/collections/{{coll.id}}">Edit the metadata</a> of this collection</a>.<br />
     {% if 'source' in coll and coll['source'] %}
-    <a href="/upload?source={{coll["source"]}}&collection={{coll.id}}">Refresh </a> this collection (overwrites any local changes).</li>
+    <a href="/upload?source={{coll["source"]}}&collection={{coll.id}}">Refresh </a> this collection (overwrites any local changes).<br />
     {% endif %}
+    <a href="/collections/{{coll.id}}?delete=true">Delete this collection</a>.
     </td>
     </tr>
 {% endfor %}

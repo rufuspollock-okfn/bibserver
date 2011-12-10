@@ -17,7 +17,7 @@
     # allow_edit - Yes / No for edit of individual records in bibsoup
     # allow upload user to override display config
     "allow_upload" : "YES",
-    "allow_edit" : "NO",
+    "allow_edit" : "YES",
     "allow_display_config" : "YES",
 
     # set some display template configs

@@ -11,6 +11,29 @@
     float: right;
 }
 
+#visualisations {
+    background:grey;
+    display:none;
+    margin:-20px 0 0 0;
+}
+#visopts{
+    padding:10px;
+    border-bottom:1px solid white;
+}
+#viswrap{
+    overflow:hidden;
+    margin:0;
+}
+#viswrap svg{
+    margin:0;
+}
+.node{
+    cursor:pointer;
+}
+.bar{
+    cursor:pointer;
+}
+
 .search_constraints {
     float:left;
     clear: both;

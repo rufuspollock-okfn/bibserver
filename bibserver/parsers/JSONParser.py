@@ -10,7 +10,7 @@ class JSONParser(object):
 
         if 'records' in incoming:
             # if the incoming is bibjson, get records and metadata
-            data = customisations(incoming['records'])
+            data = self.customisations(incoming['records'])
             metadata = incoming.get('metadata',{})
         else:
             data = incoming

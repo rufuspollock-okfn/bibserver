@@ -79,7 +79,12 @@
         {% endif %}
         
     </div>
+
 </div>
+
+    {% if io.numFound() != 0 %}
+      {% include "search/graph.html" %}
+    {% endif %}
 
 {% if io.implicit_key and io.config.facet_sidebar %}
     {% if io.implicit_key == "collection" %}
@@ -91,10 +96,10 @@
     
     <div id="panel">
 
+
     {% if io.numFound() != 0 %}
       {% include "search/paging.html" %}
     {% endif %}
-
     
     {% if io.numFound() == 0 %}
         No results

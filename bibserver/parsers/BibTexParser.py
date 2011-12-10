@@ -27,7 +27,7 @@ class BibTexParser(object):
 
     def __init__(self):
         # set which bibjson schema this parser parses to
-        self.schema = "v0.81"
+        self.schema = "v0.82"
         self.has_metadata = False
         self.persons = []
         # if bibtex file has substition strings, they are stored here, 
@@ -44,8 +44,7 @@ class BibTexParser(object):
             'link':'links',
             'subject':'subjects'
         }
-        # list of identifier types to find in bibtex files
-        self.identifier_types = ['doi','issn','isbn']
+        self.identifier_types = ["doi","isbn","issn"]
 
     def parse(self, fileobj):
         '''given a fileobject, parse it for bibtex records,
@@ -202,15 +201,16 @@ class BibTexParser(object):
                 record['links'].append( {"url": link, "anchor":"doi"} )
         for ident in self.identifier_types:
             if ident in record:
-                if 'identifiers' not in record:
-                    record['identifiers'] = []
-                noident = True
-                for item in record['identifiers']:
-                    if ident in item:
-                        noident = False
-                if noident:
+                if ident == 'issn':
+                    if 'journal' in record:
+                        if 'identifiers' not in record['journal']:
+                            record['journal']['identifiers'] = []
+                        record['journal']['identifiers'].append({"id":record[ident], "type":"issn"})
+                else:
+                    if 'identifiers' not in record:
+                        record['identifiers'] = []
                     record['identifiers'].append({"id":record[ident], "type":ident})
-                    del record[ident]
+                del record[ident]
         
         return record
 

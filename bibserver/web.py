@@ -91,20 +91,30 @@ def collections(path=''):
     if path:
         res = bibserver.dao.Collection.get(path)
 
+            
         # if POST, do update / create / delete
-        if request.method == "POST":
+        if request.method == "POST" or (request.method == 'GET' and 'delete' in request.values):
             if not auth.collection.create(current_user, None):
                 abort(401)
+
             if 'delete' in request.values:
-                host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
+                if not current_user['id'] == res['owner']:
+                    abort(401)
+                '''host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
                 db_name = config['ELASTIC_SEARCH_DB']
                 fullpath = '/' + db_name + '/collection/' + path
                 c =  httplib.HTTPConnection(host)
                 c.request('DELETE', fullpath)
-                c.getresponse()
-                resp = make_response( '{"id":"' + path + '","deleted":"yes"}' )
-                resp.mimetype = "application/json"
-                return resp
+                c.getresponse()'''
+                bibserver.dao.Collection.delete_by_query('id:' + path)
+                bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + path + '"')
+                if request.method == 'GET':
+                    flash('Collection ' + path + ' deleted')
+                    return redirect('/account/' + current_user['id'])
+                else:
+                    resp = make_response( '{"id":"' + path + '","deleted":true}' )
+                    resp.mimetype = "application/json"
+                    return resp
             
             # if not deleting, do the update    
             newrecord = request.json
@@ -207,10 +217,7 @@ def record(path,cid=None):
 def query():
     qs = request.query_string
     if request.method == "GET":
-        if request.values.get('delete','') and request.values.get('q',''):
-            resp = make_response( bibserver.dao.Record.delete_by_query(request.values.get('q')) )
-        else:
-            resp = make_response( bibserver.dao.Record.raw_query(qs) )
+        resp = make_response( bibserver.dao.Record.raw_query(qs) )
     if request.method == "POST":
         qs += "&source=" + json.dumps(dict(request.form).keys()[-1])
         resp = make_response( bibserver.dao.Record.raw_query(qs) )
@@ -354,7 +361,7 @@ def dosearch(path,searchtype='Record'):
         results = bibserver.dao.Record.query(**args)
     else:
         results = bibserver.dao.Collection.query(**args)
-    return bibserver.iomanager.IOManager(results, args, request.values.get('showkeys',None), incollection, implicit_key, implicit_value, path, request.values.get('showopts',''), facets)
+    return bibserver.iomanager.IOManager(results, args, request.values.get('showkeys',None), incollection, implicit_key, implicit_value, path, request.values.get('showopts',''), facets, current_user)
 
 def outputJSON(results, coll=None, record=False, collection=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''

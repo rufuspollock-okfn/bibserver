@@ -6,7 +6,7 @@ import bibserver.config
 import re
 
 class IOManager(object):
-    def __init__(self, results, args={}, showkeys='', incollection=False, implicit_key="", implicit_value="", path="", showopts="", facets=[]):
+    def __init__(self, results, args={}, showkeys='', incollection=False, implicit_key="", implicit_value="", path="", showopts="", facets=[], current_user=None):
         self.results = results
         self.args = args
         self.showopts = showopts
@@ -16,18 +16,9 @@ class IOManager(object):
         self.implicit_value = implicit_value
         self.path = path
         self.facets = facets
-        #self.facet_fields = args.get('facet_fields','')
         self.config = bibserver.config.Config()
         self.result_display = self.config.result_display
-        '''self.facet_fields = self.config.facet_fields
-
-        # check for specific settings related to this collection, if in a collection
-        if self.incollection:
-            if 'display_settings' in self.incollection:
-                if 'result_display' in self.incollection['display_settings']:
-                    self.result_display = self.incollection['display_settings']['result_display']
-                if 'facet_fields' in self.incollection['display_settings']:
-                    self.facet_fields = self.incollection['display_settings']['facet_fields']'''
+        self.current_user = current_user
 
         self.facet_fields = self.args.get('facet_fields',self.config.facet_fields)
         for item in self.facet_fields:
@@ -275,6 +266,15 @@ class IOManager(object):
                 meta += self.incollection["source"] + '">' + self.incollection["source"] + '</a>.<br /> '
             if "modified" in self.incollection:
                 meta += 'This collection was last updated on ' + self.incollection["modified"] + '. '
+            if not self.current_user.is_anonymous() and self.current_user['id'] == self.incollection['owner']:
+                if "source" in self.incollection and self.incollection['source']:
+                    meta += '<br /><a href="/upload?source=' + self.incollection["source"]
+                    meta += '&collection=' + self.incollection['id'] + '">Refresh </a> this collection (overwrites any local changes).'
+                meta += '<br /><a href="/collections/' + self.incollection['id']
+                meta += '?display_settings=edit">Customise the display</a> of this collection</a>.<br />'
+                meta += '<a href="/collections/' + self.incollection['id'] + '">Edit the metadata</a> of this collection.<br />'
+                meta += '<a href="/collections/' + self.incollection['id'] + '?delete=true">Delete this collection</a>.'
+
             return meta
         else:
             return ""
