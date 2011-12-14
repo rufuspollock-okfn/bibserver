@@ -19,7 +19,7 @@
     <h4><a href="/{{current_user['id']}}/{{coll.id}}">{{coll['label']}}</a></h4>
     </td>
     <td>
-    <p>{{coll['records']}} records.<br /> 
+    <p>{{coll|length}} records.<br /> 
     {{coll['description']}}<br />
     <a href="/collections/{{coll.id}}?display_settings=edit">Customise the display</a> of this collection</a>.<br />    
     <a href="/collections/{{coll.id}}">Edit the metadata</a> of this collection</a>.<br />
