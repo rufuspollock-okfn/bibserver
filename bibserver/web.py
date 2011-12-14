@@ -312,7 +312,7 @@ def dosearch(path,searchtype='Record'):
         bits = path.split('/')
         if len(bits) == 2:
             # if first bit is a user ID then this is a collection
-            if bibserver.dao.Account.get(bits[0]):
+            if bibserver.dao.Account.get(bits[0]) or bits[0] == 'collection':
                 incollection = bibserver.dao.Collection.get(bits[1])
                 bits[0] = 'collection'
             implicit_key = bits[0]

@@ -19,7 +19,7 @@
             {% endif %}
             {% if not io.incollection %}
                 {% if io.get_str(io.set()[i], "collection") %}
-                in: {{io.get_str(io.set()[i], "collection")|safe}}
+                in: <a href="/collection/{{io.get_str(io.set()[i], "collection")|safe}}">{{io.get_str(io.set()[i], "collection")|safe}}</a>
                 {% endif %}
             {% endif %}
             </div>

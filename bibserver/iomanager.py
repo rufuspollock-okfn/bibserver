@@ -107,7 +107,6 @@ class IOManager(object):
                             keydisp = unichr(keydisp)
                         except:
                             pass
-                        print keydisp
                         line += pobj.get('pre','') + keydisp + pobj.get('post','') + " "
                 if 'default' in pobj:
                     line += pobj.get('default','') + " "
@@ -223,7 +222,6 @@ class IOManager(object):
                 res = [i[parts[1]] for i in res]
             elif isinstance(res,dict):
                 res = res.get(parts[1],'')
-            print res
         else:
             res = result.get(field,"")
         if not res:
