@@ -270,7 +270,7 @@ def search(path=''):
         if io.incollection:
             return outputJSON(results=io.results, coll=io.incollection['id'])
         else:
-            return outputJSON(results=io.results, coll=io.incollection['id'])
+            return outputJSON(results=io.results)
     else:
         edit = False
         if io.incollection:
