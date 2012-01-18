@@ -3,6 +3,7 @@
 from parsers.BibTexParser import BibTexParser
 from parsers.JSONParser import JSONParser
 from parsers.CSVParser import CSVParser
+from parsers.RISParser import RISParser
 
 class Parser(object):
     
@@ -13,17 +14,16 @@ class Parser(object):
         :return: a python dict json-i-fiable to bibjson.
         '''
         if format == "bibtex" or format == "bib":
-            parser = BibTexParser()
-            data, metadata = parser.parse(fileobj)
+            parser = BibTexParser(fileobj)
         elif format == "json":
-            parser = JSONParser()
-            data, metadata = parser.parse(fileobj)        
+            parser = JSONParser(fileobj)
         elif format == "csv" or format == "google":
-            parser = CSVParser()
-            data, metadata = parser.parse(fileobj)
+            parser = CSVParser(fileobj)
+        elif format == "ris":
+            parser = RISParser(fileobj)
         else:
             raise Exception('Unable to convert from format: %s' % format)
-
+        data, metadata = parser.parse()
         return data, metadata
     
     
