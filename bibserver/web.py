@@ -4,6 +4,7 @@ from copy import deepcopy
 import unicodedata
 import httplib
 import json
+from datetime import datetime
 
 from flask import Flask, jsonify, json, request, redirect, abort, make_response
 from flask import render_template, flash
@@ -13,6 +14,8 @@ from flaskext.login import login_user, current_user
 from copy import deepcopy
 
 import bibserver.dao
+import bibserver.util as util
+from bibserver.parser import Parser
 from bibserver.config import config
 import bibserver.iomanager
 import bibserver.importer
@@ -261,6 +264,53 @@ class UploadView(MethodView):
 # enable upload unless not allowed in config
 if config["allow_upload"] == "YES":
     app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
+
+
+# parse a file and return it as BibJSON
+# expects ?source="http://some.web/addr.ext"&format=bibtex
+# and optional collection="nice coll name"
+@app.route('/parse')
+def parse():
+    # TODO: acceptable formats should be derived by some sort of introspection 
+    # from the parser.py based on what parsers are actually available.
+    if 'format' not in request.values or 'source' not in request.values:
+        if 'format' not in request.values and 'source' not in request.values:
+            resp = make_response( '{"error": "Parser cannot run without source URL parameter and source format parameter", "acceptable_formats": ["bibtex","json","csv"]}' )
+        elif 'format' not in request.values:
+            resp = make_response( '{"error": "Parser cannot run without source format parameter", "acceptable_formats": ["bibtex","json","csv"]}' )
+        elif 'source' not in request.values:
+            resp = make_response( '{"error": "Parser cannot run without source URL parameter"}')
+        resp.mimetype = "application/json"
+        return resp
+
+    format = request.values.get("format").strip('"')
+    source = request.values.get("source").strip('"')
+
+    try:
+        if not source.startswith('http://') and not source.startswith('https://'):
+            source = 'http://' + source
+        source = urllib2.unquote(source)
+        fileobj = urllib2.urlopen(source)
+    except:
+        resp = make_response( '{"error": "Retrieval of file from source ' + source + ' failed"}' )
+        resp.mimetype = "application/json"
+        return resp
+
+    parser = Parser()
+    newcoll = {}
+    newcoll['records'], newcoll['metadata'] = parser.parse(fileobj, format=format)
+    newcoll['metadata']['source'] = source
+    timestamp = datetime.now().isoformat()
+    newcoll['metadata']['created'] = timestamp
+    if request.values.get('collection',None):
+        collection = request.values['collection'].strip('"')
+        newcoll['metadata']['label'] = collection
+        newcoll['metadata']['id'] = util.slugify(collection)
+        for record in newcoll['records']:
+            record['collection'] = newcoll['metadata']['id']
+    resp = make_response( json.dumps(newcoll, sort_keys=True, indent=4) )
+    resp.mimetype = "application/json"
+    return resp
 
 @app.route('/search')
 @app.route('/<path:path>')
