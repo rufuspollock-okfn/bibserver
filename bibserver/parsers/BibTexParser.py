@@ -4,6 +4,8 @@ import chardet
 import unicodedata
 import re
 
+from bibserver.parsers import BaseParser
+
 '''this file can be called as a module or called directly from the command line like so:
 
 python BibTexParser.py /path/to/file.bib
@@ -23,9 +25,11 @@ python BibTexParser.py '@ARTICLE{p72,
 Returns a record dict
 '''
 
-class BibTexParser(object):
+class BibTexParser(BaseParser):
 
-    def __init__(self):
+    def __init__(self, fileobj):
+        super(BibTexParser, self).__init__(fileobj)
+        
         # set which bibjson schema this parser parses to
         self.schema = "v0.82"
         self.has_metadata = False
@@ -46,13 +50,13 @@ class BibTexParser(object):
         }
         self.identifier_types = ["doi","isbn","issn"]
 
-    def parse(self, fileobj):
+    def parse(self):
         '''given a fileobject, parse it for bibtex records,
         and pass them to the record parser'''
         records = []
         record = ""
         # read each line, bundle them up until they form an object, then send for parsing
-        for line in fileobj:
+        for line in self.fileobj:
             if '--BREAK--' in line:
                 break
             else:
@@ -2663,11 +2667,10 @@ class BibTexParser(object):
     
 # in case file is run directly
 if __name__ == "__main__":
-    import sys
-    parser = BibTexParser()
+    import sys    
     try:
-        fileobj = open(sys.argv[1])
-        print parser.parse(fileobj)
+        parser = BibTexParser(open(sys.argv[1]))
+        print parser.parse()
     except:
         print parser.parse_record(sys.argv[1])
 

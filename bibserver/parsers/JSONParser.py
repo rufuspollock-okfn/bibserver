@@ -1,12 +1,10 @@
 import json
+from bibserver.parsers import BaseParser
 
-class JSONParser(object):
+class JSONParser(BaseParser):
 
-    def __init__(self):
-        pass
-        
-    def parse(self, fileobj):
-        incoming = json.load(fileobj)
+    def parse(self):
+        incoming = json.load(self.fileobj)
 
         if 'records' in incoming:
             # if the incoming is bibjson, get records and metadata

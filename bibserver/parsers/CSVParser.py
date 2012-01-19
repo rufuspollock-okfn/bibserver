@@ -1,13 +1,11 @@
 import csv
+from bibserver.parsers import BaseParser
 
-class CSVParser(object):
+class CSVParser(BaseParser):
 
-    def __init__(self):
-        pass
-        
-    def parse(self, fileobj):
+    def parse(self):
         #dialect = csv.Sniffer().sniff(fileobj.read(1024))
-        d = csv.DictReader(fileobj)
+        d = csv.DictReader(self.fileobj)
         data = []
 
         # do any required conversions
