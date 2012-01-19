@@ -42,7 +42,7 @@ class TestImporter:
         assert len(records) == 1
         assert records[0]['collection'] == coll.id
         # still should have only one record in it
-        recs_for_collection = dao.Record.query(q='my_test_collection')
+        recs_for_collection = dao.Record.query('collection:"' + coll.id + '"')
         assert recs_for_collection['hits']['total'] == 1, recs_for_collection
 
     def test_bulkupload(self):
