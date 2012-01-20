@@ -6,3 +6,4 @@ sandbox/*
 src*
 .DS_Store
 .Python
+doc/_build/*

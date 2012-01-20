@@ -1,107 +1,40 @@
-BibServer_ is a RESTful bibliographic data server.
+BibServer_ is an open-source RESTful bibliographic data server. BibServer makes
+it easy to create and manage collections of bibliographic records such as
+reading lists, publication lists and even complete library catalogs.
+
+Main features:
+
+* Create and manage bibliographic collections simply and easily
+* Import (and export) your collection from bibtex, MARC, RIS, BibJSON, RDF or
+  other bibliogrpaphic formats in a matter of seconds
+* Browse collection via an elegant faceted interface
+* Embed the collection browser in other websites
+* Full RESTful API
+* Open-source and free to use
+* Hosted service available at http://bibsoup.net/
 
 .. _BibServer: http://bibserver.okfn.org/
 
-Development is taking place in this repo: http://github.com/okfn/bibserver
+
+Quick Links
+===========
+
+* Website: http://bibserver.okfn.org
+* Code: http://github.com/okfn/bibserver
+* Documentation: http://bibserver.readthedocs.org/
+* Mailing list: http://lists.okfn.org/mailman/listinfo/openbiblio-dev
+* Live demo: http://demo.bibserver.org/ (sandbox) or http://bibsoup.net/
 
 
-How It Works
+Installation
 ============
 
-Bibliographic files are stored in the BibJSON format - essentially JSON with a
-few conventions on what should be used as keys, and where certain types of
-information should be stored.
-
-By default, the BibServer code runs a web service just like that available at
-http://bibsoup.net. It is possible to take the code and customise to provide
-the same functionality under a different brand, or on a local network if
-desired.
-
-Records can be uploaded from bibTex, JSON / BibJSON, or CSV files, and will
-automatically generate a collection that can be browsed via the web site. Also,
-additional parsers can easily be written and used in your local version, or
-submitted for inclusion to the BibServer repository so others can use them too.
-
-Collections can be browsed via the online service, and content negotiation can
-be performed to receive an HTML or JSON output. The search functionality
-utilises an underlying elasticsearch index, and can be directly queried for 
-responses.
-
-Further information at http://bibserver.okfn.org.
-
-
-Install
-=======
-
-1. Install pre-requisites:
-   
-   * Python, pip and virtualenv.
-   * git
-   * ElasticSearch_ (> 0.17 series)
-
-2. [optional] Create a virtualenv and enable it::
-
-    # in bash
-    virtualenv {myenv}
-    . {myenv}/bin/activate
-
-3. Get the source::
-
-    # by convention we put it in the virtualenv but you can put anywhere
-    # mkdir {myenv}/src
-    # git clone https://github.com/okfn/bibserver {myenv}/src/
-    git clone https://github.com/okfn/bibserver
-
-3. Install the app::
-
-    # move to your checkout of bibserver
-    # cd {myenv}/src/bibserver
-    cd bibserver
-    # do a development install from current directory
-    pip install -e .
-    # alternatively if you do not want a development install
-    # note there is an error with this at the moment - do dev install
-    # python setup.py install
-
-4. Run the webserver::
-
-    python bibserver/web.py
-
-.. _ElasticSearch: http://www.elasticsearch.org/
-
-
-Install example
-===============
-
-Install commands on a clean installation of Ubuntu_11.10_::
-
-    sudo apt-get install python-pip python-dev build-essential 
-    sudo pip install --upgrade pip 
-    sudo pip install --upgrade virtualenv 
-    sudo apt-get install git
-
-    wget https://github.com/downloads/elasticsearch/elasticsearch/elasticsearch-0.18.2.tar.gz
-    tar -xzvf elasticsearch-0.18.2.tar.gz
-    ./elasticsearch-0.18.2/bin/elasticsearch start
-
-    git clone https://github.com/okfn/bibserver
-    cd bibserver
-    pip install -e .
-    
-    python bibserver/web.py
-    
-You will now find your bibserver running at localhost:5000.
-
-Note that this gets the service up and running, but you will probably want to 
-ensure it comes up whenever the server starts, and that there is a web server 
-making it available beyond localhost. Also, change the bibserver/web.py script 
-debug option to False (at the bottom of the file).
-    
-.. _Ubuntu_11.10: http:ubuntu.com
+See doc/install.rst or
+http://bibserver.readthedocs.org/en/latest/install.html
 
 
 Command Line Usage
-~~~~~~~~~~~~~~~~~~
+==================
 
 Command link script in `cli.py`. To see commands do::
 
@@ -122,7 +55,7 @@ To run the tests:
 Copyright and License
 =====================
 
-Copyright 2011 Open Knowledge Foundation.
+Copyright 2011-2012 Open Knowledge Foundation.
 
 Licensed under the `GNU Affero GPL v3`_
 
