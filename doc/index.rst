@@ -2,12 +2,39 @@
 Welcome to BibServer's documentation
 ====================================
 
-Contents:
+BibServer_ is an open-source RESTful bibliographic data server. BibServer makes
+it easy to create and manage collections of bibliographic records such as
+reading lists, publication lists and even complete library catalogs.
+
+Main features:
+
+* Create and manage bibliographic collections simply and easily
+* Import (and export) your collection from bibtex, MARC, RIS, BibJSON, RDF or
+  other bibliogrpaphic formats in a matter of seconds
+* Browse collection via an elegant faceted interface
+* Embed the collection browser in other websites
+* Full RESTful API
+* Open-source and free to use
+* Hosted service available at http://bibsoup.net/
+
+.. _BibServer: http://bibserver.okfn.org/
+
+
+Quick Links
+===========
+
+* Code: http://github.com/okfn/bibserver
+* Mailing list: http://lists.okfn.org/mailman/listinfo/openbiblio-dev
+* Live demo: http://demo.bibserver.org/ (sandbox) or http://bibsoup.net/
+
+
+Installation
+============
 
 .. toctree::
    :maxdepth: 2
 
-
+   install
 
 Indices and tables
 ==================
