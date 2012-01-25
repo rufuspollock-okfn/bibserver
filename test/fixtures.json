@@ -9,13 +9,14 @@
   ],
   "records": [
     {
-      "cid":"some ID",
+      "cid":"someID",
       "type": "book",
       "title":"Great Unwritten Collaborations",
       "author": [{"name":"Leo Tolstoy"},{"name":"Robert Musil"}],
       "journal": {"name":"journal_name"},
-      "collection": "great-novels",
+      "collection": "great_novels",
       "moreinfo":"some more information about this collection",
+      "owner": "tester",
       "ns1:thing":"some thing"
     },
     {
@@ -23,7 +24,9 @@
       "title":"A mathematical theory of communication",
       "author": [{"name":"Claude Shannon"}],
       "journal": {"name":"Bell System Technical Journal"},
-      "collection": "information-theory"
+      "cid": "otherid",
+      "owner": "tester",
+      "collection": "information_theory"
     }
   ]
 }

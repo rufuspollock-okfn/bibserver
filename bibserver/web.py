@@ -371,44 +371,46 @@ def record(user,coll,sid):
         resp = make_response( '{"id":"' + recobj.id + '","action":"' + action + '"}' )
         resp.mimetype = "application/json"
         return resp
-        
-    # otherwise do the GET of the record
-    JSON = False
-    if sid.endswith(".json") or request.values.get('format',"") == "json":
-        sid = sid.replace(".json","")
-        JSON = True
-    
-    #if path == "create":
-    #    if not auth.collection.create(current_user, None):
-    #        abort(401)
-    #    return render_template('create.html')
-
-    res = bibserver.dao.Record.query(q='owner.exact:' + user + ' AND collection.exact:"' + coll + '" AND ( cid.exact:"' + sid + '" OR id.exact:"' + sid + '" )')
-    if JSON:
-        return outputJSON(results=[i['_source'] for i in res['hits']['hits']], record=True)
     else:
-        if res["hits"]["total"] == 0:
-            abort(404)
-        elif res["hits"]["total"] != 1:
-            io = bibserver.iomanager.IOManager(res)
-            return render_template('record.html', io=io, multiple=True)
-        else:
-            io = bibserver.iomanager.IOManager(res)
-            thecoll = bibserver.dao.Collection.get(coll)
-            if thecoll and auth.collection.update(current_user, thecoll) and config["allow_edit"] == "YES":
-                edit = True
-            else:
-                edit = False
-            return render_template('record.html', io=io, edit=edit)
+        # otherwise do the GET of the record
+        JSON = False
+        if sid.endswith(".json") or request.values.get('format',"") == "json":
+            sid = sid.replace(".json","")
+            JSON = True
+        
+        #if path == "create":
+        #    if not auth.collection.create(current_user, None):
+        #        abort(401)
+        #    return render_template('create.html')
 
-#def outputJSON(results, coll=None, record=False, collection=False):
+        #res = bibserver.dao.Record.query(q='owner.exact:"' + user.lower() + '" AND collection.exact:"' + coll + '" AND ( cid.exact:"' + sid + '" OR id.exact:"' + sid + '" )')
+        res = bibserver.dao.Record.query(terms = {'owner':user.lower(),'collection':coll.lower(),'cid':sid.lower()})
+        if res['hits']['total'] == 0:
+            res = bibserver.dao.Record.query(terms = {'id':sid.lower()})
+
+        if JSON:
+            return outputJSON(results=[i['_source'] for i in res['hits']['hits']], record=True)
+        else:
+            if res["hits"]["total"] == 0:
+                abort(404)
+            elif res["hits"]["total"] != 1:
+                io = bibserver.iomanager.IOManager(res)
+                return render_template('record.html', io=io, multiple=True)
+            else:
+                io = bibserver.iomanager.IOManager(res)
+                thecoll = bibserver.dao.Collection.get(coll)
+                if thecoll and auth.collection.update(current_user, thecoll) and config["allow_edit"] == "YES":
+                    edit = True
+                else:
+                    edit = False
+                return render_template('record.html', io=io, edit=edit)
+
 def outputJSON(results, coll=None, facets=None, record=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''
     # TODO: in some circumstances, people data should be added to collections too.
     out = {"metadata":{}}
     print coll
     if coll:
-        #out['metadata'] = bibserver.dao.Collection.query(q='"'+coll+'"')['hits']['hits'][0]['_source']
         out['metadata'] = coll.data
     out['metadata']['query'] = request.base_url + '?' + request.query_string
     if request.values.get('facets','') and facets:

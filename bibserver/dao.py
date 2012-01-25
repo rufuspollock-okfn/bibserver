@@ -96,6 +96,7 @@ class DomainObject(UserDict.IterableUserDict):
         else:
             id_ = uuid.uuid4().hex
             data['id'] = id_
+        # TODO: as owner is now required per record, should perhaps insert a check for owner here
         conn.index(data, db, cls.__type__, urllib.quote_plus(id_))
         # TODO: ES >= 0.17 automatically re-indexes on GET so this not needed
         conn.refresh()
@@ -146,8 +147,12 @@ class DomainObject(UserDict.IterableUserDict):
                 ourq = pyes.query.StringQuery(q, default_operator=default_operator)
         if terms:
             for term in terms:
-                for val in terms[term]:
-                    termq = pyes.query.TermQuery(term, val)
+                if isinstance(terms[term],list):
+                    for val in terms[term]:
+                        termq = pyes.query.TermQuery(term, val)
+                        ourq = pyes.query.BoolQuery(must=[ourq,termq])
+                else:
+                    termq = pyes.query.TermQuery(term, terms[term])
                     ourq = pyes.query.BoolQuery(must=[ourq,termq])
 
         ourq = ourq.search(**kwargs)
