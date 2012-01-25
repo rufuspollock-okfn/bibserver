@@ -164,6 +164,7 @@ class Importer(object):
         collection.save()
 
         for rec in record_dicts:
+            rec['owner'] = collection['owner']
             if 'collection' in rec:
                 if collection["id"] != rec["collection"]:
                     rec['collection'] = collection["id"]
@@ -174,9 +175,9 @@ class Importer(object):
             if self.requesturl:
                 if not self.requesturl.endswith('/'):
                     self.requesturl += '/'
-                rec['url'] = self.requesturl + 'record/'
+                rec['url'] = self.requesturl + collection['owner'] + '/' + collection['id'] + '/'
                 if 'cid' in rec:
-                    rec['url'] += collection['id'] + '/' + rec.get('cid')
+                    rec['url'] += rec['cid']
                 elif 'id' in rec:
                     rec['url'] += rec['id']
                 else:

@@ -17,7 +17,7 @@
     # allow_edit - Yes / No for edit of individual records in bibsoup
     # allow upload user to override display config
     "allow_upload" : "YES",
-    "allow_edit" : "YES",
+    "allow_edit" : "NO",
     "allow_display_config" : "YES",
 
     # set some display template configs
@@ -42,13 +42,13 @@
         },
         {
             "key":"journal.name",
-            "display_name":"journals"
+            "display_name":"journal"
         },
         {
             "key":"author.name",
             "order":"term",
             "size":1000,
-            "display_name":"authors"
+            "display_name":"author"
         },
         {
             "key":"year",

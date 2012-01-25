@@ -296,19 +296,21 @@ class IOManager(object):
     def tablify(self,thing):
         if not thing:
             return ""
-        try:
+        if isinstance(thing,int):
+            thing = str(thing)
+        if isinstance(thing,dict):
+            print thing
             s = '<table>'
             for key,val in thing.iteritems():
                 s += '<tr><td><strong>' + key + '</strong></td><td>' + self.tablify(val) + '</td></tr>'
             s += '</table>'
-        except:
-            if isinstance(thing,list):
-                s = '<table>'
-                for item in thing:
-                    s += '<tr><td>' + self.tablify(item) + '</tr></td>'
-                s += '</table>'
-            else:
-                s = thing
+        elif isinstance(thing,list):
+            s = '<table>'
+            for item in thing:
+                s += '<tr><td>' + self.tablify(item) + '</tr></td>'
+            s += '</table>'
+        else:
+            s = thing
         return s
 
 

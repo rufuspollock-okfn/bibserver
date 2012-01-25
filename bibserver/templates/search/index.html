@@ -47,6 +47,7 @@
         <div id="search_options">
             <p><a id="partial_match" href="">partial match</a> | 
             <a id="exact_match" href="">exact match</a> | 
+            <a id="fuzzy_match" href="">fuzzy match</a> | 
             <a id="match_any" 
             {% if not 'default_operator' in io.args or io.args['default_operator'] != 'OR' %}
                 class="match_all" 
@@ -68,6 +69,7 @@
                 {% endif %}
             {% endfor %}
             </select>
+            <a href="http://lucene.apache.org/java/2_9_1/queryparsersyntax.html" target="_blank">learn more about query syntax</a>
             </p>
 
         </div>

@@ -177,7 +177,7 @@ jQuery(document).ready(function() {
     var fixmatch = function(event) {
         event.preventDefault();
         if ( jQuery(this).attr('id') == "partial_match" ) {
-            var newvals = jQuery('#searchbox').val().replace(/"/gi,'').replace(/\*/gi,'').split(' ');
+            var newvals = jQuery('#searchbox').val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
             var newstring = "";
             for (item in newvals) {
                 if (newvals[item].length > 0 && newvals[item] != ' ') {
@@ -189,8 +189,21 @@ jQuery(document).ready(function() {
                 }
             }
             jQuery('#searchbox').val(newstring);
+        } else if ( jQuery(this).attr('id') == "fuzzy_match" ) {
+            var newvals = jQuery('#searchbox').val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+            var newstring = "";
+            for (item in newvals) {
+                if (newvals[item].length > 0 && newvals[item] != ' ') {
+                    if (newvals[item] == 'OR' || newvals[item] == 'AND') {
+                        newstring += newvals[item] + ' ';
+                    } else {
+                        newstring += newvals[item] + '~ ';
+                    }
+                }
+            }
+            jQuery('#searchbox').val(newstring);
         } else if ( jQuery(this).attr('id') == "exact_match" ) {
-            var newvals = jQuery('#searchbox').val().replace(/"/gi,'').replace(/\*/gi,'').split(' ');
+            var newvals = jQuery('#searchbox').val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
             var newstring = "";
             for (item in newvals) {
                 if (newvals[item].length > 0 && newvals[item] != ' ') {
@@ -218,6 +231,7 @@ jQuery(document).ready(function() {
     }
     jQuery('#partial_match').bind('click',fixmatch);
     jQuery('#exact_match').bind('click',fixmatch);
+    jQuery('#fuzzy_match').bind('click',fixmatch);
     jQuery('#match_any').bind('click',fixmatch);
     
     var search_key = function(event) {

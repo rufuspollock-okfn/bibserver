@@ -13,13 +13,13 @@
 
             <div class="list_result_options">
             {% if io.get_str(io.set()[i], "cid") != "" %}
-            <a href="/record/{{io.get_str(io.set()[i], "collection", True)|safe}}/{{io.get_str(io.set()[i], "cid")|safe}}">View record</a><br />
+            <a href="/{{io.get_str(io.set()[i], "owner", True)|safe}}/{{io.get_str(io.set()[i], "collection", True)|safe}}/{{io.get_str(io.set()[i], "cid")|safe}}">View record</a><br />
             {% else %}
-            <a href="/record/{{io.get_str(io.set()[i], "id")|safe}}">View record</a><br />
+            <a href="/{{io.get_str(io.set()[i], "owner", True)|safe}}/{{io.get_str(io.set()[i], "collection")|safe}}/{{io.get_str(io.set()[i], "id")|safe}}">View record</a><br />
             {% endif %}
             {% if not io.incollection %}
                 {% if io.get_str(io.set()[i], "collection") %}
-                in: <a href="/collection/{{io.get_str(io.set()[i], "collection")|safe}}">{{io.get_str(io.set()[i], "collection")|safe}}</a>
+                in: <a href="/{{io.get_str(io.set()[i], "owner", True)|safe}}/{{io.get_str(io.set()[i], "collection")|safe}}">/{{io.get_str(io.set()[i], "owner", True)|safe}}/{{io.get_str(io.set()[i], "collection")|safe}}</a>
                 {% endif %}
             {% endif %}
             </div>
