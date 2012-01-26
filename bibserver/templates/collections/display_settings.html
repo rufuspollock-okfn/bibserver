@@ -5,7 +5,7 @@
 
     <div id="record_box" class="clearfix">
 
-    <h2><a href="/{{coll.owner}}/{{coll.id}}">{{coll.id}}</a></h2>
+    <h2><a href="/{{coll.owner}}/{{coll.collection}}">{{coll.label}}</a></h2>
 
     <h3>Facet filters on your search result view:</h3>
     <table>
@@ -61,7 +61,7 @@
                 return false;
             }
             $.ajax({
-                url: '/collections/{{id}}.json'
+                url: '/collections/{{coll.owner}}/{{coll.collection}}.json'
                 , type: 'GET'
                 , success: function(data, statusText, xhr) {
                     var thedata = data;
@@ -73,7 +73,7 @@
                     }
                     thedata.display_settings.facet_fields.push({"key":jQuery('#new_key').val(),"order":jQuery('#new_order').val(),"size":jQuery('#new_size').val()});
                     jQuery.ajax({
-                        url: '/collections/{{id}}?version={{version}}'
+                        url: '/collections/{{coll.owner}}/{{coll.collection}}?version={{version}}'
                         , type: 'POST'
                         , data: JSON.stringify(thedata)
                         , dataType: 'json'
@@ -99,13 +99,13 @@
             event.preventDefault();
             var index = jQuery(this).attr('href');
             $.ajax({
-                url: '/collections/{{id}}.json'
+                url: '/collections/{{coll.owner}}/{{coll.collection}}.json'
                 , type: 'GET'
                 , success: function(data, statusText, xhr) {
                     var thedata = data;
                     thedata.display_settings.facet_fields.splice(index,1);
                     jQuery.ajax({
-                        url: '/collections/{{id}}?version={{version}}'
+                        url: '/collections/{{coll.owner}}/{{coll.collection}}?version={{version}}'
                         , type: 'POST'
                         , data: JSON.stringify(thedata)
                         , dataType: 'json'

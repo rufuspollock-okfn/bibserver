@@ -29,7 +29,6 @@ class IOManager(object):
         if 'facets' in self.results:
             for facet,data in self.results['facets'].items():
                 self.facet_values[facet.replace(self.config.facet_field,'')] = data["terms"]
-        
 
     def get_q(self):
         return self.args.get('q','')

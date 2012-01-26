@@ -80,20 +80,27 @@ def account(user):
 def content(path):
     return render_template('home/content.html', page=path)
 
+@app.route('/collections')
 @app.route('/collections/')
-@app.route('/collections<path:path>')
 @app.route('/collections/<path:path>', methods=['GET','POST'])
 def collections(path=''):
-    path = path.strip('/')
     JSON = False
     if path.endswith(".json") or request.values.get('format',"") == "json":
         path = path.replace(".json","")
         JSON = True
 
-    # do request for specific collection record
+    user = False
+    coll = False
     if path:
-        res = bibserver.dao.Collection.get(path)
+        user, coll = path.split('/')
 
+    # do request for specific collection record
+    if coll:
+        try:
+            resid = bibserver.dao.Collection.query(terms={"owner":user,"collection":coll})['hits']['hits'][0]['_source']['id']
+            res = bibserver.dao.Collection.get(resid)
+        except:
+            abort(404)
             
         # if POST, do update / create / delete
         if request.method == "POST" or (request.method == 'GET' and 'delete' in request.values):
@@ -103,13 +110,13 @@ def collections(path=''):
             if 'delete' in request.values:
                 if not current_user['id'] == res['owner']:
                     abort(401)
-                bibserver.dao.Collection.delete_by_query('id:' + path)
-                bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + path + '"')
+                bibserver.dao.Collection.delete_by_query(q='owner:"'+user+'" AND collection:"'+coll+'"')
+                bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + coll + '" AND owner'+config["facet_field"]+':"' + user + '"')
                 if request.method == 'GET':
-                    flash('Collection ' + path + ' deleted')
+                    flash('Collection ' + coll + 'belonging to ' +  + ' deleted')
                     return redirect('/account/' + current_user['id'])
                 else:
-                    resp = make_response( '{"id":"' + path + '","deleted":true}' )
+                    resp = make_response( '{"id":"' + res.id + '","deleted":true}' )
                     resp.mimetype = "application/json"
                     return resp
             
@@ -124,18 +131,18 @@ def collections(path=''):
 
         # otherwise just serve collection metadata record
         if JSON:
-            return outputJSON(results=res, collection=res)
+            return outputJSON(coll=res)
         else:
             edit = False
             if auth.collection.update(current_user, res):
                 edit = True
             if request.values.get('display_settings',''):
                 # display the page for editing collection layout
-                results = bibserver.dao.Record.query(q='collection.exact:"'+res.id+'"',size=1000)
+                results = bibserver.dao.Record.query(q='collection'+config['facet_field']+':"'+res['collection']+'" AND owner'+config['facet_field']+':"'+current_user.id+'"',size=1000)
                 io = bibserver.iomanager.IOManager(results=results, incollection=res)
-                return render_template('collections/display_settings.html', id=path, coll=res, edit=edit, io=io)
+                return render_template('collections/display_settings.html', coll=res, edit=edit, io=io)
             else:
-                return render_template('collections/view.html', id=path, version=res.version, edit=edit)
+                return render_template('collections/view.html', version=res.version, edit=edit)
 
     # do overall collections list page
     io = dosearch(path,'Collection')
@@ -187,7 +194,7 @@ class UploadView(MethodView):
             # e.g. perhaps user has imported to someone else's collection?
             flash('Successfully created collection and imported %s records' %
                     len(records))
-            return redirect('/%s/%s' % (current_user.id, collection['id']))
+            return redirect('/%s/%s' % (current_user.id, collection['collection']))
 
 # enable upload unless not allowed in config
 if config["allow_upload"] == "YES":
@@ -291,8 +298,12 @@ def dosearch(path,searchtype='Record'):
         bits = path.split('/')
         if len(bits) == 2:
             # if first bit is a user ID then this is a collection
-            if bibserver.dao.Account.get(bits[0]) or bits[0] == 'collection':
-                incollection = bibserver.dao.Collection.get(bits[1])
+            if bibserver.dao.Account.get(bits[0]):
+                try:
+                    find = bibserver.dao.Collection.query(terms={"owner":bits[0],"collection":bits[1]})['hits']['hits'][0]['_source']['id']
+                    incollection = bibserver.dao.Collection.get(find)
+                except:
+                    pass
                 bits[0] = 'collection'
             implicit_key = bits[0]
             implicit_value = bits[1]
@@ -320,7 +331,9 @@ def dosearch(path,searchtype='Record'):
             vals = json.loads(unicodedata.normalize('NFKD',urllib2.unquote(request.values.get(param))).encode('utf-8','ignore'))
             args['terms'][param + config['facet_field']] = vals
     if implicit_key:
-        args['terms'][implicit_key+config["facet_field"]] = [implicit_value]
+        args['terms'][implicit_key+config['facet_field']] = [implicit_value]
+    if incollection:
+        args['terms']['owner'+config['facet_field']] = incollection['owner']
 
     # save current display settings if requested
     if incollection:
@@ -334,7 +347,6 @@ def dosearch(path,searchtype='Record'):
                         item['key'] = item['key'].replace(config["facet_field"],'')
                 incollection.save()
                 flash('Display settings saved.')
-
 
     if searchtype == 'Record':
         results = bibserver.dao.Record.query(**args)
@@ -383,7 +395,6 @@ def record(user,coll,sid):
         #        abort(401)
         #    return render_template('create.html')
 
-        #res = bibserver.dao.Record.query(q='owner.exact:"' + user.lower() + '" AND collection.exact:"' + coll + '" AND ( cid.exact:"' + sid + '" OR id.exact:"' + sid + '" )')
         res = bibserver.dao.Record.query(terms = {'owner':user.lower(),'collection':coll.lower(),'cid':sid.lower()})
         if res['hits']['total'] == 0:
             res = bibserver.dao.Record.query(terms = {'id':sid.lower()})
@@ -405,34 +416,39 @@ def record(user,coll,sid):
                     edit = False
                 return render_template('record.html', io=io, edit=edit)
 
-def outputJSON(results, coll=None, facets=None, record=False):
+def outputJSON(results=None, coll=None, facets=None, record=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''
     # TODO: in some circumstances, people data should be added to collections too.
     out = {"metadata":{}}
-    print coll
     if coll:
         out['metadata'] = coll.data
+        out['metadata']['records'] = len(coll)
     out['metadata']['query'] = request.base_url + '?' + request.query_string
     if request.values.get('facets','') and facets:
         out['facets'] = facets
     out['metadata']['from'] = request.values.get('from',0)
     out['metadata']['size'] = request.values.get('size',10)
 
-    out['records'] = results
+    if results:
+        out['records'] = results
 
-    # if a single record meta default is false
-    if record and len(out['records']) == 1 and not request.values.get('meta',False):
-        out = out['records'][0]
+        # if a single record meta default is false
+        if record and len(out['records']) == 1 and not request.values.get('meta',False):
+            out = out['records'][0]
 
-    # if a search result meta default is true
-    meta = request.values.get('meta',True)
-    if meta == "False" or meta == "false" or meta == "no" or meta == "No" or meta == 0:
-        meta = False
-    #if not record and not meta:
-    if not meta:
-        out = out['records']
-        if len(out) == 1:
-            out = out[0]
+        # if a search result meta default is true
+        meta = request.values.get('meta',True)
+        if meta == "False" or meta == "false" or meta == "no" or meta == "No" or meta == 0:
+            meta = False
+        #if not record and not meta:
+        if not record and not meta:
+            out = out['records']
+            if len(out) == 1:
+                out = out[0]
+    elif coll:
+        out = coll.data
+    else:
+        out = {}
 
     resp = make_response( json.dumps(out, sort_keys=True, indent=4) )
     resp.mimetype = "application/json"

@@ -18,7 +18,7 @@
           <p>Search shared collections and records. Find material relevant to your interests.</p>
           <p><a href="/search" class="btn">Search now &raquo;</a></p>
           <h2>Create a new collection</h3>
-          <p>(coming soon) Search available records, select your favourites to creat a new collection - or, combine two or more collections to make a super-collection.</p>
+          <p>(coming soon) Search available records, select your favourites to create a new collection - or, combine two or more collections to make a super-collection.</p>
           <h2>Share collection admin</h3>
           <p>(coming soon) Collaboratively create and edit a collection by giving other users admin rights.</p>
         </div>
@@ -28,7 +28,7 @@
           <table class="zebra-striped">
           {% for i in range(colls|length) %}
           <tr><td>
-            <h3><a href="/{{colls[i]['owner']}}/{{colls[i]['id']}}">{{colls[i]['label']}}</a> <small>({{colls[i]|length}} records)</small></h3>
+            <h3><a href="/{{colls[i]['owner']}}/{{colls[i]['collection']}}">{{colls[i]['label']}}</a> <small>({{colls[i]|length}} records)</small></h3>
             <p>{{colls[i]['description']}}</p>
           </td></tr>
           {% endfor %}

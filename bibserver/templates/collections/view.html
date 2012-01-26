@@ -9,7 +9,7 @@
     </div>
     <script type="text/javascript">
     jQuery(document).ready(function() {
-        jQuery('#record_box').jtedit({"source":window.location.pathname+".json","noedit":["id","source","modified"]});
+        jQuery('#record_box').jtedit({"source":window.location.pathname+".json","noedit":["id","source","modified","owner","records","query","size","label"]});
         var saveit = function(event) {
             event.preventDefault();
             var thedata = $.parseJSON(jQuery('#jtedit_json').val());

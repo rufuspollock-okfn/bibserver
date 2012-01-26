@@ -15,17 +15,21 @@ def init_db():
     conn, db = get_conn()
     try:
         conn.create_index(db)
-        mappings = config["mappings"]
-        for mapping in mappings:
-            #conn.put_mapping(mapping,{"properties":mappings[mapping]},[db])
-            host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
-            db_name = config['ELASTIC_SEARCH_DB']
-            fullpath = '/' + db_name + '/' + mapping + '/_mapping'
+    except pyes.exceptions.IndexAlreadyExistsException:
+        pass
+    mappings = config["mappings"]
+    for mapping in mappings:
+        host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
+        db_name = config['ELASTIC_SEARCH_DB']
+        fullpath = '/' + db_name + '/' + mapping + '/_mapping'
+        c =  httplib.HTTPConnection(host)
+        c.request('GET', fullpath)
+        result = c.getresponse()
+        if result.status == 404:
             c =  httplib.HTTPConnection(host)
             c.request('PUT', fullpath, json.dumps(mappings[mapping]))
             c.getresponse()
-    except pyes.exceptions.IndexAlreadyExistsException:
-        pass
+
 
 def get_conn():
     host = str(config["ELASTIC_SEARCH_HOST"])
@@ -188,10 +192,12 @@ class Collection(DomainObject):
     __type__ = 'collection'
     
     def __len__(self):
-        conn, db = get_conn()
-        collection_query = pyes.query.StringQuery(self.id, search_fields='collection')
-        result = conn.search(collection_query.search(), db, 'record')
-        return result.get('hits', {'total':0})['total']
+        res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})
+        return res['hits']['total']
+        #conn, db = get_conn()
+        #collection_query = pyes.query.StringQuery(self.id, search_fields='collection')
+        #result = conn.search(collection_query.search(), db, 'record')
+        #return result.get('hits', {'total':0})['total']
     
 class Account(DomainObject, UserMixin):
     __type__ = 'account'

@@ -116,7 +116,7 @@
     "display_value_functions" : {
         "author.name":{"authorify":{}},
         "collection": {"collectionify":{}},
-        "links": {"bibsoup_links":{}}
+        "link": {"bibsoup_links":{}}
     },
 
     # a dict of the ES mappings. identify by name, and include name as first object name

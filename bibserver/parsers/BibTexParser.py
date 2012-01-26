@@ -31,7 +31,6 @@ class BibTexParser(BaseParser):
         super(BibTexParser, self).__init__(fileobj)
         
         # set which bibjson schema this parser parses to
-        self.schema = "v0.82"
         self.has_metadata = False
         self.persons = []
         # if bibtex file has substition strings, they are stored here, 
@@ -39,14 +38,14 @@ class BibTexParser(BaseParser):
         self.replace_dict = {}
         # pre-defined set of key changes
         self.alt_dict = {
-            'keyw':'keywords',
-            'keyword':'keywords',
+            'keyw':'keyword',
+            'keywords':'keyword',
             'authors':'author',
             'editors':'editor',
-            'url':'links',
-            'urls':'links',
-            'link':'links',
-            'subject':'subjects'
+            'url':'link',
+            'urls':'link',
+            'links':'link',
+            'subjects':'subject'
         }
         self.identifier_types = ["doi","isbn","issn"]
 
@@ -74,7 +73,7 @@ class BibTexParser(BaseParser):
             parsed = self.parse_record(record)
             if parsed:
                 records.append(parsed)
-        return records, {"schema":self.schema}
+        return records, {}
 
     def parse_record(self, record):
         '''given a bibtex record, tidy whitespace and other rubbish; 
@@ -174,14 +173,14 @@ class BibTexParser(BaseParser):
             # switch journal to object
             if record["journal"]:
                 record["journal"] = {"name":record["journal"],"id":record["journal"].replace(',','').replace(' ','').replace('.','')}
-        if "keywords" in record:
-            record["keywords"] = [i.strip() for i in record["keywords"].replace('\n','').split(",")]
-        if "subjects" in record:
-            if record["subjects"]:
-                record["subjects"] = {"name":record["subjects"],"id":record["subjects"].replace(',','').replace(' ','').replace('.','')}
-        if "links" in record:
-            links = [i.strip().replace("  "," ") for i in record["links"].split('\n')]
-            record['links'] = []
+        if "keyword" in record:
+            record["keyword"] = [i.strip() for i in record["keyword"].replace('\n','').split(",")]
+        if "subject" in record:
+            if record["subject"]:
+                record["subject"] = {"name":record["subject"],"id":record["subject"].replace(',','').replace(' ','').replace('.','')}
+        if "link" in record:
+            links = [i.strip().replace("  "," ") for i in record["link"].split('\n')]
+            record['link'] = []
             for link in links:
                 parts = link.split(" ")
                 linkobj = { "url":parts[0] }
@@ -190,30 +189,30 @@ class BibTexParser(BaseParser):
                 if len(parts) > 2:
                     linkobj["format"] = parts[2]
                 if len(linkobj["url"]) > 0:
-                    record["links"].append(linkobj)
+                    record["link"].append(linkobj)
         if 'doi' in record:
-            if 'links' not in record:
-                record['links'] = []
+            if 'link' not in record:
+                record['link'] = []
             nodoi = True
-            for item in record['links']:
+            for item in record['link']:
                 if 'doi' in item:
                     nodoi = False
             if nodoi:
                 link = record['doi']
                 if link.startswith('10'):
                     link = 'http://dx.doi.org/' + link
-                record['links'].append( {"url": link, "anchor":"doi"} )
+                record['link'].append( {"url": link, "anchor":"doi"} )
         for ident in self.identifier_types:
             if ident in record:
                 if ident == 'issn':
                     if 'journal' in record:
-                        if 'identifiers' not in record['journal']:
-                            record['journal']['identifiers'] = []
-                        record['journal']['identifiers'].append({"id":record[ident], "type":"issn"})
+                        if 'identifier' not in record['journal']:
+                            record['journal']['identifier'] = []
+                        record['journal']['identifier'].append({"id":record[ident], "type":"issn"})
                 else:
-                    if 'identifiers' not in record:
-                        record['identifiers'] = []
-                    record['identifiers'].append({"id":record[ident], "type":ident})
+                    if 'identifier' not in record:
+                        record['identifier'] = []
+                    record['identifier'].append({"id":record[ident], "type":ident})
                 del record[ident]
         
         return record

@@ -140,25 +140,25 @@ class Importer(object):
         timestamp = datetime.now().isoformat()
         collection['created'] = timestamp
         assert 'label' in collection, 'Collection must have a label'
-        if not 'id' in collection:
-            collection['id'] = util.slugify(collection['label'])
+        if not 'collection' in collection:
+            collection['collection'] = util.slugify(collection['label'])
         collection['owner'] = self.owner.id
 
-        delid = collection['id']
+        delid = collection['collection']
         for coll in self.owner.collections:
             if 'source' in coll and 'source' in collection:
                 if coll['source'] == collection['source']:
-                    if coll['id'] != collection['id']:
-                        delid = coll['id']
-                        bibserver.dao.Collection.delete_by_query('id:' + coll['id'])
+                    if coll['collection'] != collection['collection']:
+                        delid = coll['collection']
+                        bibserver.dao.Collection.delete_by_query('collection:"' + coll['collection'] + '" AND owner:"' + collection['owner'] + '"')
                         break
                     else:
                         collection = coll
                         break
-            if coll['id'] == collection['id']:
+            if coll['collection'] == collection['collection']:
                 collection = coll
                 break
-        bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + delid + '"')
+        bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + delid + '" AND owner'+config["facet_field"]+':"' + collection['owner'] + '"')
 
         collection['modified'] = timestamp
         collection.save()
@@ -166,16 +166,16 @@ class Importer(object):
         for rec in record_dicts:
             rec['owner'] = collection['owner']
             if 'collection' in rec:
-                if collection["id"] != rec["collection"]:
-                    rec['collection'] = collection["id"]
+                if collection['collection'] != rec['collection']:
+                    rec['collection'] = collection['collection']
             else:
-                rec['collection'] = collection["id"]
+                rec['collection'] = collection['collection']
             if not self.requesturl and 'SITE_URL' in config:
                 self.requesturl = str(config['SITE_URL'])
             if self.requesturl:
                 if not self.requesturl.endswith('/'):
                     self.requesturl += '/'
-                rec['url'] = self.requesturl + collection['owner'] + '/' + collection['id'] + '/'
+                rec['url'] = self.requesturl + collection['owner'] + '/' + collection['collection'] + '/'
                 if 'cid' in rec:
                     rec['url'] += rec['cid']
                 elif 'id' in rec:
