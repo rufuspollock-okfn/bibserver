@@ -61,7 +61,8 @@ FIELD_MAP = {
     "SN": "issn", 
     "Y2": "access date", 
     "SE": "section", 
-    "OP": "original publication"
+    "OP": "original publication",
+    "JF": "journal",
 }
 
 VALUE_MAP = {
