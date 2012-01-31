@@ -395,7 +395,11 @@ def record(user,coll,sid):
         #        abort(401)
         #    return render_template('create.html')
 
-        res = bibserver.dao.Record.query(terms = {'owner':user.lower(),'collection':coll.lower(),'cid':sid.lower()})
+        if app.config['TESTING']:
+            # TODO: running the test may not create mappings properly, hence searches on the unanalysed versions of a field fail
+            res = bibserver.dao.Record.query(terms = {'owner':user.lower(),'collection':coll.lower(),'cid':sid.lower()})
+        else:
+            res = bibserver.dao.Record.query(terms = {'owner'+config['facet_field']:user.lower(),'collection'+config['facet_field']:coll.lower(),'cid'+config['facet_field']:sid.lower()})
         if res['hits']['total'] == 0:
             res = bibserver.dao.Record.query(terms = {'id':sid.lower()})
 
