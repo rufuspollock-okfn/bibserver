@@ -1,6 +1,5 @@
 import string
 import json
-import chardet
 import unicodedata
 import re
 
@@ -242,10 +241,7 @@ class BibTexParser(BaseParser):
             if val == k:
                 val = self.replace_dict[k]
         if not isinstance(val, unicode):
-            encoding = chardet.detect(val)["encoding"]
-            if not encoding:
-                encoding = 'ascii'
-            val = unicode(val,encoding,'ignore')
+            val = unicode(val,self.encoding,'ignore')
         if '\\' in val or '{' in val:
             for k, v in self.unicode_to_latex.iteritems():
                 if v in val:
@@ -267,7 +263,7 @@ class BibTexParser(BaseParser):
         val = self.strip_braces(val)
         val = self.string_subst(val)
         """alter based on particular key types"""
-        return unicodedata.normalize('NFKD', val).replace(u'\x00', '').replace(u'\x1A', '').encode('utf-8','ignore')
+        return unicodedata.normalize('NFKD', val).replace(u'\x00', '').replace(u'\x1A', '')
 
 
     def add_key(self, key):
