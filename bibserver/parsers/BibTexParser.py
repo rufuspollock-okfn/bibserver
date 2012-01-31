@@ -282,6 +282,7 @@ class BibTexParser(BaseParser):
         tidynames = []
         for namestring in names:
             namestring = namestring.strip()
+            if len(namestring) < 1: continue
             if ',' in namestring:
                 namesplit = namestring.split(',',1)
                 last = namesplit[0].strip()
