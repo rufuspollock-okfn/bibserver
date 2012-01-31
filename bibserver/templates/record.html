@@ -81,5 +81,12 @@
     </div>
 {% endif %}
 
+<script type="text/javascript" charset="utf-8">
+        jQuery('body').keydown(function(event) {
+            if(event.which == 27) {
+                window.location = '/{{current_user.id}}/{{io.set()[0]['collection']}}';
+            }
+        });
+</script>
 {% endblock %}
 
