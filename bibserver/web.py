@@ -398,10 +398,12 @@ def record(user,coll,sid):
         if app.config['TESTING']:
             # TODO: running the test may not create mappings properly, hence searches on the unanalysed versions of a field fail
             res = bibserver.dao.Record.query(terms = {'owner':user.lower(),'collection':coll.lower(),'cid':sid.lower()})
+            if res['hits']['total'] == 0:
+                res = bibserver.dao.Record.query(terms = {'id':sid.lower()})
         else:
-            res = bibserver.dao.Record.query(terms = {'owner'+config['facet_field']:user.lower(),'collection'+config['facet_field']:coll.lower(),'cid'+config['facet_field']:sid.lower()})
-        if res['hits']['total'] == 0:
-            res = bibserver.dao.Record.query(terms = {'id':sid.lower()})
+            res = bibserver.dao.Record.query(terms = {'owner'+config['facet_field']:user,'collection'+config['facet_field']:coll,'cid'+config['facet_field']:sid})
+            if res['hits']['total'] == 0:
+                res = bibserver.dao.Record.query(terms = {'id'+config['facet_field']:sid})
 
         if JSON:
             return outputJSON(results=[i['_source'] for i in res['hits']['hits']], record=True)

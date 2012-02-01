@@ -265,8 +265,8 @@ class IOManager(object):
                 meta += 'This collection was last updated on ' + self.incollection["modified"] + '. '
             if not self.current_user.is_anonymous() and self.current_user['id'] == self.incollection['owner']:
                 if "source" in self.incollection and self.incollection['source']:
-                    meta += '<br /><a href="/upload?source=' + self.incollection["source"]
-                    meta += '&collection=' + self.incollection['id'] + '">Refresh </a> this collection (overwrites any local changes).'
+                    meta += '<br /><a href="/upload?source=%22' + self.incollection["source"]
+                    meta += '%22&collection=' + self.incollection['collection'] + '">Refresh </a> this collection (overwrites any local changes).'
                 meta += '<br /><a href="/collections/' + self.incollection['id']
                 meta += '?display_settings=edit">Customise the display</a> of this collection</a>.<br />'
                 meta += '<a href="/collections/' + self.incollection['id'] + '">Edit the metadata</a> of this collection.<br />'

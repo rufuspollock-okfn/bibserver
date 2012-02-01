@@ -29,5 +29,9 @@ class JSONParser(BaseParser):
             # copy an citekey to cid
             if 'citekey' in record:
                 record['cid'] = record['citekey']
+            # copy keys to singular
+            if 'links' in record:
+                record['link'] = record['links']
+                del record['links']
         return records
 

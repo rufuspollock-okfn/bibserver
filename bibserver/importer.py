@@ -53,7 +53,7 @@ class Importer(object):
         source = ''
         fileobj = None
         if request.values.get("source"):
-            src = request.values.get("source")
+            src = request.values.get("source").strip('"')
             if not src.startswith('http://') and not src.startswith('https://'):
                 src = 'http://' + src
             source = urllib2.unquote(src)
