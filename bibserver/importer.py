@@ -3,7 +3,6 @@
 # Uses the parser manager to parse the file
 # indexes the records found in the file by upserting via the DAO
 import urllib2
-from datetime import datetime
 import re
 from cStringIO import StringIO
 import unicodedata
@@ -137,8 +136,6 @@ class Importer(object):
         record objects.
         '''
         collection = bibserver.dao.Collection(**collection_dict)
-        timestamp = datetime.now().isoformat()
-        collection['created'] = timestamp
         assert 'label' in collection, 'Collection must have a label'
         if not 'collection' in collection:
             collection['collection'] = util.slugify(collection['label'])
@@ -160,7 +157,6 @@ class Importer(object):
                 break
         bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + delid + '" AND owner'+config["facet_field"]+':"' + collection['owner'] + '"')
 
-        collection['modified'] = timestamp
         collection.save()
 
         for rec in record_dicts:

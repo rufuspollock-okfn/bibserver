@@ -6,7 +6,7 @@ from nose.tools import assert_equal
 from test.base import fixtures, Fixtures, TESTDB
 import bibserver.dao as dao
 import bibserver.util as util
-
+from datetime import datetime, timedelta
 
 class TestDAO:
     @classmethod
@@ -19,12 +19,23 @@ class TestDAO:
         conn.delete_index(TESTDB)
 
     def test_01_record(self):
+        # Note, adding a one second negative delay to the timestamp
+        # otherwise the comparison overflows when subtracting timestamps
+        t1 = datetime.now() - timedelta(seconds=1)
         recdict = fixtures['records'][0]
         record = dao.Record.upsert(recdict)
         outrecord = dao.Record.get(record.id)
         for attr in ['type', 'author']:
             assert record[attr] == recdict[attr], record
             assert outrecord[attr] == recdict[attr], outrecord
+        
+        print outrecord.keys()
+        assert '_created' in outrecord
+        assert '_last_modified' in outrecord
+        last_modified_in_record = outrecord['_last_modified']
+        t2 = datetime.strptime(last_modified_in_record[:-7], r'%Y-%m-%dT%H:%M:%S')
+        difference = t2 - t1
+        assert difference.seconds < 1
     
     def test_02_collection(self):
         label = u'My Collection'

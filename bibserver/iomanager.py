@@ -261,8 +261,8 @@ class IOManager(object):
             if "source" in self.incollection and self.incollection['source']:
                 meta += 'The source of this collection is <a href="'
                 meta += self.incollection["source"] + '">' + self.incollection["source"] + '</a>.<br /> '
-            if "modified" in self.incollection:
-                meta += 'This collection was last updated on ' + self.incollection["modified"] + '. '
+            if "_last_modified" in self.incollection:
+                meta += 'This collection was last updated on ' + self.incollection["_last_modified"] + '. '
             if not self.current_user.is_anonymous() and self.current_user['id'] == self.incollection['owner']:
                 if "source" in self.incollection and self.incollection['source']:
                     meta += '<br /><a href="/upload?source=%22' + self.incollection["source"]
