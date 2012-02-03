@@ -86,18 +86,24 @@ class RISParser(BaseParser):
         
     def parse(self):
         data, chunk = [], {}
+        last_field = None
         for line in self.fileobj:
+            if line.startswith(' ') and last_field:
+                chunk.setdefault(last_field, []).append(line.strip())
+                continue
             line = line.strip()
             if not line: continue
             parts = line.split('  - ')
-            if len(parts) < 2: continue
+            if len(parts) < 2:
+                continue
             field = parts[0]
+            last_field = field
             if field == 'TY':
                 self.add_chunk(chunk)
                 chunk = {}
             value = '  - '.join(parts[1:])
             if value:
-                chunk.setdefault(field, []).append(value)        
+                chunk.setdefault(field, []).append(value)
         self.add_chunk(chunk)
         return self.data, {}
         

@@ -8,8 +8,8 @@
             <li>id: {{io.get_str(io.set()[i], 'id')|safe}}</li>
             <li>owner: {{io.get_str(io.set()[i], 'owner')|safe}}</li>
             <li>records: {{io.get_coll_recordcount(io.set()[i]['id'])}}</li>
-            <li>created: {{io.get_str(io.set()[i], 'created')|safe}}</li>
-            <li>modified: {{io.get_str(io.set()[i], 'modified')|safe}}</li>
+            <li>created: {{io.get_str(io.set()[i], '_created')|safe}}</li>
+            <li>modified: {{io.get_str(io.set()[i], '_last_modified')|safe}}</li>
             <li>source: <a href="{{io.get_str(io.set()[i], 'source')|safe}}">{{io.get_str(io.set()[i], 'source')|safe}}</a></li>
             <li>source format: {{io.get_str(io.set()[i], 'format')|safe}}</li>
             </ul>

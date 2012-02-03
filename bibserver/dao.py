@@ -4,6 +4,7 @@ import uuid
 import UserDict
 import httplib
 import urllib
+from datetime import datetime
 
 import pyes
 from werkzeug import generate_password_hash, check_password_hash
@@ -95,15 +96,9 @@ class DomainObject(UserDict.IterableUserDict):
         If no id is supplied an uuid id will be created before saving.
         '''
         conn, db = get_conn()
-        if 'id' in data:
-            id_ = data['id']
-        else:
-            id_ = uuid.uuid4().hex
-            data['id'] = id_
-        # TODO: as owner is now required per record, should perhaps insert a check for owner here
-        conn.index(data, db, cls.__type__, urllib.quote_plus(id_))
-        # TODO: ES >= 0.17 automatically re-indexes on GET so this not needed
-        conn.refresh()
+        cls.bulk_upsert([data], state)
+        conn.flush_bulk()
+
         # TODO: should we really do a cls.get() ?
         return cls(**data)
 
@@ -118,7 +113,13 @@ class DomainObject(UserDict.IterableUserDict):
             else:
                 id_ = uuid.uuid4().hex
                 data['id'] = id_
-            conn.index(data, db, cls.__type__, id_, bulk=True)
+            
+            if '_created' not in data:
+                data['_created'] = datetime.now().isoformat()
+            data['_last_modified'] = datetime.now().isoformat()
+            
+            # TODO: as owner is now required per record, should perhaps insert a check for owner here
+            conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True)
         # refresh required after bulk index
         conn.refresh()
         return dataset
