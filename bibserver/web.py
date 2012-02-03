@@ -285,7 +285,14 @@ def dosearch(path,searchtype='Record'):
             if ' OR ' in request.values['q']:
                 args['default_operator'] = 'OR'
             if ' AND ' in request.values['q']:
-                args['default_operator'] = 'AND'        
+                args['default_operator'] = 'AND'
+            argparts = args['q'].split(' ')
+            for index,part in enumerate(argparts):
+                if part.startswith(':') or part.endswith(':'):
+                    argparts[index] = "'" + part + "'"
+            args['q'] = ' '.join(argparts)
+            #args['q'] = "'" + args['q'] + "'"
+                
     
     # set implicit keys / collections
     incollection = {}
