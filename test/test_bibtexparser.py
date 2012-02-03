@@ -21,7 +21,6 @@ class TestBibTexParser:
         year=zzz}'''))
         data, metadata = parser.parse()
 
-
     def test_utf(self):
         collection = 'testing'
         sample = open('test/data/sampleutf8.bibtex')
@@ -30,3 +29,16 @@ class TestBibTexParser:
         print data[0]['title']
         assert data[0]['title'] == u'\u201cBibliotheken fu\u0308r o\u0308ffnen\u201d'
 
+    def test_missing_comma(self):
+        from cStringIO import StringIO
+        collection = 'testing'
+        parser = BibTexParser(StringIO('''@article{digby_mnpals_2011,
+author = {Todd Digby and Stephen Elfstrand},
+title = {{Open Source Discovery: Using VuFind to create MnPALS Plus}},
+journal = {Computers in Libraries},
+year = {2011},
+month = {March}
+}'''))
+        data, metadata = parser.parse()
+        print data
+        assert 'month' in data[0]
