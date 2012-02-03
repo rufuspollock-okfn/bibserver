@@ -298,7 +298,6 @@ class IOManager(object):
         if isinstance(thing,int):
             thing = str(thing)
         if isinstance(thing,dict):
-            print thing
             s = '<table>'
             for key,val in thing.iteritems():
                 s += '<tr><td><strong>' + key + '</strong></td><td>' + self.tablify(val) + '</td></tr>'

@@ -78,7 +78,7 @@ def account(user):
 
 @app.route('/content/<path:path>')
 def content(path):
-    return render_template('home/content.html', page=path)
+    return render_template('home/content.html', upload=config["allow_upload"], page=path)
 
 @app.route('/collections')
 @app.route('/collections/')
@@ -140,16 +140,16 @@ def collections(path=''):
                 # display the page for editing collection layout
                 results = bibserver.dao.Record.query(q='collection'+config['facet_field']+':"'+res['collection']+'" AND owner'+config['facet_field']+':"'+current_user.id+'"',size=1000)
                 io = bibserver.iomanager.IOManager(results=results, incollection=res)
-                return render_template('collections/display_settings.html', coll=res, edit=edit, io=io)
+                return render_template('collections/display_settings.html', upload=config["allow_upload"], coll=res, edit=edit, io=io)
             else:
-                return render_template('collections/view.html', version=res.version, edit=edit)
+                return render_template('collections/view.html', upload=config["allow_upload"], version=res.version, edit=edit)
 
     # do overall collections list page
     io = dosearch(path,'Collection')
     if JSON:
         return outputJSON(results=io.results, coll=io.incollection)
     else:
-        return render_template('collections/index.html', io=io)
+        return render_template('collections/index.html', upload=config["allow_upload"], io=io)
 
 @app.route('/query', methods=['GET','POST'])
 def query():
@@ -176,7 +176,7 @@ class UploadView(MethodView):
             return redirect('/account/login')
         if request.values.get("source") is not None:
             return self.post()
-        return render_template('upload.html')
+        return render_template('upload.html', upload=config["allow_upload"])
 
     def post(self):
         if not auth.collection.create(current_user, None):
@@ -188,7 +188,7 @@ class UploadView(MethodView):
             msg = str(inst)
             if app.debug or app.config['TESTING']:
                 raise
-            return render_template('upload.html', msg=msg)
+            return render_template('upload.html', upload=config["allow_upload"], msg=msg)
         else:
             # TODO: can we be sure that current_user is also the owner
             # e.g. perhaps user has imported to someone else's collection?
@@ -262,7 +262,7 @@ def search(path=''):
             if io.incollection:
                 if auth.collection.update(current_user, io.incollection):
                     edit = True
-            return render_template('search/index.html', io=io, edit=edit)
+            return render_template('search/index.html', upload=config["allow_upload"], io=io, edit=edit)
 
 def dosearch(path,searchtype='Record'):
     # set query info
@@ -415,12 +415,16 @@ def record(user,coll,sid):
                 return render_template('record.html', io=io, multiple=True)
             else:
                 io = bibserver.iomanager.IOManager(res)
-                thecoll = bibserver.dao.Collection.get(coll)
+                getcoll = bibserver.dao.Collection.query(terms={'owner':user,'collection':coll})
+                if getcoll['hits']['total'] == 1:
+                    thecoll = getcoll['hits']['hits'][0]['_source']
+                else:
+                    thecoll = False
                 if thecoll and auth.collection.update(current_user, thecoll) and config["allow_edit"] == "YES":
                     edit = True
                 else:
                     edit = False
-                return render_template('record.html', io=io, edit=edit)
+                return render_template('record.html', io=io, edit=edit, upload=config["allow_upload"])
 
 def outputJSON(results=None, coll=None, facets=None, record=False):
     '''build a JSON response, with metadata unless specifically asked to suppress'''

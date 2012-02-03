@@ -55,7 +55,9 @@
           <ul class="nav">
             <li class="active"><a href="/">Home</a></li>
             <li><a href="/collections">Collections</a></li>
-            <li><a href="/upload">Upload</a></li>
+            {% if upload == "YES" %}
+                <li><a href="/upload">Upload</a></li>
+            {% endif %}
             <li><a href="/content/howto">FAQ</a></li>
           </ul>
           <ul class="nav secondary-nav">
