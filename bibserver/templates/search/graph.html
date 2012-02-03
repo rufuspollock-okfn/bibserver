@@ -116,7 +116,7 @@
             node.append("svg:text")
                 .attr("text-anchor", "middle")
                 .attr("dy", ".3em")
-                .text(function(d) { return d.data.className + " (" + d.data.value[0:3] + ")"; })
+                .text(function(d) { return d.data.className.substr(0,10) + ".. (" + d.data.value + ")"; })
             node.on('click',function(d) {
                 var target = window.location.href
                 if (target.indexOf('?') == -1) {
