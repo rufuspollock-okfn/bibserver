@@ -3,8 +3,9 @@ import uuid
 from flask import Blueprint, request, url_for, flash, redirect
 from flask import render_template
 from flaskext.login import login_user, logout_user
-from flaskext.wtf import Form, TextField, PasswordField, validators
+from flaskext.wtf import Form, TextField, PasswordField, validators, ValidationError
 
+from bibserver.config import config
 import bibserver.dao as dao
 
 blueprint = Blueprint('account', __name__)
@@ -34,7 +35,7 @@ def login():
             flash('Incorrect email/password', 'error')
     if request.method == 'POST' and not form.validate():
         flash('Invalid form', 'error')
-    return render_template('account/login.html', form=form)
+    return render_template('account/login.html', form=form, upload=config['allow_upload'])
 
 
 @blueprint.route('/logout')
@@ -44,14 +45,20 @@ def logout():
     return redirect(url_for('home'))
 
 
+def existscheck(form, field):
+    test = dao.Account.get(form.username.data)
+    if test:
+        raise ValidationError('Taken! Please try another.')
+
 class RegisterForm(Form):
-    username = TextField('Username', [validators.Length(min=3, max=25)])
-    email = TextField('Email Address', [validators.Length(min=3, max=35)])
+    username = TextField('Username', [validators.Length(min=3, max=25),existscheck])
+    email = TextField('Email Address', [validators.Length(min=3, max=35), validators.Email(message='Must be a valid email address')])
     password = PasswordField('New Password', [
         validators.Required(),
         validators.EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
+    about = TextField('Describe yourself')
 
 @blueprint.route('/register', methods=['GET', 'POST'])
 def register():
@@ -68,5 +75,5 @@ def register():
         return redirect(url_for('home'))
     if request.method == 'POST' and not form.validate():
         flash('Please correct the errors', 'error')
-    return render_template('account/register.html', form=form)
+    return render_template('account/register.html', form=form, upload=config['allow_upload'])
 

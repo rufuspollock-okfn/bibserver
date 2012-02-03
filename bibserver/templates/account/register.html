@@ -3,15 +3,36 @@
 {% block content %}
 {% from "_formhelpers.html" import render_field %}
 
-  <form method="post" action="{{url_for('account.register')}}">
-      {{ render_field(form.username, placeholder="myusername") }}
-      {{ render_field(form.email, placeholder="hello@mywebsite.org") }}
-      {{ render_field(form.password, placeholder="********") }}
-      {{ render_field(form.confirm, placeholder="********") }}
-    <div class="actions">
-      <input type="submit" value="Signup" class="btn primary" />
-      <input type="reset" value="Cancel" class="btn" />
+<div class="hero-unit">
+    <div class="row">
+        <p>It is necessary to register to use this service. This is only so that 
+        your collections can be allocated to you. There is no cost. You will never be emailed.</p>
     </div>
-  </form>
+    <div class="row">
+        <div class="span8">
+            <p></p>
+            <form method="post" action="{{url_for('account.register')}}">
+                {{ render_field(form.username, placeholder="myusername") }}
+                {{ render_field(form.email, placeholder="hello@mywebsite.org") }}
+                {{ render_field(form.password, placeholder="********") }}
+                {{ render_field(form.confirm, placeholder="********") }}
+                {{ render_field(form.about, placeholder="just a bit") }}
+                <div class="actions">
+                    <input type="submit" value="Signup" class="btn primary" />
+                    <input type="reset" value="Cancel" class="btn" />
+                </div>
+            </form>
+        </div>
+        <div class="span5">
+            <p>After registering and signing in, you can view your user information 
+            by clicking your username on the top right menu. This includes your API-KEY, 
+            which you will need if you want to send data via the API.</p>
+
+            <p>Don't get your username wrong! We can't change it! (If you do, just 
+            create a new account for yourself.)</p>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
