@@ -22,10 +22,9 @@ class JSONParser(BaseParser):
             if 'author' in record:
                 if ' and ' in record['author']:
                     record['author'] = record['author'].split(' and ')
-            # do any conversions to objects
-            for index,item in enumerate(record['author']):
-                if not isinstance(item,dict):
-                    record['author'][index] = {"name":item}
+                for index,item in enumerate(record['author']):
+                    if not isinstance(item,dict):
+                        record['author'][index] = {"name":item}
             # copy an citekey to cid
             if 'citekey' in record:
                 record['cid'] = record['citekey']

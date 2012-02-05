@@ -13,8 +13,8 @@
         identifier we assigned it:</p>
         <ul>
         {% for item in io.set() %}
-            <li>{{item['citekey']}} - 
-                <a href="/record/{{item['id']}}">{{item['id']}}</a>
+            <li>{{item['cid']}} - 
+                <a href="/{{item['owner']}}/{{item['collection']}}/{{item['id']}}">{{item['id']}}</a>
             </li>
         {% endfor %}
         </ul>
