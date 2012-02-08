@@ -11,6 +11,7 @@ from werkzeug import generate_password_hash, check_password_hash
 from flaskext.login import UserMixin
 
 from bibserver.config import config
+import bibserver.util
 
 def init_db():
     conn, db = get_conn()
@@ -41,7 +42,9 @@ def get_conn():
             conn.default_indices = config["default_indices"]
     return conn, db_name
 
-
+class InvalidDAOIDException(Exception):
+    pass
+    
 class DomainObject(UserDict.IterableUserDict):
     # set __type__ on inheriting class to determine elasticsearch object
     __type__ = None
@@ -74,6 +77,8 @@ class DomainObject(UserDict.IterableUserDict):
     @classmethod
     def get(cls, id_):
         '''Retrieve object by id.'''
+        if id_ is None:
+            return None
         conn, db = get_conn()
         try:
             out = conn.get(db, cls.__type__, id_)
@@ -195,10 +200,6 @@ class Collection(DomainObject):
     def __len__(self):
         res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})
         return res['hits']['total']
-        #conn, db = get_conn()
-        #collection_query = pyes.query.StringQuery(self.id, search_fields='collection')
-        #result = conn.search(collection_query.search(), db, 'record')
-        #return result.get('hits', {'total':0})['total']
     
 class Account(DomainObject, UserMixin):
     __type__ = 'account'
@@ -217,3 +218,32 @@ class Account(DomainObject, UserMixin):
         colls = [ Collection(**item['_source']) for item in colls['hits']['hits'] ]
         return colls
 
+class IngestTicketInvalidOwnerException(Exception):
+    pass
+class IngestTicketInvalidInit(Exception):
+    pass
+    
+class IngestTicket(DomainObject):
+    __type__ = 'ingestticket'
+    state_choices = ['new', 'downloading', 'downloaded', 'failed', 'populating_index', 'done']
+        
+    @classmethod
+    def submit(cls, **kwargs ):
+        'Creates a new Ingest Ticket, ready for processing by the ingest pipeline'
+        owner = kwargs.get('owner')
+        if not type(owner) in (str, unicode):
+            raise IngestTicketInvalidOwnerException()
+        owner_obj = Account.get(owner)
+        if owner_obj is None:
+            raise IngestTicketInvalidOwnerException()
+        kwargs['state'] = 'new'
+        for x in ('collection', 'format', 'source_url'):
+            if not kwargs.get(x):
+                raise IngestTicketInvalidInit('You need to supply the parameter %s' % x)
+        return cls.upsert(kwargs)
+
+    def __unicode__(self):
+        return u'%s/%s [%s] - %s' % (self['owner'], self['collection'], self['state'], self['_last_modified'])
+        
+    def __str__(self):
+        return unicode(self).encode('utf8')

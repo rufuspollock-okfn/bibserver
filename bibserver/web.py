@@ -181,9 +181,14 @@ class UploadView(MethodView):
     def post(self):
         if not auth.collection.create(current_user, None):
             abort(401)
-        importer = bibserver.importer.Importer(owner=current_user,requesturl=request.host_url)
         try:
-            collection, records = importer.upload_from_web(request)
+            collection = request.values.get('collection')
+            ticket = bibserver.dao.IngestTicket.submit(owner=current_user.id, 
+                                                       source_url=request.values.get("source"),
+                                                       format=request.values.get('format'),
+                                                       collection=request.values.get('collection'),
+                                                       description=request.values.get('description'),
+                                                       )
         except Exception, inst:
             msg = str(inst)
             if app.debug or app.config['TESTING']:
@@ -192,9 +197,9 @@ class UploadView(MethodView):
         else:
             # TODO: can we be sure that current_user is also the owner
             # e.g. perhaps user has imported to someone else's collection?
-            flash('Successfully created collection and imported %s records' %
-                    len(records))
-            return redirect('/%s/%s' % (current_user.id, collection['collection']))
+            flash(u'Successfully created ticket %s - ingest in progress' % ticket)
+            return redirect('/')
+            return redirect('/%s/%s' % (current_user.id, collection))
 
 # enable upload unless not allowed in config
 if config["allow_upload"] == "YES":

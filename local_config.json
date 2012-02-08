@@ -1,0 +1,9 @@
+{
+    # service
+    "service_name" : "Dev Async BibSoup",
+
+    # provide site address URL if you need to overwrite what it might otherwise be calculated to be
+    "SITE_URL" : "http://127.0.0.1:5000/",
+
+    "ELASTIC_SEARCH_DB" : "bibserverasync"
+}

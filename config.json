@@ -20,6 +20,10 @@
     "allow_edit" : "NO",
     "allow_display_config" : "YES",
 
+    # ingest settings
+    "download_cache_directory" : "download_cache",
+    "parserscrapers_plugin_directory" : "parserscrapers_plugins",
+    
     # set some display template configs
     "facet_topbar":false,
     "facet_sidebar":true,

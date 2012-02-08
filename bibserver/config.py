@@ -24,6 +24,10 @@ parent = os.path.dirname(here)
 config_path = os.path.join(parent, 'config.json')
 config = load_config(config_path)
 
+if os.path.exists(os.path.join(parent, 'local_config.json')):
+    local_config = load_config(os.path.join(parent, 'local_config.json'))
+    config.update(local_config)
+
 __all__ = ['config']
 
 

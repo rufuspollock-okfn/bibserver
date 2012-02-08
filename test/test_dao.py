@@ -18,6 +18,10 @@ class TestDAO:
         conn, db = dao.get_conn()
         conn.delete_index(TESTDB)
 
+    def test_get_None(self):
+        r = dao.Record.get(None)
+        assert r == None
+        
     def test_01_record(self):
         # Note, adding a one second negative delay to the timestamp
         # otherwise the comparison overflows when subtracting timestamps
@@ -51,7 +55,6 @@ class TestDAO:
         # should only be one collection for this account so this is ok
         account_colls = Fixtures.account.collections
         assert coll.id == account_colls[0].id, account_colls
-        
 
 class TestDAOQuery:
     @classmethod
