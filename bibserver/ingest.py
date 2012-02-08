@@ -1,4 +1,5 @@
-'''Independent running process.
+'''
+Independent running process.
 Handling uploads asynchronously.
 See: https://github.com/okfn/bibserver/wiki/AsyncUploadDesign
 '''
@@ -12,6 +13,29 @@ from datetime import datetime
 import traceback
 import bibserver.dao
 from bibserver.config import config
+
+def parse(ticket):
+    ticket['state'] = 'parsing'
+    ticket.save()
+    if 'data_md5' not in ticket:
+        ticket.fail('Attempt to parse ticket, but no data_md5 found')
+        return
+    p = PLUGINS.get(ticket['format'])
+    if not p:
+        ticket.fail('Parser plugin for format %s not found' % ticket['format'])
+    # Make sure the downloaded content is in the cache
+    download_cache_directory = config['download_cache_directory']
+    in_path = os.path.join(download_cache_directory, ticket['data_md5'])
+    if not os.path.exists(in_path):
+        ticket.fail('Downloaded content for %s not found' % in_path)
+        return        
+    json_data = subprocess.check_output(p['_path'], shell=True, stdin=open(in_path))
+    bibjson_cache_directory = config['bibjson_cache_directory']
+    out_path = os.path.join(bibjson_cache_directory, ticket['data_md5']) + '.bibjson'
+    open(out_path, 'wb').write(json_data)
+    ticket['state'] = 'parsed'
+    ticket.save()
+    
 
 def download(ticket):
     ticket['state'] = 'downloading'
@@ -32,7 +56,9 @@ def determine_action(ticket):
     'For the given ticket determine what the next action to take is based on the state'
     state = ticket['state']
     if state == 'new':
-        return download
+        download(ticket)
+    if state == 'downloaded':
+        parse(ticket)
 
 def get_tickets(state=None):
     "Get tickets with the given state"
@@ -55,6 +81,7 @@ def scan_parserscrapers(directory):
                     output = subprocess.check_output(filename+' -v', shell=True)
                     output_json = json.loads(output)
                     if output_json['bibserver_plugin']:
+                        output_json['_path'] = filename
                         found.append(output_json)
                 except subprocess.CalledProcessError:
                     pass
@@ -65,7 +92,7 @@ def scan_parserscrapers(directory):
     return found
     
 def init():
-    for d in ('download_cache_directory', 'parserscrapers_plugin_directory'):
+    for d in ('download_cache_directory', 'parserscrapers_plugin_directory', 'bibjson_cache_directory'):
         dd = config.get(d)
         if not os.path.exists(dd):
             os.mkdir(dd)
@@ -78,16 +105,19 @@ def run():
         sys.exit(2)
     plugins = scan_parserscrapers(parserscrapers_plugin_directory)
     if plugins:
-        print 'Plugins found:', ', '.join(ps['format'] for ps in plugins)
+        for ps in plugins:
+            PLUGINS[ps['format']] = ps
+        print 'Plugins found:', ', '.join(PLUGINS.keys())
     
-    for t in get_tickets('new'):
-        try:
-            download(t)
-        except:
-            err = (datetime.now().isoformat(), traceback.format_exc())
-            t['state'] = 'failed'
-            t['_exception'] = err
-            t.save()
+    for state in ('new', 'downloaded'):
+        for t in get_tickets(state):
+            try:
+                determine_action(t)
+            except:
+                exc = traceback.format_exc()
+                err = (datetime.now().isoformat(), exc)
+                t.fail(err)
+                sys.stderr.write(exc)
 
 def reset_all_tickets():
     for t in get_tickets():
@@ -95,6 +125,7 @@ def reset_all_tickets():
         t.save()
         
 if __name__ == '__main__':
+    PLUGINS = {}
     init()
     for x in sys.argv[1:]:
         if x == '-x':

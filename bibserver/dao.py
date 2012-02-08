@@ -241,6 +241,11 @@ class IngestTicket(DomainObject):
             if not kwargs.get(x):
                 raise IngestTicketInvalidInit('You need to supply the parameter %s' % x)
         return cls.upsert(kwargs)
+    
+    def fail(self, msg):
+        self['state'] = 'failed'
+        self['exception'] = msg
+        self.save()
 
     def __unicode__(self):
         try:

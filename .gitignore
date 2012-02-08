@@ -8,3 +8,4 @@ src*
 .Python
 doc/_build/*
 download_cache/*
+bibjson_cache/*

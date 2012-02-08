@@ -22,7 +22,7 @@ def main():
             "BibJSON_version": "0.81"}        
     for x in sys.argv[1:]:
         if x == '-v':
-            sys.stdout.write(json.dumps(conf))
+            sys.stdout.write(json.dumps(conf, indent=2))
             sys.exit()
     parse()
             

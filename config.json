@@ -22,6 +22,7 @@
 
     # ingest settings
     "download_cache_directory" : "download_cache",
+    "bibjson_cache_directory" : "bibjson_cache",
     "parserscrapers_plugin_directory" : "parserscrapers_plugins",
     
     # set some display template configs
