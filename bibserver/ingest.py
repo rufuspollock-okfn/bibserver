@@ -14,7 +14,6 @@ import bibserver.dao
 from bibserver.config import config
 
 def download(ticket):
-    import pdb; pdb.set_trace()
     ticket['state'] = 'downloading'
     ticket.save()
     r = requests.get(ticket['source_url'])
@@ -53,10 +52,15 @@ def scan_parserscrapers(directory):
             if is_ex:
                 # Try and call this executable with a -v to get a config
                 try:
-                    output = subprocess.check_output([filename, '-v'], shell=True)
+                    output = subprocess.check_output(filename+' -v', shell=True)
                     output_json = json.loads(output)
-                    found.append(output_json)
+                    if output_json['bibserver_plugin']:
+                        found.append(output_json)
                 except subprocess.CalledProcessError:
+                    pass
+                except ValueError:
+                    sys.stderr.write('Error parsing plugin output:\n')
+                    sys.stderr.write(output)
                     pass
     return found
     
@@ -72,7 +76,9 @@ def run():
     if not parserscrapers_plugin_directory:
         sys.stderr.write('Error: parserscrapers_plugin_directory config entry not found\n')
         sys.exit(2)
-    parserscrapers = scan_parserscrapers(parserscrapers_plugin_directory)
+    plugins = scan_parserscrapers(parserscrapers_plugin_directory)
+    if plugins:
+        print 'Plugins found:', ', '.join(ps['format'] for ps in plugins)
     
     for t in get_tickets('new'):
         try:
@@ -93,6 +99,9 @@ if __name__ == '__main__':
     for x in sys.argv[1:]:
         if x == '-x':
             reset_all_tickets()
-            sys.exit()
-    run()
+        if x == '-p':
+            for t in get_tickets():
+                print t
+    if len(sys.argv) == 1:
+        run()
     

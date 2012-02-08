@@ -7,3 +7,4 @@ src*
 .DS_Store
 .Python
 doc/_build/*
+download_cache/*

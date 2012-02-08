@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+
+'''
+BibJSON identity parser.
+Reads a valid BibJSON input on stdin, parses it as a JSON file.
+Performs some basic validation, and outputs the serialised BibJSON on stdout.
+'''
+
+import sys
+import json
+
+def parse():
+    data = sys.stdin.read()
+    json.loads(data)
+    sys.stdout.write(json.dumps(data))
+    
+def main():
+    conf = {"display_name": "BibJSON Identity Parser",
+            "format": "bibjson",
+            "contact": "openbiblio-dev@lists.okfn.org", 
+            "bibserver_plugin": True, 
+            "BibJSON_version": "0.81"}        
+    for x in sys.argv[1:]:
+        if x == '-v':
+            sys.stdout.write(json.dumps(conf))
+            sys.exit()
+    parse()
+            
+if __name__ == '__main__':
+    main()    

@@ -243,7 +243,10 @@ class IngestTicket(DomainObject):
         return cls.upsert(kwargs)
 
     def __unicode__(self):
-        return u'%s/%s [%s] - %s' % (self['owner'], self['collection'], self['state'], self['_last_modified'])
+        try:
+            return u'%s/%s,%s [%s] - %s' % (self['owner'], self['collection'], self['format'], self['state'], self['_last_modified'])
+        except:
+            return repr(self.data)
         
     def __str__(self):
         return unicode(self).encode('utf8')
