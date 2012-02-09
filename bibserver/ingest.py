@@ -94,7 +94,6 @@ def determine_action(ticket):
         ## TODO
         # For some reason saving the traceback to the ticket here is not saving the exception
         # The ticket does not record the 'failed' state, and remains in eg. a 'downloading' state
-        # Is this a bibserver.dao issue? See: test/test_ingest.py:test_download
         exc = traceback.format_exc()
         err = (datetime.now().isoformat(), exc)
         ticket.fail(err)
@@ -123,11 +122,10 @@ def scan_parserscrapers(directory):
                         output_json['_path'] = filename
                         found.append(output_json)
                 except subprocess.CalledProcessError:
-                    pass
+                    sys.stderr.write(traceback.format_exc())
                 except ValueError:
                     sys.stderr.write('Error parsing plugin output:\n')
                     sys.stderr.write(output)
-                    pass
     return found
     
 def init():
