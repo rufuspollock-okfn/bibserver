@@ -59,7 +59,11 @@ def home():
     # get list of available collections
     colls = None
     try:
-        result = bibserver.dao.Collection.query(q="*",sort={"_created":{"order":"desc"}})
+        # really bloody annoying error on update of bibsoup results in it refusing to order by _created
+        # have tried setting the mapping manually and by the default, but not working. works fine on test machine
+        # switching to unordered
+        #result = bibserver.dao.Collection.query(q="*",sort={"_created":{"order":"desc"}})
+        result = bibserver.dao.Collection.query(q="*")
         if result["hits"]["total"] != 0:
             colls = [bibserver.dao.Collection.get(i['_source']['id']) for i in result["hits"]["hits"]]
     except:
