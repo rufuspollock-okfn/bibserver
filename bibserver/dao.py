@@ -225,7 +225,6 @@ class IngestTicketInvalidInit(Exception):
     
 class IngestTicket(DomainObject):
     __type__ = 'ingestticket'
-    state_choices = ['new', 'downloading', 'downloaded', 'failed', 'populating_index', 'done']
         
     @classmethod
     def submit(cls, **kwargs ):

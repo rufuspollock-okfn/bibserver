@@ -13,10 +13,34 @@ from datetime import datetime
 import traceback
 import bibserver.dao
 from bibserver.config import config
+from bibserver.importer import Importer
 
 # Constant used to track installed plugins
 PLUGINS = {}
 
+def index(ticket):
+    ticket['state'] = 'populating_index'
+    ticket.save()
+    # Make sure the parsed content is in the cache
+    download_cache_directory = config['download_cache_directory']
+    in_path = os.path.join(download_cache_directory, ticket['data_md5']) + '.bibjson'
+    if not os.path.exists(in_path):
+        ticket.fail('Parsed content for %s not found' % in_path)
+        return
+    record_dicts = json.loads(open(in_path).read())
+    # TODO check for metadata section to update collection from this?
+    owner = bibserver.dao.Account.get(ticket['owner'])
+    importer = Importer(owner=owner)
+    collection = {
+        'label': ticket['collection'],
+        'description': ticket.get('description'),
+        'source': ticket['source_url'],
+        'format': ticket['format']
+    }
+    importer.index(collection, record_dicts)
+    ticket['state'] = 'done'
+    ticket.save()
+    
 def parse(ticket):
     ticket['state'] = 'parsing'
     ticket.save()
@@ -64,6 +88,8 @@ def determine_action(ticket):
             download(ticket)
         if state == 'downloaded':
             parse(ticket)
+        if state == 'parsed':
+            index(ticket)
     except:
         ## TODO
         # For some reason saving the traceback to the ticket here is not saving the exception
@@ -122,7 +148,7 @@ def init():
         print 'Plugins found:', ', '.join(PLUGINS.keys())
 
 def run():
-    for state in ('new', 'downloaded'):
+    for state in ('new', 'downloaded', 'parsed'):
         for t in get_tickets(state):
             determine_action(t)
 

@@ -247,7 +247,7 @@ class IOManager(object):
                         out += item.get('type','') + ": " + theid + "<br />"
                     return out
                 else:
-                    return ','.join([str(i) for i in res])
+                    return ','.join([unicode(i) for i in res])
             else:
                 return res
         return res

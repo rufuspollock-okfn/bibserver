@@ -42,7 +42,7 @@ class TestIngest:
                                     collection='test', format='json', source_url='')
 
     def test_download(self):
-        URL = 'https://raw.github.com/okfn/bibserver/asyncupload/test/data/sample.bibtex'
+        URL = 'https://raw.github.com/okfn/bibserver/master/test/data/sample.bibtex'
         t = dao.IngestTicket.submit(owner='tester', 
                                      collection='test', format='bibtex', source_url=URL)
         assert t['state'] == 'new'
@@ -66,7 +66,13 @@ class TestIngest:
         for t in tckts:
             assert 'tester/test,' in str(t)
 
-    def test_parse(self):
-        t = ingest.get_tickets('downloaded')[0]
-        ingest.determine_action(t)
+    def test_parse_and_index(self):
+        URL = 'https://raw.github.com/okfn/bibserver/master/test/data/sample.bibtex'
+        t = dao.IngestTicket.submit(owner='tester', 
+                                     collection=u'test', format='bibtex', source_url=URL)
+        ingest.determine_action(t); print t.data
+        assert t['state'] == 'downloaded'
+        ingest.determine_action(t); print t.data
         assert t['state'] == 'parsed'
+        ingest.determine_action(t); print t.data
+        assert t['state'] == 'done'
