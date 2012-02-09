@@ -11,8 +11,8 @@ import json
 
 def parse():
     data = sys.stdin.read()
-    json.loads(data)
-    sys.stdout.write(json.dumps(data))
+    data_json = json.loads(data)
+    sys.stdout.write(json.dumps(data_json, indent=2))
     
 def main():
     conf = {"display_name": "BibJSON Identity Parser",
@@ -22,7 +22,7 @@ def main():
             "BibJSON_version": "0.81"}        
     for x in sys.argv[1:]:
         if x == '-v':
-            sys.stdout.write(json.dumps(conf, indent=2))
+            sys.stdout.write(json.dumps(conf))
             sys.exit()
     parse()
             

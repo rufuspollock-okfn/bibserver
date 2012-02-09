@@ -14,6 +14,9 @@ import traceback
 import bibserver.dao
 from bibserver.config import config
 
+# Constant used to track installed plugins
+PLUGINS = {}
+
 def parse(ticket):
     ticket['state'] = 'parsing'
     ticket.save()
@@ -23,15 +26,16 @@ def parse(ticket):
     p = PLUGINS.get(ticket['format'])
     if not p:
         ticket.fail('Parser plugin for format %s not found' % ticket['format'])
+        return
     # Make sure the downloaded content is in the cache
     download_cache_directory = config['download_cache_directory']
     in_path = os.path.join(download_cache_directory, ticket['data_md5'])
     if not os.path.exists(in_path):
         ticket.fail('Downloaded content for %s not found' % in_path)
-        return        
+        return
     json_data = subprocess.check_output(p['_path'], shell=True, stdin=open(in_path))
-    bibjson_cache_directory = config['bibjson_cache_directory']
-    out_path = os.path.join(bibjson_cache_directory, ticket['data_md5']) + '.bibjson'
+    download_cache_directory = config['download_cache_directory']
+    out_path = os.path.join(download_cache_directory, ticket['data_md5']) + '.bibjson'
     open(out_path, 'wb').write(json_data)
     ticket['state'] = 'parsed'
     ticket.save()
@@ -54,11 +58,20 @@ def download(ticket):
     
 def determine_action(ticket):
     'For the given ticket determine what the next action to take is based on the state'
-    state = ticket['state']
-    if state == 'new':
-        download(ticket)
-    if state == 'downloaded':
-        parse(ticket)
+    try:
+        state = ticket['state']
+        if state == 'new':
+            download(ticket)
+        if state == 'downloaded':
+            parse(ticket)
+    except:
+        ## TODO
+        # For some reason saving the traceback to the ticket here is not saving the exception
+        # The ticket does not record the 'failed' state, and remains in eg. a 'downloading' state
+        # Is this a bibserver.dao issue? See: test/test_ingest.py:test_download
+        exc = traceback.format_exc()
+        err = (datetime.now().isoformat(), exc)
+        ticket.fail(err)
 
 def get_tickets(state=None):
     "Get tickets with the given state"
@@ -92,13 +105,12 @@ def scan_parserscrapers(directory):
     return found
     
 def init():
-    for d in ('download_cache_directory', 'parserscrapers_plugin_directory', 'bibjson_cache_directory'):
+    for d in ('download_cache_directory', 'parserscrapers_plugin_directory'):
         dd = config.get(d)
         if not os.path.exists(dd):
             os.mkdir(dd)
 
-def run():
-
+    # Scan for available parser/scraper plugins
     parserscrapers_plugin_directory = config.get('parserscrapers_plugin_directory')
     if not parserscrapers_plugin_directory:
         sys.stderr.write('Error: parserscrapers_plugin_directory config entry not found\n')
@@ -108,16 +120,11 @@ def run():
         for ps in plugins:
             PLUGINS[ps['format']] = ps
         print 'Plugins found:', ', '.join(PLUGINS.keys())
-    
+
+def run():
     for state in ('new', 'downloaded'):
         for t in get_tickets(state):
-            try:
-                determine_action(t)
-            except:
-                exc = traceback.format_exc()
-                err = (datetime.now().isoformat(), exc)
-                t.fail(err)
-                sys.stderr.write(exc)
+            determine_action(t)
 
 def reset_all_tickets():
     for t in get_tickets():
@@ -125,7 +132,6 @@ def reset_all_tickets():
         t.save()
         
 if __name__ == '__main__':
-    PLUGINS = {}
     init()
     for x in sys.argv[1:]:
         if x == '-x':
