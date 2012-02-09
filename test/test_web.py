@@ -23,9 +23,9 @@ class TestWeb(object):
         res = self.app.get('/')
         assert 'BibSoup' in res.data, res.data
 
-    def test_content(self):
-        res = self.app.get('/content/howto')
-        assert 'This website is an example' in res.data, res.data
+    def test_faq(self):
+        res = self.app.get('/faq')
+        assert 'This service is an example' in res.data, res.data
 
     def test_record(self):
         res = self.app.get('/' + Fixtures.account.id + '/' + self.record["collection"] + '/' + self.record["cid"])
