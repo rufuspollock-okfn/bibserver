@@ -34,26 +34,8 @@
           <input type="hidden" name="q" value="{{io.get_q()}}" />
         <input type="hidden" name="showkeys" value="{{io.get_showkeys()}}" />
         <input type="hidden" name="showfacets" value="{{io.get_showfacets()}}" />
-    <select class="small" name="from" id="page_select">
 
-{% for i in range(0, io.paging_range() ) %}
-    {% if (i * io.page_size()) == io.start()|int %}
-    <option value="{{i * io.page_size()}}" selected>
-    {% else %}
-    <option value="{{i * io.page_size()}}">
-    {% endif %}
-    {{i * io.page_size() + 1}} - 
-    {% if i * io.page_size() + 1 + io.page_size() < io.numFound() %}
-        {{i * io.page_size() + io.page_size()}}
-    {% else %}
-        {{io.numFound()}}
-    {% endif %}
-    </option>
-{% endfor %}
-    
-    </select>
-
-    <span class="io_total">of {{io.numFound()}}.</span>
+    <span class="io_total">{{io.start()|int + 1}} to {{io.start()|int + io.page_size()|int}} of {{io.numFound()}}.</span>
             
     <!-- page size -->
     Show 

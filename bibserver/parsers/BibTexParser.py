@@ -219,6 +219,9 @@ class BibTexParser(BaseParser):
 
     # some methods to tidy and format keys and vals
 
+    # this parser was developed from an original one written by Jim Pitman pitman@stat.berkeley.edu
+    # the following 5 methods are fairly similar to the ones found in the original parser
+
     def strip_quotes(self, val):
         """Strip double quotes enclosing string"""
         val = val.strip()

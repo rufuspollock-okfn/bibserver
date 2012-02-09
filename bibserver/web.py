@@ -59,7 +59,7 @@ def home():
     # get list of available collections
     colls = None
     try:
-        result = bibserver.dao.Collection.query(q="*",sort={"created":{"order":"desc"}})
+        result = bibserver.dao.Collection.query(q="*",sort={"_created":{"order":"desc"}})
         if result["hits"]["total"] != 0:
             colls = [bibserver.dao.Collection.get(i['_source']['id']) for i in result["hits"]["hits"]]
     except:
@@ -76,9 +76,9 @@ def account(user):
     return redirect('/account/login')
 
 
-@app.route('/content/<path:path>')
-def content(path):
-    return render_template('home/content.html', upload=config["allow_upload"], page=path)
+@app.route('/faq')
+def content():
+    return render_template('home/faq.html', upload=config["allow_upload"])
 
 @app.route('/collections')
 @app.route('/collections/')
