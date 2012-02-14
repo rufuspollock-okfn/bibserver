@@ -86,6 +86,7 @@ def determine_action(ticket):
     'For the given ticket determine what the next action to take is based on the state'
     try:
         state = ticket['state']
+        print 'Trying:', ticket['id'], ticket['state'],
         if state == 'new':
             download(ticket)
         if state == 'downloaded':
@@ -99,6 +100,7 @@ def determine_action(ticket):
         exc = traceback.format_exc()
         err = (datetime.now().isoformat(), exc)
         ticket.fail(err)
+    print '...', ticket['state']
 
 def get_tickets(state=None):
     "Get tickets with the given state"
@@ -154,12 +156,13 @@ def run():
 
 def reset_all_tickets():
     for t in get_tickets():
+        print 'Resetting', t['id']
         t['state'] = 'new'
         t.save()
 
 @app.route('/ticket/')
 @app.route('/ticket/<ticket_id>')
-def ticket(ticket_id=None):
+def view_ticket(ticket_id=None):
     ingest_tickets = get_tickets()
     if ticket_id:
         t = bibserver.dao.IngestTicket.get(ticket_id)
