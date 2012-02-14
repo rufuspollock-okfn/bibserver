@@ -51,7 +51,7 @@
         {
             "key":"author.name",
             "order":"term",
-            "size":1000,
+            "size":500,
             "display_name":"author"
         },
         {
