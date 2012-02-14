@@ -14,6 +14,8 @@ import traceback
 import bibserver.dao
 from bibserver.config import config
 from bibserver.importer import Importer
+from bibserver.core import app
+from flask import render_template, make_response, abort, send_from_directory
 
 # Constant used to track installed plugins
 PLUGINS = {}
@@ -154,7 +156,27 @@ def reset_all_tickets():
     for t in get_tickets():
         t['state'] = 'new'
         t.save()
-        
+
+@app.route('/ticket/')
+@app.route('/ticket/<ticket_id>')
+def ticket(ticket_id=None):
+    ingest_tickets = get_tickets()
+    if ticket_id:
+        t = bibserver.dao.IngestTicket.get(ticket_id)
+    elif ingest_tickets:
+        t = ingest_tickets[0]
+    else:
+        t = None
+    return render_template('tickets/view.html', ticket=t, ingest_tickets = ingest_tickets)
+
+@app.route('/ingest/<md5sum>')
+def serve(md5sum):
+    path = config['download_cache_directory']
+    if not path.startswith('/'):
+        path = os.path.join(os.getcwd(), path)
+    
+    return send_from_directory(path, md5sum)
+    
 if __name__ == '__main__':
     init()
     for x in sys.argv[1:]:

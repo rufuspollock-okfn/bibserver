@@ -46,5 +46,22 @@
 
     </form>
 </div>
+<div>
+    <h2><a href="#" id="ingest_tickets_toggle">List of Upload Tickets</a></h2>
+    <div id="ingest_tickets" style="display:none"><ul>
+    {% for t in ingest_tickets %}
+    <li><a href="/ticket/{{t.id}}">{{t}}</a></li>
+    {% endfor %}</ul></div>
+    <script type="text/javascript" charset="utf-8">
+        jQuery('#ingest_tickets_toggle').toggle(
+          function(event) {
+              jQuery('#ingest_tickets').show();
+          },
+          function(event) {
+              jQuery('#ingest_tickets').fadeOut('fast');
+          }
+        );
+    </script>
+</div>
 {% endblock %}
 

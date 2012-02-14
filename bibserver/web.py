@@ -19,6 +19,7 @@ from bibserver.parser import Parser
 from bibserver.config import config
 import bibserver.iomanager
 import bibserver.importer
+import bibserver.ingest
 from bibserver.core import app, login_manager
 from bibserver.view.account import blueprint as account
 from bibserver import auth
@@ -180,7 +181,9 @@ class UploadView(MethodView):
             return redirect('/account/login')
         if request.values.get("source") is not None:
             return self.post()
-        return render_template('upload.html', upload=config["allow_upload"])
+            
+        return render_template('upload.html', upload=config["allow_upload"], 
+                               ingest_tickets = bibserver.ingest.get_tickets())
 
     def post(self):
         if not auth.collection.create(current_user, None):
@@ -199,11 +202,7 @@ class UploadView(MethodView):
                 raise
             return render_template('upload.html', upload=config["allow_upload"], msg=msg)
         else:
-            # TODO: can we be sure that current_user is also the owner
-            # e.g. perhaps user has imported to someone else's collection?
-            flash(u'Successfully created ticket %s - ingest in progress' % ticket)
-            return redirect('/')
-            return redirect('/%s/%s' % (current_user.id, collection))
+            return redirect('/ticket/'+ticket.id)
 
 # enable upload unless not allowed in config
 if config["allow_upload"] == "YES":
