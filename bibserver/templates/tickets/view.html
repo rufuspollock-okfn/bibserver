@@ -2,18 +2,30 @@
 
 {% block content %}
 <h1>Uploads</h1>
-<p>{{ticket}}</p>
-<p>The URL: <a href="{{ticket.source_url}}">{{ticket.source_url}}</a> 
-{% if ticket.data_md5 %}produced the <a href="/ingest/{{ticket.data_md5}}">data</a>{% endif %} 
-    </p>
-<pre>{{ticket.data}}</pre>
-{% if ticket.error %}
+{% if ticket %}
+    
+<p>{{ticket}}{% if ticket.description %}
+<span style="font-style: italic">- {{ticket.description}}</span>
+{% endif %} 
+</p>
+<p>The URL: <a href="{{ticket.source_url}}">{{ticket.source_url}}</a>
+{% if ticket.data_md5 %}produced <a href="/ticket/{{ticket.id}}/data">this data</a>{% endif %}
+{% if ticket.data_json %}which was parsed to <a href="/ticket/{{ticket.id}}/bibjson">BibJSON</a>{% endif %}
+</p>
+{% if ticket.state == 'failed' %}
     <div>
-        <h2>Has an error condition</h2>
-        <p>{{ticket.error}}</p>
+        <h4>Has an error condition</h4>
+        
+        {% for e in ticket.exception %}
+            <ul>{{e.0}} <pre>{{e.1}}</pre></ul>
+        {% endfor %}
+        
     </div>
 {% endif %}
 
+{% endif %}
+
+{% if ingest_tickets|length > 1 %}
 <div>
     <h3><a href="/ticket/" id="ingest_tickets_toggle">All Tickets</a></h3>
     <div id="ingest_tickets"><ul>
@@ -23,5 +35,6 @@
     {% endif %}
     {% endfor %}</ul></div>
 </div>
+{% endif %}
 
 {% endblock %}

@@ -57,10 +57,10 @@ class Importer(object):
                 src = 'http://' + src
             source = urllib2.unquote(src)
             fileobj = urllib2.urlopen(source)
-            format = self.findformat(source)
+            format = findformat(source)
         elif request.files.get('upfile'):
             fileobj = request.files.get('upfile')
-            format = self.findformat(fileobj.filename)
+            format = findformat(fileobj.filename)
         elif request.json:
             # see flask repo for further info
             # https://github.com/mitsuhiko/flask/issues/110
@@ -95,13 +95,6 @@ class Importer(object):
         collection, records = self.upload(fileobj, format, collection)
         return (collection, records)
 
-    def findformat(self,filename):
-        if filename.endswith(".json"): return "json"
-        if filename.endswith(".bibtex"): return "bibtex"
-        if filename.endswith(".bib"): return "bibtex"
-        if filename.endswith(".csv"): return "csv"
-        return "bibtex"
-    
     def bulk_upload(self, colls_list):
         '''upload a list of collections from provided file locations.
 
@@ -160,6 +153,7 @@ class Importer(object):
         collection.save()
 
         for rec in record_dicts:
+            if not type(rec) is dict: continue
             rec['owner'] = collection['owner']
             if 'collection' in rec:
                 if collection['collection'] != rec['collection']:
@@ -182,4 +176,10 @@ class Importer(object):
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
         return collection, records
 
+def findformat(filename):
+    if filename.endswith(".json"): return "json"
+    if filename.endswith(".bibtex"): return "bibtex"
+    if filename.endswith(".bib"): return "bibtex"
+    if filename.endswith(".csv"): return "csv"
+    return "bibtex"
 

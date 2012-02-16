@@ -22,31 +22,32 @@ class TestIngest:
             os.unlink(os.path.join('test/data/downloads', x))
         os.rmdir('test/data/downloads')
 
-    @nose.tools.raises(dao.IngestTicketInvalidInit)
+    @nose.tools.raises(ingest.IngestTicketInvalidInit)
     def test_params(self):
-        t = dao.IngestTicket.submit(owner='tester')
+        t = ingest.IngestTicket(owner='tester')
 
-    @nose.tools.raises(dao.IngestTicketInvalidOwnerException)
+    @nose.tools.raises(ingest.IngestTicketInvalidOwnerException)
     def test_owner_none(self):
-        t = dao.IngestTicket.submit(owner=None, 
+        t = ingest.IngestTicket(owner=None, 
                                     collection='test', format='json', source_url='')
 
-    @nose.tools.raises(dao.IngestTicketInvalidOwnerException)
+    @nose.tools.raises(ingest.IngestTicketInvalidOwnerException)
     def test_owner_valid_01(self):
-        t = dao.IngestTicket.submit(owner='moocow',
+        t = ingest.IngestTicket(owner='moocow',
                                     collection='test', format='json', source_url='')
 
-    @nose.tools.raises(dao.IngestTicketInvalidOwnerException)
+    @nose.tools.raises(ingest.IngestTicketInvalidOwnerException)
     def test_owner_valid_02(self):
-        t = dao.IngestTicket.submit(owner={}, 
+        t = ingest.IngestTicket(owner={}, 
                                     collection='test', format='json', source_url='')
 
     def test_download(self):
-        URL = 'https://raw.github.com/okfn/bibserver/master/test/data/sample.bibtex'
-        t = dao.IngestTicket.submit(owner='tester', 
+        # Note: the URL intentionally has a space at the end
+        URL = 'https://raw.github.com/okfn/bibserver/master/test/data/sample.bibtex '
+        t = ingest.IngestTicket(owner='tester', 
                                      collection='test', format='bibtex', source_url=URL)
         assert t['state'] == 'new'
-        
+        t.save()
         assert len(ingest.get_tickets()) == 1
         
         ingest.determine_action(t)
@@ -54,7 +55,7 @@ class TestIngest:
         assert t['data_md5'] == 'b61489f0a0f32a26be4c8cfc24574c0e'
 
     def test_failed_download(self):
-        t = dao.IngestTicket.submit(source_url='bogus_url',
+        t = ingest.IngestTicket(source_url='bogus_url',
                                     owner='tester', collection='test', format='json', )
         
         ingest.determine_action(t)
@@ -62,17 +63,17 @@ class TestIngest:
         
     def test_get_tickets(self):
         tckts = ingest.get_tickets()
-        assert len(tckts) == 2
+        assert len(tckts) > 0
         for t in tckts:
             assert 'tester/test,' in str(t)
 
     def test_parse_and_index(self):
         URL = 'https://raw.github.com/okfn/bibserver/master/test/data/sample.bibtex'
-        t = dao.IngestTicket.submit(owner='tester', 
+        t = ingest.IngestTicket(owner='tester', 
                                      collection=u'test', format='bibtex', source_url=URL)
-        ingest.determine_action(t); print t.data
+        ingest.determine_action(t); print repr(t)
         assert t['state'] == 'downloaded'
-        ingest.determine_action(t); print t.data
+        ingest.determine_action(t); print repr(t)
         assert t['state'] == 'parsed'
-        ingest.determine_action(t); print t.data
+        ingest.determine_action(t); print repr(t)
         assert t['state'] == 'done'

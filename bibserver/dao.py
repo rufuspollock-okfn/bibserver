@@ -113,6 +113,7 @@ class DomainObject(UserDict.IterableUserDict):
         If no id is supplied an uuid id will be created before saving.'''
         conn, db = get_conn()
         for data in dataset:
+            if not type(data) is dict: continue
             if 'id' in data:
                 id_ = data['id']
             else:
@@ -217,40 +218,3 @@ class Account(DomainObject, UserMixin):
             })
         colls = [ Collection(**item['_source']) for item in colls['hits']['hits'] ]
         return colls
-
-class IngestTicketInvalidOwnerException(Exception):
-    pass
-class IngestTicketInvalidInit(Exception):
-    pass
-    
-class IngestTicket(DomainObject):
-    __type__ = 'ingestticket'
-        
-    @classmethod
-    def submit(cls, **kwargs ):
-        'Creates a new Ingest Ticket, ready for processing by the ingest pipeline'
-        owner = kwargs.get('owner')
-        if not type(owner) in (str, unicode):
-            raise IngestTicketInvalidOwnerException()
-        owner_obj = Account.get(owner)
-        if owner_obj is None:
-            raise IngestTicketInvalidOwnerException()
-        kwargs['state'] = 'new'
-        for x in ('collection', 'format', 'source_url'):
-            if not kwargs.get(x):
-                raise IngestTicketInvalidInit('You need to supply the parameter %s' % x)
-        return cls.upsert(kwargs)
-    
-    def fail(self, msg):
-        self['state'] = 'failed'
-        self['exception'] = msg
-        self.save()
-
-    def __unicode__(self):
-        try:
-            return u'%s/%s,%s [%s] - %s' % (self['owner'], self['collection'], self['format'], self['state'], self['_last_modified'])
-        except:
-            return repr(self.data)
-        
-    def __str__(self):
-        return unicode(self).encode('utf8')

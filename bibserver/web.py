@@ -190,12 +190,26 @@ class UploadView(MethodView):
             abort(401)
         try:
             collection = request.values.get('collection')
-            ticket = bibserver.dao.IngestTicket.submit(owner=current_user.id, 
-                                                       source_url=request.values.get("source"),
-                                                       format=request.values.get('format'),
-                                                       collection=request.values.get('collection'),
-                                                       description=request.values.get('description'),
-                                                       )
+            format=request.values.get('format')
+            if request.files.get('upfile'):
+                fileobj = request.files.get('upfile')
+                format = bibserver.importer.findformat(fileobj.filename)
+            
+            ticket = bibserver.ingest.IngestTicket(owner=current_user.id, 
+                                       source_url=request.values.get("source"),
+                                       format=format,
+                                       collection=request.values.get('collection'),
+                                       description=request.values.get('description'),
+                                       )
+            
+            # If the user is uploading a file, update the ticket with the 'downloaded' file
+            # And correct source
+            if request.files.get('upfile'):
+                data = fileobj.read()
+                ticket['data_md5'] = bibserver.ingest.store_data_in_cache(data)
+                ticket['source_url'] = config['SITE_URL'] + '/ticket/%s/data' % ticket.id
+                ticket['state'] = 'downloaded'
+            ticket.save()
         except Exception, inst:
             msg = str(inst)
             if app.debug or app.config['TESTING']:

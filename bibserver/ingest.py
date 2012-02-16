@@ -4,7 +4,7 @@ Handling uploads asynchronously.
 See: https://github.com/okfn/bibserver/wiki/AsyncUploadDesign
 '''
 
-import os, stat, sys
+import os, stat, sys, uuid
 import subprocess
 import requests
 import hashlib
@@ -19,6 +19,65 @@ from flask import render_template, make_response, abort, send_from_directory
 
 # Constant used to track installed plugins
 PLUGINS = {}
+
+class IngestTicketInvalidOwnerException(Exception):
+    pass
+class IngestTicketInvalidInit(Exception):
+    pass
+class IngestTicketInvalidId(Exception):
+    pass
+    
+class IngestTicket(dict):
+    def __init__(self,*args,**kwargs):
+        'Creates a new Ingest Ticket, ready for processing by the ingest pipeline'
+        if '_id' not in kwargs:
+            kwargs['_id'] = uuid.uuid4().hex
+        if 'state' not in kwargs:
+            kwargs['state'] = 'new'
+        if '_created' not in kwargs:
+            kwargs['_created'] = datetime.now().isoformat()
+        owner = kwargs.get('owner')
+        if not type(owner) in (str, unicode):
+            raise IngestTicketInvalidOwnerException()
+        owner_obj = bibserver.dao.Account.get(owner)
+        if owner_obj is None:
+            raise IngestTicketInvalidOwnerException()
+        for x in ('collection', 'format'):
+            if not kwargs.get(x):
+                raise IngestTicketInvalidInit('You need to supply the parameter %s' % x)
+        dict.__init__(self,*args,**kwargs)
+    
+    @classmethod
+    def load(cls, ticket_id):
+        filename = os.path.join(config['download_cache_directory'], ticket_id)  + '.ticket'
+        if not os.path.exists(filename):
+            raise IngestTicketInvalidId(ticket_id)
+        data = json.loads(open(filename).read())
+        return cls(**data)
+        
+    def save(self):
+        self['_last_modified'] = datetime.now().isoformat()
+        filename = os.path.join(config['download_cache_directory'], self['_id'])  + '.ticket'
+        open(filename, 'wb').write(json.dumps(self))
+        
+    def fail(self, msg):
+        self['state'] = 'failed'
+        err = (datetime.now().isoformat(), msg)
+        self.setdefault('exception', []).append(err)
+        self.save()
+
+    def __unicode__(self):
+        try:
+            return u'%s/%s,%s [%s] - %s' % (self['owner'], self['collection'], self['format'], self['state'], self['_last_modified'])
+        except:
+            return repr(self)
+        
+    def __str__(self):
+        return unicode(self).encode('utf8')
+        
+    @property
+    def id(self):
+        return self['_id']
 
 def index(ticket):
     ticket['state'] = 'populating_index'
@@ -60,24 +119,36 @@ def parse(ticket):
         ticket.fail('Downloaded content for %s not found' % in_path)
         return
     json_data = subprocess.check_output(p['_path'], shell=True, stdin=open(in_path))
-    download_cache_directory = config['download_cache_directory']
-    out_path = os.path.join(download_cache_directory, ticket['data_md5']) + '.bibjson'
+    ticket['data_json'] = ticket['data_md5'] + '.bibjson'
+    download_cache_directory = config['download_cache_directory']    
+    out_path = os.path.join(download_cache_directory, ticket['data_json'])
     open(out_path, 'wb').write(json_data)
     ticket['state'] = 'parsed'
     ticket.save()
     
-
-def download(ticket):
-    ticket['state'] = 'downloading'
-    ticket.save()
-    r = requests.get(ticket['source_url'])
-    r.raise_for_status()
-    md5sum = hashlib.md5(r.content).hexdigest()
+def store_data_in_cache(data):
+    md5sum = hashlib.md5(data).hexdigest()
     download_cache_directory = config['download_cache_directory']
     out_path = os.path.join(download_cache_directory, md5sum)
     if not os.path.exists(out_path):
-        open(out_path, 'wb').write(r.content)
-    ticket['data_md5'] = md5sum
+        open(out_path, 'wb').write(data)
+    return md5sum
+    
+def download(ticket):
+    ticket['state'] = 'downloading'
+    ticket.save()
+    url = ticket['source_url'].strip()
+    r = requests.get(url)
+    content_type = r.headers['content-type']
+    r.raise_for_status()
+    data = r.content
+    if len(data) < 1:
+        ticket.fail('Data is empty, HTTP status code %s ' % r.status_code)
+        return
+        
+    ticket['data_md5'] = store_data_in_cache(data)
+    ticket['data_content_type'] = content_type
+
     ticket['state'] = 'downloaded'
     ticket.save()
     
@@ -86,7 +157,7 @@ def determine_action(ticket):
     'For the given ticket determine what the next action to take is based on the state'
     try:
         state = ticket['state']
-        print 'Trying:', ticket['id'], ticket['state'],
+        print 'Trying:', ticket['_id'], ticket['state'],
         if state == 'new':
             download(ticket)
         if state == 'downloaded':
@@ -97,18 +168,18 @@ def determine_action(ticket):
         ## TODO
         # For some reason saving the traceback to the ticket here is not saving the exception
         # The ticket does not record the 'failed' state, and remains in eg. a 'downloading' state
-        exc = traceback.format_exc()
-        err = (datetime.now().isoformat(), exc)
-        ticket.fail(err)
+        ticket.fail(traceback.format_exc())
     print '...', ticket['state']
 
 def get_tickets(state=None):
     "Get tickets with the given state"
-    if state:
-        q = bibserver.dao.IngestTicket.query(terms={'state':state})
-    else:
-        q = bibserver.dao.IngestTicket.query()
-    return [bibserver.dao.IngestTicket(**x) for x in q['hits']['hits']]
+    buf = []
+    for f in os.listdir(config['download_cache_directory']):
+        if f.endswith('.ticket'):
+            t = IngestTicket.load(f[:-7])
+            if not state or (state == t['state']):
+                buf.append(t)
+    return buf
     
 def scan_parserscrapers(directory):
     "Scan the specified directory for valid parser/scraper executables"
@@ -156,7 +227,7 @@ def run():
 
 def reset_all_tickets():
     for t in get_tickets():
-        print 'Resetting', t['id']
+        print 'Resetting', t['_id']
         t['state'] = 'new'
         t.save()
 
@@ -165,20 +236,32 @@ def reset_all_tickets():
 def view_ticket(ticket_id=None):
     ingest_tickets = get_tickets()
     if ticket_id:
-        t = bibserver.dao.IngestTicket.get(ticket_id)
+        try:
+            t = IngestTicket.load(ticket_id)
+        except bibserver.ingest.IngestTicketInvalidId:
+            abort(404)
     elif ingest_tickets:
         t = ingest_tickets[0]
     else:
         t = None
     return render_template('tickets/view.html', ticket=t, ingest_tickets = ingest_tickets)
 
-@app.route('/ingest/<md5sum>')
-def serve(md5sum):
+@app.route('/ticket/<ticket_id>/<payload>')
+def serve(ticket_id, payload):
+    t = IngestTicket.load(ticket_id)
+    if payload == 'data':
+        filename = t['data_md5']
+    elif payload == 'bibjson':
+        filename = t['data_json']
     path = config['download_cache_directory']
     if not path.startswith('/'):
         path = os.path.join(os.getcwd(), path)
-    
-    return send_from_directory(path, md5sum)
+    response = send_from_directory(path, filename)
+    if payload == 'bibjson':
+        response.headers['Content-Type'] = 'application/json'
+    else:
+        response.headers['Content-Type'] = t.get('data_content_type', 'text/plain')
+    return response
     
 if __name__ == '__main__':
     init()
