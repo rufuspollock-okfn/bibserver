@@ -2,12 +2,6 @@
     # service
     "service_name" : "BibSoup",
 
-    # provide site address URL if you need to overwrite what it might otherwise be calculated to be
-    #"SITE_URL" : "http://bibsoup.net/"
-
-    # base URL of search service
-    "base_url" : "/search",
-
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     "ELASTIC_SEARCH_DB" : "bibserver",
@@ -15,44 +9,38 @@
     # bibserver functionality settings
     # allow_upload - set to "NO" if you dont want frontend upload to your bibserver install
     # allow_edit - Yes / No for edit of individual records in bibsoup
-    # allow upload user to override display config
-    "allow_upload" : "YES",
-    "allow_edit" : "NO",
-    "allow_display_config" : "YES",
+    "allow_upload" : true,
+    "allow_edit" : true,
 
-    # set some display template configs
-    "facet_topbar":false,
-    "facet_sidebar":true,
-
-    # default results and paging options
-    "results_per_page" : 10,
-    "results_per_page_options" : [10, 20, 50, 100],    
-    
-    # The fields for which faceting should be made available on, and their default settings
+    # The default fields and settings for which faceting should be made available on
     # these can be nested fields, e.g. links.url
-    "facet_fields" : [
+    "search_facet_fields" : [
         {
-            "key":"collection",
+            "field":"collection.exact",
             "order":"term",
-            "size":200
+            "size":200,
+            "display":"collection"
         },
         {
-            "key":"type",
-            "order":"count"
+            "field":"type.exact",
+            "order":"count",
+            "display":"type"
         },
         {
-            "key":"journal.name",
-            "display_name":"journal"
+            "field":"journal.name.exact",
+            "display":"journal"
         },
         {
-            "key":"author.name",
+            "field":"author.name.exact",
             "order":"term",
             "size":500,
-            "display_name":"author"
+            "display":"author"
         },
         {
-            "key":"year",
-            "order":"reverse_term"
+            "field":"year.exact",
+            "size":100,
+            "order":"reverse_term",
+            "display":"year"
         }
     ],
 
@@ -60,66 +48,61 @@
     # a list of lists. each list represents a line on the display.
     # in each line, there are objects for each key to include on the line.
     # must specify the key, and optional "pre" and "post" params for displaying round it
-    "result_display" : [
+    "search_result_display" : [
         [
             {
-                "pre": "",
-                "key": "author.name"
+                "field": "author.name"
             },
             {
                 "pre": "(",
-                "key": "year",
+                "field": "year",
                 "post": ")"
             }
         ],
         [
             {
                 "pre": "<strong>",
-                "key": "title",
+                "field": "title",
                 "post": "</strong>"
             }
         ],
         [
             {
-                "key": "howpublished"
+                "field": "howpublished"
             },
             {
                 "pre": "in <em>",
-                "key": "journal.name",
+                "field": "journal.name",
                 "post": "</em>,"
             },
             {
                 "pre": "<em>",
-                "key": "booktitle",
+                "field": "booktitle",
                 "post": "</em>,"
             },
             {
                 "pre": "vol. ",
-                "key": "volume",
+                "field": "volume",
                 "post": ","
             },
             {
-                "key": "pages"
+                "pre": "p. ",
+                "field": "pages"
             },
             {
-                "key": "publisher"
+                "field": "publisher"
             }
         ],
         [
             {
-                "key": "link"
+                "field": "link.url"
             }
         ]
     ],
     
-    # functions to perform on particular result fields on display - these are defined in iomanager
-    "display_value_functions" : {
-        "author.name":{"authorify":{}},
-        "collection": {"collectionify":{}},
-        "link": {"bibsoup_links":{}}
-    },
-
     # a dict of the ES mappings. identify by name, and include name as first object name
+    # and identifier for how non-analyzed fields for faceting are differentiated in the mappings
+    "facet_field" : ".exact",
     "mappings" : {
         "record" : {
             "record" : {
@@ -154,9 +137,6 @@
                 ]
             }
         }
-    },
-
-    # identifier for how non-analyzed fields for faceting are differenetiated in the mappings
-    "facet_field" : ".exact"
+    }
         
 }

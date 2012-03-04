@@ -3,7 +3,7 @@ import uuid
 from flask import Blueprint, request, url_for, flash, redirect
 from flask import render_template
 from flaskext.login import login_user, logout_user
-from flaskext.wtf import Form, TextField, PasswordField, validators, ValidationError
+from flaskext.wtf import Form, TextField, TextAreaField, PasswordField, validators, ValidationError
 
 from bibserver.config import config
 import bibserver.dao as dao
@@ -53,12 +53,12 @@ def existscheck(form, field):
 class RegisterForm(Form):
     username = TextField('Username', [validators.Length(min=3, max=25),existscheck])
     email = TextField('Email Address', [validators.Length(min=3, max=35), validators.Email(message='Must be a valid email address')])
-    password = PasswordField('New Password', [
+    password = PasswordField('Password', [
         validators.Required(),
         validators.EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
-    about = TextField('Describe yourself')
+    about = TextAreaField('Describe yourself')
 
 @blueprint.route('/register', methods=['GET', 'POST'])
 def register():
