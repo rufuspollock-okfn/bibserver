@@ -21,7 +21,7 @@ def main():
             "bibserver_plugin": True, 
             "BibJSON_version": "0.81"}        
     for x in sys.argv[1:]:
-        if x == '-v':
+        if x == '-bibserver':
             sys.stdout.write(json.dumps(conf))
             sys.exit()
     parse()

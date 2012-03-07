@@ -2659,7 +2659,10 @@ class BibTexParser(object):
 def parse():
     parser = BibTexParser(sys.stdin)
     records, metadata = parser.parse()
-    sys.stdout.write(json.dumps(records))
+    if len(records) > 0:
+        sys.stdout.write(json.dumps(records))
+    else:
+        sys.stderr.write('Zero records were parsed from the data')
     
 def main():
     conf = {"display_name": "BibTex Parser",
@@ -2668,7 +2671,7 @@ def main():
             "bibserver_plugin": True, 
             "BibJSON_version": "0.81"}        
     for x in sys.argv[1:]:
-        if x == '-v':
+        if x == '-bibserver':
             sys.stdout.write(json.dumps(conf))
             sys.exit()
     parse()
