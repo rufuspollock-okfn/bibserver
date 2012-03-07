@@ -4,7 +4,7 @@ Handling uploads asynchronously.
 See: https://github.com/okfn/bibserver/wiki/AsyncUploadDesign
 '''
 
-import os, stat, sys, uuid
+import os, stat, sys, uuid, time
 import subprocess
 import requests
 import hashlib
@@ -221,9 +221,17 @@ def init():
         print 'Plugins found:', ', '.join(PLUGINS.keys())
 
 def run():
-    for state in ('new', 'downloaded', 'parsed'):
-        for t in get_tickets(state):
-            determine_action(t)
+    last_flash = time.time() - 500
+    count = 0
+    while True:
+        for state in ('new', 'downloaded', 'parsed'):
+            for t in get_tickets(state):
+                determine_action(t)
+                count += 1
+        time.sleep(15)
+        if time.time() - last_flash > (5 * 60):
+            sys.stdout.write('Ingest pipeline %s performed %s actions\n' % (time.ctime(), count))
+            last_flash = time.time()
 
 def reset_all_tickets():
     for t in get_tickets():
