@@ -6,6 +6,7 @@ See: https://github.com/okfn/bibserver/wiki/AsyncUploadDesign
 
 import os, stat, sys, uuid, time
 import subprocess
+from cStringIO import StringIO
 import requests
 import hashlib
 import json
@@ -84,11 +85,14 @@ def index(ticket):
     ticket.save()
     # Make sure the parsed content is in the cache
     download_cache_directory = config['download_cache_directory']
-    in_path = os.path.join(download_cache_directory, ticket['data_md5']) + '.bibjson'
+    in_path = os.path.join(download_cache_directory, ticket['data_json'])
     if not os.path.exists(in_path):
         ticket.fail('Parsed content for %s not found' % in_path)
         return
-    record_dicts = json.loads(open(in_path).read())
+    data = open(in_path).read()
+    if len(data) < 1:
+        raise Exception('The parsed data in this ticket is empty.' )
+    record_dicts = json.loads(data)
     # TODO check for metadata section to update collection from this?
     owner = bibserver.dao.Account.get(ticket['owner'])
     importer = Importer(owner=owner)
@@ -118,12 +122,20 @@ def parse(ticket):
     if not os.path.exists(in_path):
         ticket.fail('Downloaded content for %s not found' % in_path)
         return
-    json_data = subprocess.check_output(p['_path'], shell=True, stdin=open(in_path))
-    ticket['data_json'] = ticket['data_md5'] + '.bibjson'
+    p = subprocess.Popen(p['_path'], shell=True, stdin=open(in_path), stdout=subprocess.PIPE, stderr=subprocess.PIPE)    
+    data = p.stdout.read()
+    md5sum = hashlib.md5(data).hexdigest()
     download_cache_directory = config['download_cache_directory']    
-    out_path = os.path.join(download_cache_directory, ticket['data_json'])
-    open(out_path, 'wb').write(json_data)
+    out_path = os.path.join(download_cache_directory, md5sum)
+    open(out_path, 'wb').write(data)
+    
+    ticket['data_json'] = md5sum
     ticket['state'] = 'parsed'
+    # Check if there is any data in the stderr of the parser
+    # If so, add it to the ticket as potential feedback
+    data_stderr = p.stderr.read()
+    if len(data_stderr) > 0:
+        ticket['parse_feedback'] = data_stderr
     ticket.save()
     
 def store_data_in_cache(data):
@@ -189,9 +201,9 @@ def scan_parserscrapers(directory):
             filename = os.path.join(root, name)
             is_ex = stat.S_IXUSR & os.stat(filename)[stat.ST_MODE]            
             if is_ex:
-                # Try and call this executable with a -v to get a config
+                # Try and call this executable with a -bibserver to get a config
                 try:
-                    output = subprocess.check_output(filename+' -v', shell=True)
+                    output = subprocess.check_output(filename+' -bibserver', shell=True)
                     output_json = json.loads(output)
                     if output_json['bibserver_plugin']:
                         output_json['_path'] = filename
@@ -276,9 +288,13 @@ if __name__ == '__main__':
     for x in sys.argv[1:]:
         if x == '-x':
             reset_all_tickets()
-        if x == '-p':
+        if x.startswith('-p'):
             for t in get_tickets():
                 print t
+                if x == '-pp':
+                    print '-' * 80
+                    for k,v in t.items():
+                        print ' '*4, k+':', v
     if len(sys.argv) == 1:
         run()
     
