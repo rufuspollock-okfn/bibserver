@@ -40,9 +40,6 @@ class IngestTicket(dict):
         owner = kwargs.get('owner')
         if not type(owner) in (str, unicode):
             raise IngestTicketInvalidOwnerException()
-        owner_obj = bibserver.dao.Account.get(owner)
-        if owner_obj is None:
-            raise IngestTicketInvalidOwnerException()
         for x in ('collection', 'format'):
             if not kwargs.get(x):
                 raise IngestTicketInvalidInit('You need to supply the parameter %s' % x)
@@ -282,7 +279,18 @@ def serve(ticket_id, payload):
     else:
         response.headers['Content-Type'] = t.get('data_content_type', 'text/plain')
     return response
-    
+
+@app.route('/data.txt')
+def data_list():
+    'Output a list of all the raw data files, one file per line'
+    data_list = []
+    for t in get_tickets():
+        if 'data_json' in t:
+            data_list.append('/data/' + t['data_json'])
+    resp = make_response( '\n'.join(data_list) )
+    resp.mimetype = "text/plain"
+    return resp
+
 if __name__ == '__main__':
     init()
     for x in sys.argv[1:]:
