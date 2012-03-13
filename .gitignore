@@ -9,3 +9,4 @@ src*
 doc/_build/*
 download_cache/*
 bibjson_cache/*
+local_config.json

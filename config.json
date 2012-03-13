@@ -8,8 +8,10 @@
     "ELASTIC_SEARCH_DB" : "bibserver",
 
     # bibserver functionality settings
-    "allow_upload" : true,  # set to false if no frontend upload wanted
-    "allow_edit" : true,    # set to false if no frontend edit wanted
+    # set to false if no frontend upload wanted
+    # set to false if no frontend edit wanted
+    "allow_upload" : true,
+    "allow_edit" : true,
 
     # ingest settings
     "download_cache_directory" : "download_cache",
