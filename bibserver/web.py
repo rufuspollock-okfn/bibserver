@@ -95,6 +95,9 @@ class UploadView(MethodView):
                 fileobj = request.files.get('upfile')
                 if not format:
                     format = bibserver.importer.findformat(fileobj.filename)
+            else:
+                if not format:
+                    format = bibserver.importer.findformat( request.values.get("source").strip('"') )
             
             ticket = bibserver.ingest.IngestTicket(owner=current_user.id, 
                                        source_url=request.values.get("source"),
