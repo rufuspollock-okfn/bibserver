@@ -18,7 +18,14 @@
         </ul>
     </div>
 {% elif edit %}
-    <p>i am the record</p>
+<script type="text/javascript">
+jQuery(document).ready(function() {
+    jQuery('#panel').jtedit({"data": {{ record | safe }} });
+});
+</script>
+
+<div id="panel" class="clearfix">
+</div>
 {% else %}
     <p>noedit</p>
 {% endif %}

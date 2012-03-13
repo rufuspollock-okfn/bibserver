@@ -2,6 +2,18 @@
 
 {% block content %}
 
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+    jQuery('#panel').jtedit({"data": {{ current_user | safe }} });
+});
+</script>
+
+<div id="panel" class="clearfix">
+</div>
+
+
+
 <h3>User: {{current_user['id']}}</h3>
 
 <ul>

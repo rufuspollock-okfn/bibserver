@@ -1,16 +1,15 @@
 {
-    # service
+    # service and super user account
     "service_name" : "BibSoup",
+    "super_user" : "test",
 
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     "ELASTIC_SEARCH_DB" : "bibserver",
 
     # bibserver functionality settings
-    # allow_upload - set to "NO" if you dont want frontend upload to your bibserver install
-    # allow_edit - Yes / No for edit of individual records in bibsoup
-    "allow_upload" : true,
-    "allow_edit" : true,
+    "allow_upload" : true,  # set to false if no frontend upload wanted
+    "allow_edit" : true,    # set to false if no frontend edit wanted
 
     # The default fields and settings for which faceting should be made available on
     # these can be nested fields, e.g. links.url

@@ -72,14 +72,6 @@ def content():
 def home():
     return render_template('home/index.html')
 
-@app.route('/create')
-def create():
-    pass
-    #if path == "create":
-    #    if 'id' in newrecord:
-    #        del newrecord['id']
-    #    action = "new"
-
 
 # handle or disable uploads
 class UploadView(MethodView):
@@ -125,7 +117,7 @@ else:
 
 @app.route('/create')
 def create():
-    return render_template('create.html')
+    return render_template('record.html', record={}, edit=True)
 
 
 @app.route('/<path:path>')
@@ -142,14 +134,13 @@ def default(path):
     }
 
     parts = path.strip('/').split('/')
+    metadata = False
     if bibserver.dao.Account.get(parts[0]):
         if len(parts) == 1:
             # show the user account
             return account(parts[0])
         elif len(parts) == 2:
-            # show the collection that matches parts[1]
-            search_options['predefined_filters']['owner'+config['facet_field']] = parts[0]
-            search_options['predefined_filters']['collection'+config['facet_field']] = parts[1]
+            search_options, metadata = collection(search_options,parts[0],parts[1])
         elif len(parts) == 3:
             # show the matching record in the matching collection
             return record(*parts)
@@ -161,9 +152,32 @@ def default(path):
     elif len(parts) == 2:
         # if there are two parts try it as an implicit facet
         search_options['predefined_filters'][parts[0]+config['facet_field']] = parts[1]
-        
-    return render_template('search/index.html', current_user=current_user, search_options=json.dumps(search_options))
 
+    if util.request_wants_json():
+        # do search and output as json from DAO
+        pass
+    else:
+        return render_template('search/index.html', current_user=current_user, search_options=json.dumps(search_options), collection=metadata)
+
+
+def collection(opts,p0,p1):
+    # show the collection that matches parts[1]
+    opts['predefined_filters']['owner'+config['facet_field']] = p0
+    opts['predefined_filters']['collection'+config['facet_field']] = p1
+    # look for collection metadata
+    metadata = bibserver.dao.Collection.query(terms={'owner':p0,'collection':p1})
+    if metadata['hits']['total'] != 0:
+        metadata = bibserver.dao.Collection.get(metadata['hits']['hits'][0]['_source']['id'])
+        if 'display_settings' in metadata:
+            # set display settings from collection info
+            #search_options = metadata['display_settings']
+            pass
+    else:
+        metadata = False
+    for count,facet in enumerate(opts['facets']):
+        if facet['field'] == 'collection'+config['facet_field']:
+            del opts['facets'][count]
+    return opts, metadata
 
 def record(user,coll,sid):
     # POSTs do updates, creates, deletes of records
@@ -184,7 +198,7 @@ def record(user,coll,sid):
         elif res["hits"]["total"] != 1:
             return render_template('record.html', multiple=[i['_source'] for i in res['hits']['total']])
         else:
-            return render_template('record.html', edit=True)
+            return render_template('record.html', record=json.dumps(res['hits']['hits'][0]['_source']), edit=True)
 
 
 def account(user):

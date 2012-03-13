@@ -9,7 +9,31 @@
 </script>
     
     <div id="panel">
+        {% if collection.id %}
+            <h2><a href="/{{collection.owner}}">{{collection.owner}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection.label }}</a></h2>
+            <p>{{ collection['description'] }}</p>
+        {% endif %}
     </div>
+{% if collection.id %}
+<p>
+<a href="/{{collection.owner}}/{{collection.collection}}.json?size={{collection|length}}">Download</a> this collection<br />
+{% if current_user.id == collection.owner %}
+{% if source in collection %}
+<a href="/upload?source=%22{{ collection.source }}%22&collection={{collection.collection}}">Refresh</a> this collection (overwrites local changes)<br />
+{% endif %}
+<a href="">Save current display</a> settings as default for this collection<br />
+<a href="">Delete</a> this collection<br />
+</p>
+{% endif %}
+<p>
+{% if source in collection %}
+The source of this collection is <a href="{{collection.source}}">{{collection.source}}</a><br />
+{% endif %}
+{% if _last_modified in collection %}
+This collection was last updated on {{collection._last_modified}}
+{% endif %}
+</p>
+{% endif %}
 
 {% endblock %}
 
