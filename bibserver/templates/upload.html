@@ -1,50 +1,38 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div id="bibsoup_box">
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-    
-        <h2>Upload your collection</h2>
-
-        <div id="frompc">
+<div class="row">
+    <div class="span6 hero-unit">
+        <form action="/upload" method="POST" enctype="multipart/form-data">
         
-        <p>Browse for the file you want to upload.<br />
-        Finally, give your collection a name, so we can give it a URL.</p>
-        <span class="upload_label">your file:</span> <input class="sourcefile" type="file" name="upfile" /><br /><br />
-        </div>
+            <h2>Upload your bibJSON collection</h2>
+            
+            <div id="fromurl">
+            <span class="upload_label">bibJSON collection URL:</span> <input class="sourcefile" type="text" name="source" /><br />
+            </div>
 
-        <div id="fromurl">
-        
-        <p>Provide the location where your file is available online, and optionally a name for your new collection.
-        <br />The name will become part of the URL of your collection, so choose one you like.
-        <br />(if you don't provide a name, we will make one up from the web address)</p>
+            <div id="frompc">
+            <span class="upload_label">upload from your PC:</span> <input class="sourcefile" type="file" name="upfile" /><br />
+            </div>
 
-        <span class="upload_label">web address:</span> <input class="sourcefile" type="text" name="source" />
+            (or <a class="frompc" href="">upload from your PC</a>)<br /><br />
 
-        </div>
+            <br /><span class="upload_label">name your collection:</span> <input id="collection" type="text" name="collection" />
 
-        <br /><span class="upload_label">name your collection:</span> <input id="collection" type="text" name="collection" />
+            <br /><br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
 
-        <br /><br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
+            <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="upload" />
 
-        <p>
-        (or <a class="frompc" href="">upload from your PC</a>)
-        </p>
-
-        
-        <div id="fileformat">
-        <p>We could not identify the file format, please specify:</p>
-        <input name="format" type="radio" value="bibtex" /> bibtex <br />
-        <input name="format" type="radio" value="json" /> JSON <br />
-        <input name="format" type="radio" value="csv" /> csv <br />
-        <input name="format" type="radio" value="ris" /> ris <br />
-<!--        <input name="format" type="radio" value="google" /> google spreadsheet <br />-->
-        <p></p>
-        </div>
-
-        <input class="btn primary large" type="submit" name="submit" value="upload" />
-
-    </form>
+        </form>
+    </div>
+    <div class="span4">
+        <p>BibSoup uses bibJSON to represent bibliographic records; so in order to upload a collection,
+        it needs to be in bibJSON.</p>
+        <p>If your collection is available online, then you can upload directly from the URL of the online file - 
+        and this also enables you to one-click refresh your collection whenever you make changes to that source file.</p>
+        <p>If your collection is not already in bibJSON, then try using one of our parsers to convert it.</p>
+        <p>Visit <a href="http://bibjson.org">http://bibjson.org</a> to learn more about bibJSON.</p>
+    </div>
 </div>
 <div>
     <h2><a href="#" id="ingest_tickets_toggle">List of Upload Tickets</a></h2>

@@ -1,64 +1,23 @@
 body {
-  padding-top: 40px;
+    padding-top: 40px;
 }
 
 .content {
-  margin-top: 20px;
+    margin-top: 20px;
 }
 
 form{
     display:inline;
 }
 
-/************************************
-  * Flash notifications / messages
-  ***********************************/
+footer {
+    border-top:2px solid #ccc;
+    margin-top:50px;
+    padding-top:30px;
+}
 
 div.alert-messages {
-  margin-top: 15px;
-}
-
-#bibserver_msg{
-    margin:10px 0 10px 0;
-    width:100%;
-   -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    -moz-box-shadow: 2px 2px 10px #ccff99;
-    -webkit-box-shadow: 2px 2px 10px #ccff99;
-    box-shadow: 2px 2px 10px #ccff99;
-    background:#ccff99;
-}
-#bibserver_msg p{
-    padding:10px;
-    font-size:1.1em;
-}
-
-#bibserver_create{
-    display:none;
-}
-
-/************************************
-  * Upload
-  ***********************************/
-
-#bibsoup_box{
-    clear:both;
-    margin:20px 0 50px 0;
-    padding:20px;
-    width:100%;
-    border:2px solid #4444aa;
-   -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-}
-
-#bibsoup_box h2{
-    padding:0 0 10px 0;
-}
-
-#bibsoup_box p{
-    padding:20px 0 20px 0;
+    margin-top: 15px;
 }
 
 span.upload_label{
@@ -69,51 +28,3 @@ span.upload_label{
     text-align:right;
 }
 
-/************************************
-  * Record page
-  ***********************************/
-
-#record_box{
-    clear:both;
-    margin:20px 0 50px 0;
-    padding:20px;
-    width:100%;
-    border:2px solid #4444aa;
-   -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-}
-
-/************************************
-  * Search page (see also search.css)
-  ***********************************/
-
-#bibserver_search {
-  border-bottom: solid 1px #BFBFBF;
-  margin-bottom: 20px;
-}
-
-.search_box {
-  padding: 20px;
-  padding-top: 20px;
-  width: 750px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#bibserver_search input[type=text] {
-  width: 400px;
-}
-
-#display{
-    margin:40px 0 30px 0;
-    padding:5px;
-}
-.display_section{
-    margin:10px 0 10px 0;
-    padding:5px;
-    border:1px solid #373737;
-   -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-}

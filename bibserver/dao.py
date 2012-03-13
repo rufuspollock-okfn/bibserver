@@ -37,9 +37,6 @@ def get_conn():
     host = str(config["ELASTIC_SEARCH_HOST"])
     db_name = config["ELASTIC_SEARCH_DB"]
     conn = pyes.ES([host])
-    if "default_indices" in config:
-        if isinstance(config["default_indices"],list) and len(config["default_indices"]) > 0:
-            conn.default_indices = config["default_indices"]
     return conn, db_name
 
 class InvalidDAOIDException(Exception):
@@ -175,21 +172,14 @@ class DomainObject(UserDict.IterableUserDict):
 
     @classmethod
     def raw_query(self, query_string):
-        if not query_string:
-            msg = json.dumps({
-                'error': "Query endpoint. Please provide elastic search query parameters - see http://www.elasticsearch.org/guide/reference/api/search/uri-request.html"
-                })
-            return msg
-
         host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
         db_path = config['ELASTIC_SEARCH_DB']
         fullpath = '/' + db_path + '/' + self.__type__ + '/_search' + '?' + query_string
-        c =  httplib.HTTPConnection(host)
+        c = httplib.HTTPConnection(host)
         c.request('GET', fullpath)
         result = c.getresponse()
         # pass through the result raw
         return result.read()
-
 
 class Record(DomainObject):
     __type__ = 'record'

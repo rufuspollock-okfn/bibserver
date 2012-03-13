@@ -1,14 +1,13 @@
 # the data import manager
 # gets an uploaded file or retrieves a file from a URL
-# Uses the parser manager to parse the file
 # indexes the records found in the file by upserting via the DAO
 import urllib2
 import re
 from cStringIO import StringIO
 import unicodedata
 import uuid
+import json
 
-from bibserver.parser import Parser
 import bibserver.dao
 import bibserver.util as util
 from bibserver.config import config
@@ -18,24 +17,19 @@ class Importer(object):
         self.owner = owner
         self.requesturl = requesturl
 
-    def upload(self, fileobj, format_, collection=None):
-        '''Import a collection into the database.
+    def upload(self, fileobj, collection=None):
+        '''Import a bibjson collection into the database.
        
         :param fileobj: a fileobj pointing to file from which to import
         collection records (and possibly collection metadata)
-        :param format_: format of the fileobj (e.g. bibtex)
         :param collection: collection dict for use when creating collection. If
         undefined collection must be extractable from the fileobj.
 
         :return: same as `index` method.
         '''
-        parser = Parser()
-        record_dicts, metadata = parser.parse(fileobj, format=format_)
-
-        #collection_from_parser = None
-        #if collection_from_parser:
-        #    collection = collection_from_parser
-        # TODO: check authz for write to this collection
+        jsonin = json.load(fileobj)
+        metadata = jsonin.get('metadata',False)
+        record_dicts, metadata = jsonin.get('records',jsonin)
 
         # if metadata provided from file, roll it into the collection object
         if metadata:
@@ -48,7 +42,6 @@ class Importer(object):
         '''
         :param request_data: Flask request.values attribute.
         '''
-        format = 'bibtex'
         source = ''
         fileobj = None
         if request.values.get("source"):
@@ -69,9 +62,6 @@ class Importer(object):
         elif request.data:
             fileobj = StringIO(request.data)
 
-        if request.values.get('format'):
-            format = request.values.get('format')
-
         # request.data and request.json never appear to have content
         # can solve by getting it out of the key it appears to get stuck into
         # update: request.json has content only if content-type is sent on the incoming
@@ -90,9 +80,8 @@ class Importer(object):
             'label': request.values['collection'],
             'description': request.values.get('description',""),
             'source': source,
-            'format': format
             }
-        collection, records = self.upload(fileobj, format, collection)
+        collection, records = self.upload(fileobj, collection)
         return (collection, records)
 
     def bulk_upload(self, colls_list):

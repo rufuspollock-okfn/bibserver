@@ -1,10 +1,11 @@
 import re
 from unicodedata import normalize
 from functools import wraps
+from flask import request, current_app
+
 
 def jsonp(f):
     """Wraps JSONified output for JSONP"""
-    from flask import request, current_app
     @wraps(f)
     def decorated_function(*args, **kwargs):
         callback = request.args.get('callback', False)
@@ -15,6 +16,18 @@ def jsonp(f):
             return f(*args, **kwargs)
     return decorated_function
 
+
+# derived from http://flask.pocoo.org/snippets/45/ (pd) and customised
+def request_wants_json():
+    best = request.accept_mimetypes.best_match(['application/json', 'text/html'])
+    if best == 'application/json' and request.accept_mimetypes[best] > request.accept_mimetypes['text/html']:
+        best = True
+    else:
+        best = False
+    if request.values.get('format','').lower() == 'json' or request.url.endswith(".json"):
+        best = True
+    return best
+        
 
 # derived from http://flask.pocoo.org/snippets/5/ (public domain)
 # changed delimiter to _ instead of - due to ES search problem on the -

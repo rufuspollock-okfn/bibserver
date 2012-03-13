@@ -12,81 +12,23 @@
         can choose which record you would like to view and access it via the unique 
         identifier we assigned it:</p>
         <ul>
-        {% for item in io.set() %}
-            <li>{{item['cid']}} - 
-                <a href="/{{item['owner']}}/{{item['collection']}}/{{item['id']}}">{{item['id']}}</a>
-            </li>
+        {% for item in multiple %}
+            <li><a href="/{{item['owner']}}/{{item['collection']}}/{{item['id']}}">{{item['id']}}</a></li>
         {% endfor %}
         </ul>
     </div>
 {% elif edit %}
-    <a href="" id="savethis" class="btn primary span3">update this record</a>
-    <a href="" id="savenew" class="btn primary span3">save as new record</a>
-    <a href="" id="deletethis" class="btn danger span3">delete this record</a>
-    <div id="record_box" class="clearfix">
-    </div>
-    <script type="text/javascript">
-    jQuery(document).ready(function() {
-        jQuery('#record_box').jtedit({"source":window.location.pathname+".json","noedit":["id","collection"]});
-        var saveit = function(event) {
-            event.preventDefault();
-            var thedata = $.parseJSON(jQuery('#jtedit_json').val());
-            if (jQuery(this).attr('id') == "savethis" ) {
-                var saveurl = '/record/{{io.set()[0]['id']}}?version={{io.get_record_version(io.set()[0]['id'])}}';
-            } else {
-                var saveurl = '/record/create';
-            }
-            $.ajax({
-                url: saveurl
-                , type: 'POST'
-                , data: JSON.stringify(thedata)
-                , contentType: "application/json; charset=utf-8" 
-                , dataType: 'json'
-                , processData: false
-                , success: function(data, statusText, xhr) {
-                    if (data.action == "new") {
-                        alert("New record saved. Redirecting to new record page.");
-                        window.location = '/record/' + data.id;
-                    } else {
-                        alert("Record updated.");
-                    }
-                }
-                , error: function(xhr, message, error) {
-                    alert("failed! " + error);
-                }
-            });
-        }
-        var deleteit = function(event) {
-            event.preventDefault();
-            $.ajax({
-                url: '/record/{{io.set()[0]['id']}}?delete=true'
-                , type: 'POST'
-                , success: function(data, statusText, xhr) {
-                    alert("Record deleted. Redirecting to collection.");
-                    window.location = '/{{current_user.id}}/{{io.set()[0]['collection'][0]}}';
-                }
-                , error: function(xhr, message, error) {
-                    alert("failed! " + error);
-                }
-            });            
-        }
-        jQuery('#savethis').bind('click',saveit);
-        jQuery('#savenew').bind('click',saveit);
-        jQuery('#deletethis').bind('click',deleteit);
-    });
-    </script>
+<script type="text/javascript">
+jQuery(document).ready(function() {
+    jQuery('#panel').jtedit({"data": {{ record | safe }} });
+});
+</script>
+
+<div id="panel" class="clearfix">
+</div>
 {% else %}
-    <div id="record_box" class="clearfix">
-    {{io.get_record_as_table()|safe}}
-    </div>
+    <p>noedit</p>
 {% endif %}
 
-<script type="text/javascript" charset="utf-8">
-        jQuery('body').keydown(function(event) {
-            if(event.which == 27) {
-                window.location = '/{{current_user.id}}/{{io.set()[0]['collection']}}';
-            }
-        });
-</script>
 {% endblock %}
 
