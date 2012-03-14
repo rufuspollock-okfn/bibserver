@@ -16,7 +16,7 @@ def parse():
     
 def main():
     conf = {"display_name": "BibJSON Identity Parser",
-            "format": os.path.split(__file__)[-1],
+            "format": "jsoncheck",
             "contact": "openbiblio-dev@lists.okfn.org", 
             "bibserver_plugin": True, 
             "BibJSON_version": "0.81"}        
