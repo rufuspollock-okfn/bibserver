@@ -4,7 +4,22 @@
 
 <script type="text/javascript">
     jQuery(document).ready(function($) {
-        $('#panel').facetview( {{ search_options | safe }} );
+        $('#panel').facetview( {{ search_options | safe }} )
+        var bibserver_collection_delete = function(event) {
+            event.preventDefault()
+            jQuery.ajax({
+                type: "DELETE",
+                url: window.location,
+                success: function() {
+                    alert('Collection deleted')
+                    window.location = '/'
+                },
+                error: function() {
+                    alert('Sorry, the deletion failed. Please try again.')
+                }
+            })
+        }
+        jQuery('#bibserver_collection_delete').bind('click',bibserver_collection_delete)
     });
 </script>
     
@@ -22,7 +37,7 @@
 <a href="/upload?source=%22{{ collection.source }}%22&collection={{collection.collection}}">Refresh</a> this collection (overwrites local changes)<br />
 {% endif %}
 <a href="">Save current display</a> settings as default for this collection<br />
-<a href="">Delete</a> this collection<br />
+<a id="bibserver_collection_delete" href="">Delete</a> this collection<br />
 </p>
 {% endif %}
 <p>

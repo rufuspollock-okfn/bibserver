@@ -71,6 +71,14 @@ class DomainObject(UserDict.IterableUserDict):
         # TODO: refresh object with result of save
         return self.upsert(self.data)
 
+    def delete(self):
+        url = str(config['ELASTIC_SEARCH_HOST'])
+        loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
+        conn = httplib.HTTPConnection(url)
+        conn.request('DELETE', loc)
+        resp = conn.getresponse()
+        return True
+
     @classmethod
     def get(cls, id_):
         '''Retrieve object by id.'''
@@ -187,6 +195,25 @@ class Record(DomainObject):
 
 class Collection(DomainObject):
     __type__ = 'collection'
+
+    def records(self):
+        size = Record.query(terms={'owner':self['owner'],'collection':self['collection']})['hits']['total']
+        if size != 0:
+            res = [i['_source'] for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
+        else: res = None
+        return res
+
+    def delete(self):
+        url = str(config['ELASTIC_SEARCH_HOST'])
+        loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
+        conn = httplib.HTTPConnection(url)
+        conn.request('DELETE', loc)
+        resp = conn.getresponse()
+        for record in self.records():
+            conn = httplib.HTTPConnection(url)
+            loc = config['ELASTIC_SEARCH_DB'] + "/record/" + record.id
+            conn.request('DELETE', loc)
+            resp = conn.getresponse()
     
     def __len__(self):
         res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})

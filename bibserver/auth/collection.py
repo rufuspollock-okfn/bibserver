@@ -6,9 +6,9 @@ def read(account, collection):
 
 def update(account, collection):
     allowed = not account.is_anonymous() and collection["owner"] == account.id
-    if account.id in collection.get('_admins',[]):
+    if not account.is_anonymous() and account.id in collection['_admins']:
         allowed = True
-    if account.id == config['super_user']:
+    if not account.is_anonymous() and account.id == config['super_user']:
         allowed = True
     return allowed
 

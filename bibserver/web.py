@@ -145,7 +145,7 @@ def create():
     return render_template('record.html', record={}, edit=True)
 
 
-@app.route('/<path:path>')
+@app.route('/<path:path>', methods=['GET','POST','DELETE'])
 def default(path):
     path = path.replace(".json","")
 
@@ -159,13 +159,12 @@ def default(path):
     }
 
     parts = path.strip('/').split('/')
-    metadata = False
     if bibserver.dao.Account.get(parts[0]):
         if len(parts) == 1:
             # show the user account
             return account(parts[0])
         elif len(parts) == 2:
-            search_options, metadata = collection(search_options,parts[0],parts[1])
+            return collection(search_options,parts[0],parts[1])
         elif len(parts) == 3:
             # show the matching record in the matching collection
             return record(*parts)
@@ -173,7 +172,17 @@ def default(path):
         # search collection records
         search_options['search_url'] = '/query/collection?'
         search_options['facets'] = [{'field':'owner','size':100},{'field':'_created','size':100}]
-        search_options['result_display'] = [[{'field':'label','pre':'<h3>','post':'</h3>'}],[{'field':'description'}],[{'pre':'created by ','field':'owner'}]]
+        search_options['result_display'] = [[{'pre':'<h3>','field':'label','post':'</h3>'}],[{'field':'description'}],[{'pre':'created by ','field':'owner'}]]
+        search_options['result_display'] = [
+            [
+                {'pre':'<h3><a href="/','field':'owner','post':'/'},{'field':'collection','post':'">'},{'field':'label','post':'</a></h3>'}
+            ],
+            [
+                {'field':'description'},
+                {'pre':' (created by <a href="/','field':'owner','post':'">'},
+                {'field':'owner','post':'</a>)'}
+            ]
+        ]
     elif len(parts) == 2:
         # if there are two parts try it as an implicit facet
         search_options['predefined_filters'][parts[0]+config['facet_field']] = parts[1]
@@ -182,7 +191,7 @@ def default(path):
         # do search and output as json from DAO
         pass
     else:
-        return render_template('search/index.html', current_user=current_user, search_options=json.dumps(search_options), collection=metadata)
+        return render_template('search/index.html', current_user=current_user, search_options=json.dumps(search_options), collection=None)
 
 
 def collection(opts,p0,p1):
@@ -193,23 +202,42 @@ def collection(opts,p0,p1):
     metadata = bibserver.dao.Collection.query(terms={'owner':p0,'collection':p1})
     if metadata['hits']['total'] != 0:
         metadata = bibserver.dao.Collection.get(metadata['hits']['hits'][0]['_source']['id'])
-        if 'display_settings' in metadata:
+        if request.method == 'DELETE':
+            if not auth.collection.update(current_user, metadata):
+                abort(401)
+            metadata.delete()
+            return '{"action":"DELETE","success":true}'
+        elif request.method == 'POST':
+            pass
+        elif 'display_settings' in metadata:
             # set display settings from collection info
             #search_options = metadata['display_settings']
             pass
     else:
+        # in case a delete is issued against records whose collection object no longer exists
+        if request.method == 'DELETE':
+            if not auth.collection.create(current_user, None):
+                abort(401)
+            size = bibserver.dao.Record.query(terms={'owner':p0,'collection':p1})['hits']['total']
+            url = str(config['ELASTIC_SEARCH_HOST'])
+            for record in [i['_source'] for i in bibserver.dao.Record.query(terms={'owner':p0,'collection':p1},size=size)['hits']['hits']]:
+                conn = httplib.HTTPConnection(url)
+                loc = config['ELASTIC_SEARCH_DB'] + "/record/" + record['id']
+                conn.request('DELETE', loc)
+                resp = conn.getresponse()
+            return ''
         metadata = False
     for count,facet in enumerate(opts['facets']):
         if facet['field'] == 'collection'+config['facet_field']:
             del opts['facets'][count]
-    return opts, metadata
+    return render_template('search/index.html', current_user=current_user, search_options=json.dumps(opts), collection=metadata)
 
 def record(user,coll,sid):
     # POSTs do updates, creates, deletes of records
-    if request.method == "POST":
+    if request.method == 'POST':
         # send to POST handler
         pass
-
+        
     res = bibserver.dao.Record.query(terms = {'owner'+config['facet_field']:user,'collection'+config['facet_field']:coll,'cid'+config['facet_field']:sid})
     if res['hits']['total'] == 0:
         res = bibserver.dao.Record.query(terms = {'id'+config['facet_field']:sid})
@@ -223,7 +251,18 @@ def record(user,coll,sid):
         elif res["hits"]["total"] != 1:
             return render_template('record.html', multiple=[i['_source'] for i in res['hits']['total']])
         else:
-            return render_template('record.html', record=json.dumps(res['hits']['hits'][0]['_source']), edit=True)
+            if request.method == 'DELETE':
+                colln = bibserver.dao.Record.get(coll)
+                if colln:
+                    if not auth.collection.update(current_user, colln):
+                        abort(401)
+                    record = bibserver.dao.Record.get(res['hits']['hits'][0]['_source']['id'])
+                    record.delete()
+                    return ''
+                else:
+                    abort(401)
+            else:
+                return render_template('record.html', record=json.dumps(res['hits']['hits'][0]['_source']), edit=True)
 
 
 def account(user):
