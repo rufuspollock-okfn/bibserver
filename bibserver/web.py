@@ -145,8 +145,17 @@ def create():
     return render_template('record.html', record={}, edit=True)
 
 
+# this is a catch-all that allows us to present everything as a search
+# typical catches are /user, /user/collection, /user/collection/record, 
+# /collection, /implicit_facet_key/implicit_facet_value
+# and any thing else passed as a search
 @app.route('/<path:path>', methods=['GET','POST','DELETE'])
 def default(path):
+    import bibserver.search
+    searcher = bibserver.search.Search(path=path,current_user=current_user)
+    return searcher.find()
+
+'''
     path = path.replace(".json","")
 
     search_options = {
@@ -161,13 +170,11 @@ def default(path):
     parts = path.strip('/').split('/')
     if bibserver.dao.Account.get(parts[0]):
         if len(parts) == 1:
-            # show the user account
-            return account(parts[0])
+            return account(parts[0]) # request is for user account
         elif len(parts) == 2:
-            return collection(search_options,parts[0],parts[1])
+            return collection(search_options,parts[0],parts[1]) # request for collection
         elif len(parts) == 3:
-            # show the matching record in the matching collection
-            return record(*parts)
+            return record(*parts) # request for record in collection
     elif len(parts) == 1 and parts[0] == 'collection':
         # search collection records
         search_options['search_url'] = '/query/collection?'
@@ -184,7 +191,7 @@ def default(path):
             ]
         ]
     elif len(parts) == 2:
-        # if there are two parts try it as an implicit facet
+        # if there are two unknown parts try it as an implicit facet
         search_options['predefined_filters'][parts[0]+config['facet_field']] = parts[1]
 
     if util.request_wants_json():
@@ -206,7 +213,7 @@ def collection(opts,p0,p1):
             if not auth.collection.update(current_user, metadata):
                 abort(401)
             metadata.delete()
-            return '{"action":"DELETE","success":true}'
+            return ''
         elif request.method == 'POST':
             pass
         elif 'display_settings' in metadata:
@@ -220,13 +227,12 @@ def collection(opts,p0,p1):
                 abort(401)
             size = bibserver.dao.Record.query(terms={'owner':p0,'collection':p1})['hits']['total']
             url = str(config['ELASTIC_SEARCH_HOST'])
-            for record in [i['_source'] for i in bibserver.dao.Record.query(terms={'owner':p0,'collection':p1},size=size)['hits']['hits']]:
-                conn = httplib.HTTPConnection(url)
-                loc = config['ELASTIC_SEARCH_DB'] + "/record/" + record['id']
-                conn.request('DELETE', loc)
-                resp = conn.getresponse()
+            for rid in bibserver.dao.Record.query(terms={'owner':p0,'collection':p1},size=size)['hits']['hits']:
+                record = bibserver.dao.Record.get(rid['_id'])
+                if record: record.delete()
             return ''
         metadata = False
+
     for count,facet in enumerate(opts['facets']):
         if facet['field'] == 'collection'+config['facet_field']:
             del opts['facets'][count]
@@ -268,7 +274,12 @@ def record(user,coll,sid):
 def account(user):
     if hasattr(current_user,'id'):
         if user == current_user.id:
-            return render_template('account/view.html', current_user=current_user)
+            if request.method == 'DELETE':
+                acc = bibserver.dao.Account.get(user)
+                if acc: acc.delete()
+                return ''
+            else:
+                return render_template('account/view.html', current_user=current_user)
     flash('You are not that user. Or you are not logged in.')
     return redirect('/account/login')
     
@@ -276,18 +287,7 @@ def account(user):
 def update():
     if not auth.collection.create(current_user, None):
         abort(401)
-    if 'delete' in request.values:
-        host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
-        db_name = config['ELASTIC_SEARCH_DB']
-        fullpath = '/' + db_name + '/record/' + sid
-        c =  httplib.HTTPConnection(host)
-        c.request('DELETE', fullpath)
-        c.getresponse()
-        resp = make_response( '{"id":"' + sid + '","deleted":"yes"}' )
-        resp.mimetype = "application/json"
-        return resp
     
-    # if not deleting, do the update    
     newrecord = request.json
     action = "updated"
     recobj = bibserver.dao.Record(**newrecord)
@@ -299,7 +299,7 @@ def update():
 
 
 def outputJSON(results=None, coll=None, facets=None, record=False):
-    '''build a JSON response, with metadata unless specifically asked to suppress'''
+    # build a JSON response, with metadata unless specifically asked to suppress
     # TODO: in some circumstances, people data should be added to collections too.
     out = {"metadata":{}}
     if coll:
@@ -335,9 +335,9 @@ def outputJSON(results=None, coll=None, facets=None, record=False):
     resp = make_response( json.dumps(out, sort_keys=True, indent=4) )
     resp.mimetype = "application/json"
     return resp
-
+'''
 
 if __name__ == "__main__":
     bibserver.dao.init_db()
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=config['debug'], port=config['port'])
 

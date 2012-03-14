@@ -2,6 +2,8 @@
     # service and super user account
     "service_name" : "BibSoup",
     "super_user" : "test",
+    "debug" : true,
+    "port" : 5000,
 
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",

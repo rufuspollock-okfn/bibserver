@@ -120,7 +120,7 @@ class DomainObject(UserDict.IterableUserDict):
         for data in dataset:
             if not type(data) is dict: continue
             if 'id' in data:
-                id_ = data['id']
+                id_ = data['id'].strip()
             else:
                 id_ = uuid.uuid4().hex
                 data['id'] = id_
@@ -199,8 +199,8 @@ class Collection(DomainObject):
     def records(self):
         size = Record.query(terms={'owner':self['owner'],'collection':self['collection']})['hits']['total']
         if size != 0:
-            res = [i['_source'] for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
-        else: res = None
+            res = [Record.get(i['_source']['id']) for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
+        else: res = []
         return res
 
     def delete(self):
@@ -210,10 +210,7 @@ class Collection(DomainObject):
         conn.request('DELETE', loc)
         resp = conn.getresponse()
         for record in self.records():
-            conn = httplib.HTTPConnection(url)
-            loc = config['ELASTIC_SEARCH_DB'] + "/record/" + record.id
-            conn.request('DELETE', loc)
-            resp = conn.getresponse()
+            record.delete()
     
     def __len__(self):
         res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})

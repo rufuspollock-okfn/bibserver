@@ -6,10 +6,14 @@ def read(account, collection):
 
 def update(account, collection):
     allowed = not account.is_anonymous() and collection["owner"] == account.id
-    if not account.is_anonymous() and account.id in collection['_admins']:
-        allowed = True
-    if not account.is_anonymous() and account.id == config['super_user']:
-        allowed = True
+    if not account.is_anonymous():
+        try:
+            if account.id in collection['_admins']:
+                allowed = True
+        except:
+            pass
+        if account.id == config['super_user']:
+            allowed = True
     return allowed
 
 def create(account, collection):

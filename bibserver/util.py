@@ -16,9 +16,9 @@ def jsonp(f):
             return f(*args, **kwargs)
     return decorated_function
 
-
 # derived from http://flask.pocoo.org/snippets/45/ (pd) and customised
 def request_wants_json():
+    print "hello", request.url
     best = request.accept_mimetypes.best_match(['application/json', 'text/html'])
     if best == 'application/json' and request.accept_mimetypes[best] > request.accept_mimetypes['text/html']:
         best = True
