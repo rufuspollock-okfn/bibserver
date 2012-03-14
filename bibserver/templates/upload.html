@@ -22,9 +22,19 @@
             <br /><br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
 
             <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="upload" />
-
+            <div id="fileformat">
+                    <p>We could not identify the file format, please specify:</p>
+                    <input name="format" type="radio" value="bibtex" /> bibtex <br />
+                    <input name="format" type="radio" value="json" /> JSON <br />
+                    <input name="format" type="radio" value="csv" /> csv <br />
+                    <input name="format" type="radio" value="ris" /> ris <br />
+                    <input name="format" type="radio" value="wikipedia" /> wikipedia <br />
+                    <p></p>
+            </div>
         </form>
     </div>
+    
+            
     <div class="span4">
         <p>BibSoup uses bibJSON to represent bibliographic records; so in order to upload a collection,
         it needs to be in bibJSON.</p>

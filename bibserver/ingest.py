@@ -150,14 +150,19 @@ def store_data_in_cache(data):
 def download(ticket):
     ticket['state'] = 'downloading'
     ticket.save()
-    url = ticket['source_url'].strip()
-    r = requests.get(url)
-    content_type = r.headers['content-type']
-    r.raise_for_status()
-    data = r.content
-    if len(data) < 1:
-        ticket.fail('Data is empty, HTTP status code %s ' % r.status_code)
-        return
+    p = PLUGINS.get(ticket['format'])
+    if p and p.get('downloads'):
+        data = ticket['source_url'].strip()
+        content_type = 'text/plain'
+    else:
+        url = ticket['source_url'].strip()
+        r = requests.get(url)
+        content_type = r.headers['content-type']
+        r.raise_for_status()
+        data = r.content
+        if len(data) < 1:
+            ticket.fail('Data is empty, HTTP status code %s ' % r.status_code)
+            return
         
     ticket['data_md5'] = store_data_in_cache(data)
     ticket['data_content_type'] = content_type
