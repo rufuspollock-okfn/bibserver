@@ -29,7 +29,7 @@ class Importer(object):
         '''
         jsonin = json.load(fileobj)
         metadata = jsonin.get('metadata',False)
-        record_dicts, metadata = jsonin.get('records',jsonin)
+        record_dicts = jsonin.get('records', jsonin)
 
         # if metadata provided from file, roll it into the collection object
         if metadata:

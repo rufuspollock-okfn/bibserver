@@ -89,6 +89,7 @@ def index(ticket):
     data = open(in_path).read()
     if len(data) < 1:
         raise Exception('The parsed data in this ticket is empty.' )
+    
     record_dicts = json.loads(data)
     # TODO check for metadata section to update collection from this?
     owner = bibserver.dao.Account.get(ticket['owner'])
@@ -99,7 +100,7 @@ def index(ticket):
         'source': ticket['source_url'],
         'format': ticket['format']
     }
-    importer.index(collection, record_dicts)
+    importer.upload(open(in_path), collection)
     ticket['state'] = 'done'
     ticket.save()
     
