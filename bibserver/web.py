@@ -105,6 +105,10 @@ class UploadView(MethodView):
                                        collection=request.values.get('collection'),
                                        description=request.values.get('description'),
                                        )
+            # Allow only parsing
+            only_parse = request.values.get('only_parse')
+            if only_parse:
+               ticket['only_parse'] = True
             
             # If the user is uploading a file, update the ticket with the 'downloaded' file
             # And correct source

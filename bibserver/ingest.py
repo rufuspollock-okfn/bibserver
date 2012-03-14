@@ -127,7 +127,10 @@ def parse(ticket):
     open(out_path, 'wb').write(data)
     
     ticket['data_json'] = md5sum
-    ticket['state'] = 'parsed'
+    if ticket.get('only_parse') == True:
+        ticket['state'] = 'done'
+    else:
+        ticket['state'] = 'parsed'
     # Check if there is any data in the stderr of the parser
     # If so, add it to the ticket as potential feedback
     data_stderr = p.stderr.read()
