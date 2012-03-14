@@ -2660,7 +2660,7 @@ def parse():
     parser = BibTexParser(sys.stdin)
     records, metadata = parser.parse()
     if len(records) > 0:
-        sys.stdout.write(json.dumps(records))
+        sys.stdout.write(json.dumps({'records':records, 'metadata':metadata}))
     else:
         sys.stderr.write('Zero records were parsed from the data')
     
