@@ -148,7 +148,8 @@ class DomainObject(UserDict.IterableUserDict):
             data['_last_modified'] = datetime.now().isoformat()
             
             # TODO: as owner is now required per record, should perhaps insert a check for owner here
-            buf.append(conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True))
+            index_result = conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True)
+            buf.append( (index_result, data) )
         # refresh required after bulk index
         conn.refresh()
         return buf
@@ -236,7 +237,7 @@ class Collection(DomainObject):
         conn = httplib.HTTPConnection(url)
         conn.request('DELETE', loc)
         resp = conn.getresponse()
-        for record in self.records():
+        for record in self.records:
             record.delete()
     
     def __len__(self):
