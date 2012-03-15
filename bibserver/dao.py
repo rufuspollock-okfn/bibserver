@@ -121,7 +121,7 @@ class DomainObject(UserDict.IterableUserDict):
         for data in dataset:
             if not type(data) is dict: continue
             if 'id' in data:
-                id_ = data['id']
+                id_ = data['id'].strip()
             else:
                 id_ = uuid.uuid4().hex
                 data['id'] = id_
@@ -136,15 +136,6 @@ class DomainObject(UserDict.IterableUserDict):
         conn.refresh()
         return buf
     
-    @classmethod
-    def delete_by_query(cls, query):
-        url = str(config['ELASTIC_SEARCH_HOST'])
-        loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + urllib.quote_plus(query)
-        conn = httplib.HTTPConnection(url)
-        conn.request('DELETE', loc)
-        resp = conn.getresponse()
-        return resp.read()
-        
     @classmethod
     def query(cls, q='', terms=None, facet_fields=None, flt=False, default_operator='AND', **kwargs):
         '''Perform a query on backend.
@@ -197,13 +188,22 @@ class Record(DomainObject):
 class Collection(DomainObject):
     __type__ = 'collection'
 
+    @property
     def records(self):
         size = Record.query(terms={'owner':self['owner'],'collection':self['collection']})['hits']['total']
         if size != 0:
-            res = [i['_source'] for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
-        else: res = None
+            res = [Record.get(i['_source']['id']) for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
+        else: res = []
         return res
 
+    @classmethod
+    def get_by_owner_coll(cls,owner,coll):
+        res = cls.query(terms={'owner':owner,'collection':coll})
+        if res['hits']['total'] == 1:
+            return cls(**res['hits']['hits'][0]['_source'])
+        else:
+            return None
+            
     def delete(self):
         url = str(config['ELASTIC_SEARCH_HOST'])
         loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
@@ -211,10 +211,7 @@ class Collection(DomainObject):
         conn.request('DELETE', loc)
         resp = conn.getresponse()
         for record in self.records():
-            conn = httplib.HTTPConnection(url)
-            loc = config['ELASTIC_SEARCH_DB'] + "/record/" + record.id
-            conn.request('DELETE', loc)
-            resp = conn.getresponse()
+            record.delete()
     
     def __len__(self):
         res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})
@@ -236,3 +233,13 @@ class Account(DomainObject, UserMixin):
             })
         colls = [ Collection(**item['_source']) for item in colls['hits']['hits'] ]
         return colls
+        
+    def delete(self):
+        url = str(config['ELASTIC_SEARCH_HOST'])
+        loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
+        conn = httplib.HTTPConnection(url)
+        conn.request('DELETE', loc)
+        resp = conn.getresponse()
+        for coll in self.collections():
+            coll.delete()
+

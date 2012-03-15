@@ -24,15 +24,18 @@
 </script>
     
     <div id="panel">
+        {% if implicit %}
+            <h2>{{ implicit }}</h2>
+        {% endif %}
         {% if collection.id %}
-            <h2><a href="/{{collection.owner}}">{{collection.owner}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection.label }}</a></h2>
-            <p>{{ collection['description'] }}</p>
+            <h2><a href="/{{collection.owner}}">{{collection.owner}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection.label }}</a> 
+            <small>{{ collection['description'] }}</small></h2>
         {% endif %}
     </div>
 {% if collection.id %}
 <p>
-<a href="/{{collection.owner}}/{{collection.collection}}.json?size={{collection|length}}">Download</a> this collection<br />
-{% if current_user.id == collection.owner %}
+<a href="/{{collection.owner}}/{{collection.collection}}.json">Download</a> this collection<br />
+{% if admin %}
 {% if source in collection %}
 <a href="/upload?source=%22{{ collection.source }}%22&collection={{collection.collection}}">Refresh</a> this collection (overwrites local changes)<br />
 {% endif %}

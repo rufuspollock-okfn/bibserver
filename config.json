@@ -2,6 +2,8 @@
     # service and super user account
     "service_name" : "BibSoup",
     "super_user" : "test",
+    "debug" : true,
+    "port" : 5000,
 
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
@@ -67,9 +69,21 @@
         ],
         [
             {
-                "pre": "<strong>",
-                "field": "title",
-                "post": "</strong>"
+                "pre":"<strong><a style=\"color:#333;\" href=\"/",
+                "field":"owner",
+                "post":"/"
+            },
+            {
+                "field":"collection",
+                "post":"/"
+            },
+            {
+                "field":"id",
+                "post":"\">"
+            },
+            {
+                "field":"title",
+                "post":"</a></strong>"
             }
         ],
         [
@@ -106,6 +120,39 @@
         ]
     ],
     
+    # default view for collections page
+    "colls_result_display" : [
+        [
+            {
+                "pre":"<h3><a href=\"/",
+                "field":"owner",
+                "post":"/"
+            },
+            {
+                "field":"collection",
+                "post":"\">"
+            },
+            {
+                "field":"label",
+                "post":"</a></h3>"
+            }
+        ],
+        [
+            {
+                "field":"description"
+            },
+            {
+                "pre":" (created by <a href=\"/",
+                "field":"owner",
+                "post":"\">"
+            },
+            {
+                "field":"owner",
+                "post":"</a>)"
+            }
+        ]
+    ],
+
     # a dict of the ES mappings. identify by name, and include name as first object name
     # and identifier for how non-analyzed fields for faceting are differentiated in the mappings
     "facet_field" : ".exact",

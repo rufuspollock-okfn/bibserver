@@ -1,40 +1,93 @@
 {% extends "base.html" %}
 
 {% block content %}
-      <div class="hero-unit">
-        <h1>Welcome to BibSoup!</h1>
-        <p>BibSoup makes it easy to find, manage and share bibliographies. <small>(now in beta)</small></p>
+
+    <script type="text/javascript">
+    jQuery(document).ready(function() {
+
+        var bubble = function() {
+            indata = {{ colldata | safe }};
+            data = {"children":[]};
+            for (var item in indata) {
+                var arr = {
+                    "className": indata[item]['name'],
+                    "packageName": item,
+                    "value": indata[item]['records'],
+                    "owner": indata[item]['owner'],
+                    "slug": indata[item]['slug']
+                }
+                data["children"].push(arr);
+            }
+            var r = jQuery('#collections').width(),
+                format = d3.format(",d"),
+                fill = d3.scale.category20c();
+            var bubble = d3.layout.pack()
+                .sort(null)
+                .size([r, r]);
+            var vis = d3.select("#collections").append("svg:svg")
+                .attr("width", r)
+                .attr("height", r)
+                .attr("class", "bubble")
+            var node = vis.selectAll("g.node")
+                .data(bubble(data)
+                .filter(function(d) { return !d.children; }))
+                .enter().append("svg:g")
+                .attr("class", "node")
+                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+            node.append("svg:title")
+                .text(function(d) { return d.data.className + ": " + format(d.value); })
+            node.append("svg:circle")
+                .attr("r", function(d) { return d.r; })
+                .style("fill", function(d) { return fill(d.data.packageName); })
+            node.append("svg:text")
+                .attr("text-anchor", "middle")
+                .attr("dy", ".3em")
+                .text(function(d) { return d.data.className.substr(0,12) + ".. (" + d.data.value + ")"; })
+            node.on('click',function(d) {
+                clickbubble(d.data.owner,d.data.slug)
+            })
+        };
+        bubble()
+
+        var clickbubble = function(owner,coll) {
+            window.location = '/' + owner + '/' + coll
+        }
+
+    });
+    </script>
+
+
+
+      <div class="hero-unit clearfix">
+        <div class="span7">
+            <h1>Welcome to BibSoup!</h1>
+            <p><br />BibSoup makes it easy to find, manage and share bibliographies. <small>(now in beta)</small></p>
+        </div>
+        <div class="span3">
+            <p><a class="btn btn-primary" style="font-size:14px;" href="/faq">import from reference tools or files or webpages; build, share and collaboratively manage collections; browse, search, filter and visualise; embed records and collections on your webpages.</a></p>
+        </div>
       </div>
 
-      <!-- Example row of columns -->
       <div class="row">
-        <div class="span4 column">
-        {% if upload == "YES" %}
-          <h2>Upload a collection</h2>
-          <p>Build collections for your group, for your research, for your students; share them with everyone. Collections can be created from your own files, such as BibTex, and then be managed online or re-exported.</p>
-          <p><a href="/upload" class="btn">Upload now &raquo;</a></p>
-        {% endif %}
-          <h2>Search all records</h3>
-          <p>Search shared collections and records. Find material relevant to your interests.</p>
-          <p><a href="/search" class="btn">Search now &raquo;</a></p>
-          <h2>Create a new collection</h3>
-          <p>(coming soon) Search available records, select your favourites to create a new collection - or, combine two or more collections to make a super-collection.</p>
-          <h2>Share collection admin</h3>
-          <p>(coming soon) Collaboratively create and edit a collection by giving other users admin rights.</p>
+        <div class="span4">
+          <div class="hero-unit">
+            <h3>We have <span class="label label-info" style="font-size:20px;">{{records}}</span> records 
+            <br /><br />across <span class="label label-info" style="font-size:20px;">{{colls}}</span> collections</h3>
+          </div>
+          <div class="hero-unit">
+            <h2>Search all records</h3>
+            <p>Search shared collections and records, find material relevant to your interests, make new collections.</p>
+            <p><a href="/search" class="btn">Search everything &raquo;</a></p>
+          </div>
         </div>
-        <div class="span8 column">
-          <h2>Browse recent Collections</h2>
-          {% if colls %}
-          <table class="table-striped">
-          {% for i in range(colls|length) %}
-          <tr><td>
-            <h3><a href="/{{colls[i]['owner']}}/{{colls[i]['collection']}}">{{colls[i]['label']}}</a> <small>({{colls[i]|length}} records)</small></h3>
-            <p>{{colls[i]['description']}}</p>
-          </td></tr>
-          {% endfor %}
-          </table>
-          {% endif %}
-          <p><a href="/collections" class="btn">See more &raquo;</a></p>
+
+        <div class="span8">
+          <div class="hero-unit">
+              <h2>Browse recent Collections</h2>
+              <div id="collections"></div>
+              <p><a href="/collection" class="btn">Browse all collections &raquo;</a></p>
+          </div>
         </div>
+
       </div>
 {% endblock %}
