@@ -1,3 +1,5 @@
+from urllib import urlopen, urlencode
+import md5
 import re
 from unicodedata import normalize
 from functools import wraps
@@ -15,6 +17,7 @@ def jsonp(f):
         else:
             return f(*args, **kwargs)
     return decorated_function
+
 
 # derived from http://flask.pocoo.org/snippets/45/ (pd) and customised
 def request_wants_json():
@@ -39,4 +42,23 @@ def slugify(text, delim=u'_'):
         if word:
             result.append(word)
     return unicode(delim.join(result))
+
+
+# get gravatar for email address
+def get_gravatar(email, size=None, default=None, border=None):
+    email = email.lower().strip()
+    hash = md5.md5(email).hexdigest()
+    args = {'gravatar_id':hash}
+    if size and 1 <= int(size) <= 512:
+        args['size'] = size
+    if default: args['default'] = default
+    if border: args['border'] = border
+
+    url = 'http://www.gravatar.com/avatar.php?' + urlencode(args)
+
+    response = urlopen(url)
+    image = response.read()
+    response.close()
+
+    return image
 

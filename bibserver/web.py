@@ -52,8 +52,9 @@ def standard_authentication():
                 login_user(user, remember=False)
 
 
+@app.route('/query/<path:path>', methods=['GET','POST'])
 @app.route('/query/', methods=['GET','POST'])
-@app.route('/query/<path:path>')
+@app.route('/query', methods=['GET','POST'])
 def query(path='Record'):
     if path.lower() == 'account':
         abort(401)
@@ -178,5 +179,5 @@ if __name__ == "__main__":
     if config["allow_upload"]:
         ingest= subprocess.Popen(['python', 'bibserver/ingest.py'])
     bibserver.dao.init_db()
-    app.run(host='0.0.0.0', debug=config['debug'], port=config['port'])
+    app.run(host=config['host'], debug=config['debug'], port=config['port'])
 

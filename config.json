@@ -2,6 +2,7 @@
     # service and super user account
     "service_name" : "BibSoup",
     "super_user" : "test",
+    "host" : "0.0.0.0",
     "debug" : true,
     "port" : 5000,
 
