@@ -2,47 +2,72 @@
 
 {% block content %}
 
+{% if admin %}
 
-<script type="text/javascript">
-jQuery(document).ready(function() {
-    jQuery('#panel').jtedit({"data": {{ current_user | safe }} });
-});
-</script>
+    <script type="text/javascript">
+    jQuery(document).ready(function() {
+        jQuery('#user').jtedit({"data": {{ record | safe }} })
+        jQuery('#panel').facetview( {{ search_options | safe }} )
+    });
+    </script>
 
-<div id="panel" class="clearfix">
-</div>
+    <div class="row hero-unit">
+        <div class="span4">
+            <h2>Hi {{ current_user.id }}</h2>
+            {% if superuser %}
+                <p>You are the superuser!
+                <br />You can view and edit anything!
+                <br />Be careful...</p>
+            {% endif %}
+        </div>
+        <div class="span6">
+            <p>Your api_key is {{current_user['api_key']}}
+            <br />You need to append this to your API calls if you want to make changes.</p>
+        </div>
+    </div>
 
+    <div class="row">
+        <div class="span6">
+            <h3>Your collections</h3>
+            <p>Choose one to view, and your admin options will be available at the 
+            bottom of the result display page.</p>
+            {% if current_user['collections']|length == 0 %}
+            <p>You have no collections yet. <a href="/upload">Create one!</a></p>
+            {% else %}
+            {% for coll in current_user['collections'] %}
+                <p><a href="/{{current_user['id']}}/{{coll.collection}}">{{coll['label']}}</a> -  
+                {{coll['description']}} ({{coll|length}} records)</p>
+            {% endfor %}
+            {% endif %}
+        </div>
+        <div id="user" class="span6">
+            <h3>Edit your user profile</h3>
+        </div>
+    </div>
 
+    <div class="row">
+        <div id="panel" class="span12">
+            <h3>All your records</h3>
+        </div>
+    </div>
 
-<h3>User: {{current_user['id']}}</h3>
-
-<ul>
-<li>API key: {{current_user['api_key']}}</li>
-</ul>
-
-<h3>Your collections:</h3>
-{% if current_user['collections']|length == 0 %}
-<p>You have no collections yet. <a href="/upload">Create one!</a></p>
 {% else %}
-<table>
-{% for coll in current_user['collections'] %}
-    <tr>
-    <td>
-    <h4><a href="/{{current_user['id']}}/{{coll.collection}}">{{coll['label']}}</a></h4>
-    </td>
-    <td>
-    <p>{{coll|length}} records.<br /> 
-    {{coll['description']}}<br />
-    <a href="/collections/{{coll['owner']}}/{{coll['collection']}}?display_settings=edit">Customise the display</a> of this collection</a>.<br />    
-    <a href="/collections/{{coll['owner']}}/{{coll['collection']}}">Edit the metadata</a> of this collection</a>.<br />
-    {% if 'source' in coll and coll['source'] %}
-    <a href="/upload?source={{coll["source"]}}&collection={{coll['collection']}}">Refresh </a> this collection (overwrites any local changes).<br />
-    {% endif %}
-    <a href="/collections/{{coll['owner']}}/{{coll['collection']}}?delete=true">Delete this collection</a>.
-    </td>
-    </tr>
-{% endfor %}
-</table>
+
+    <div class="row hero-unit">
+        <div class="span4">
+            <h2>{{ account.id }}</h2>
+        </div>
+        <div class="span6">
+            <p>{{ account.description }}</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="span12">
+            <p>You are not logged in as this user. Use the <a href="/account/login">login page</a> if you want to change this</p>
+        </div>
+    </div>
+
 {% endif %}
 
 {% endblock %}
