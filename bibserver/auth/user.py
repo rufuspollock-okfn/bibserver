@@ -8,3 +8,5 @@ def update(account, user):
             allowed = True
     return allowed
 
+def is_super(account):
+    return not account.is_anonymous and account.id == config['super_user']

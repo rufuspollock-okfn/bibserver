@@ -24,9 +24,12 @@
 </script>
     
     <div id="panel">
+        {% if implicit %}
+            <h2>{{ implicit }}</h2>
+        {% endif %}
         {% if collection.id %}
-            <h2><a href="/{{collection.owner}}">{{collection.owner}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection.label }}</a></h2>
-            <p>{{ collection['description'] }}</p>
+            <h2><a href="/{{collection.owner}}">{{collection.owner}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection.label }}</a> 
+            <small>{{ collection['description'] }}</small></h2>
         {% endif %}
     </div>
 {% if collection.id %}

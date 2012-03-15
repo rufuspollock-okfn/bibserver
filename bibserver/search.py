@@ -38,11 +38,26 @@ class Search(object):
             return self.collections()
         elif len(self.parts) == 2:
             return self.implicit_facet()
+        else:
+            return render_template('search/index.html', 
+                current_user=self.current_user, 
+                search_options=json.dumps(self.search_options), 
+                collection=None
+            )
 
 
     def implicit_facet(self):
         self.search_options['predefined_filters'][self.parts[0]+config['facet_field']] = self.parts[1]
-        return render_template('search/index.html', current_user=self.current_user, search_options=json.dumps(self.search_options), collection=None)
+        # remove the implicit facet from facets
+        for count,facet in enumerate(self.search_options['facets']):
+            if facet['field'] == self.parts[0]+config['facet_field']:
+                del self.search_options['facets'][count]
+        return render_template('search/index.html', 
+            current_user=self.current_user, 
+            search_options=json.dumps(self.search_options), 
+            collection=None, 
+            implicit=self.parts[0]+': ' + self.parts[1]
+        )
 
 
     def collections(self):
@@ -89,7 +104,12 @@ class Search(object):
                         record.save()
                         return ''
                 else:
-                    return render_template('record.html', record=json.dumps(res['hits']['hits'][0]['_source']), edit=True)
+                    admin = True if auth.collection.update(self.current_user, collection) else False
+                    return render_template('record.html', 
+                        record=json.dumps(res['hits']['hits'][0]['_source']), 
+                        prettyrecord=self.prettify(res['hits']['hits'][0]['_source']),
+                        admin=admin
+                    )
         else:
             if util.request_wants_json():
                 resp = make_response( json.dumps([i['_source'] for i in res['hits']['hits']], sort_keys=True, indent=4) )
@@ -123,14 +143,13 @@ class Search(object):
                 return resp
             else:
                 admin = True if auth.user.update(self.current_user,acc) else False
-                superuser = True if self.current_user.id == config['super_user'] else False
                 return render_template('account/view.html', 
                     current_user=self.current_user, 
                     search_options=json.dumps(self.search_options), 
                     record=json.dumps(acc.data), 
                     admin=admin,
                     account=acc,
-                    superuser=superuser
+                    superuser=auth.user.is_super(self.current_user)
                 )
 
 
@@ -187,5 +206,52 @@ class Search(object):
             else:
                 admin = True if auth.collection.update(self.current_user, metadata) else False
                 return render_template('search/index.html', current_user=self.current_user, search_options=json.dumps(self.search_options), collection=metadata, admin=admin)
+
+    def prettify(self,record):
+        result = ''
+        # given a result record, build how it should look on the page
+        img = False
+        if img:
+            result += '<img class="thumbnail" style="float:left; width:100px; margin:0 5px 10px 0; max-height:150px;" src="' + img[0] + '" />'
+
+        # add the record based on display template if available
+        display = config['search_result_display']
+        lines = ''
+        for lineitem in display:
+            line = ''
+            for obj in lineitem:
+                thekey = obj['field']
+                parts = thekey.split('.')
+                if len(parts) == 1:
+                    res = record
+                elif len(parts) == 2:
+                    res = record.get(parts[0],'')
+                elif len(parts) == 3:
+                    res = record[parts[0]][parts[1]]
+                counter = len(parts) - 1
+                if res and isinstance(res, dict):
+                    thevalue = res.get(parts[counter],'')  # this is a dict
+                else:
+                    thevalue = []
+                    for row in res:
+                        thevalue.append(row[parts[counter]])
+
+                if thevalue and len(thevalue):
+                    line += obj.get('pre','')
+                    if isinstance(thevalue, list):
+                        for index,val in enumerate(thevalue):
+                            if index != 0 and index != len(thevalue)-1: line += ', '
+                            line += val
+                    else:
+                        line += thevalue
+                    line += obj.get('post','')
+            if line:
+                lines += line + "<br />"
+        if lines:
+            result += lines
+        else:
+            result += json.dumps(record,sort_keys=True,indent=4)
+        return result
+
 
 

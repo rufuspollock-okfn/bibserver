@@ -2,12 +2,17 @@
 
 {% block content %}
 
+<script type="text/javascript">
+jQuery(document).ready(function() {
+    jQuery('#panel').facetview( {{ search_options | safe }} )
+});
+</script>
+
 {% if admin %}
 
     <script type="text/javascript">
     jQuery(document).ready(function() {
         jQuery('#user').jtedit({"data": {{ record | safe }} })
-        jQuery('#panel').facetview( {{ search_options | safe }} )
     });
     </script>
 
@@ -45,15 +50,9 @@
         </div>
     </div>
 
-    <div class="row">
-        <div id="panel" class="span12">
-            <h3>All your records</h3>
-        </div>
-    </div>
-
 {% else %}
 
-    <div class="row hero-unit">
+    <div class="hero-unit">
         <div class="span4">
             <h2>{{ account.id }}</h2>
         </div>
@@ -69,6 +68,10 @@
     </div>
 
 {% endif %}
+
+<div id="panel" class="hero-unit">
+    <h3>{{ account.id }} - all records</h3>
+</div>
 
 {% endblock %}
 

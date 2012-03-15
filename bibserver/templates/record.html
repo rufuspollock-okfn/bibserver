@@ -3,31 +3,43 @@
 {% block content %}
 
 {% if multiple %}
-    <div id="record_box" class="clearfix">
-        <p>You have requested a record based on the identifier it has in its' collection.
-        Unfortunately, there are multiple records in the collection with the same identifier.
-        If you are the collection owner, you should fix this (every record should have a 
-        unique identifier within your collection).</p>
-        <p>However, we allocate unique identifiers to each record ourselves, too. So, you 
-        can choose which record you would like to view and access it via the unique 
-        identifier we assigned it:</p>
-        <ul>
-        {% for item in multiple %}
-            <li><a href="/{{item['owner']}}/{{item['collection']}}/{{item['id']}}">{{item['id']}}</a></li>
-        {% endfor %}
-        </ul>
+    <div class="row">
+        <div class="span12">
+            <p>You have requested a record based on the identifier it has in its' collection.
+            Unfortunately, there are multiple records in the collection with the same identifier.
+            If you are the collection owner, you should fix this (every record should have a 
+            unique identifier within your collection).</p>
+            <p>However, we allocate unique identifiers to each record ourselves, too. So, you 
+            can choose which record you would like to view and access it via the unique 
+            identifier we assigned it:</p>
+            <ul>
+            {% for item in multiple %}
+                <li><a href="/{{item['owner']}}/{{item['collection']}}/{{item['id']}}">{{item['id']}}</a></li>
+            {% endfor %}
+            </ul>
+        </div>
     </div>
-{% elif edit %}
-<script type="text/javascript">
-jQuery(document).ready(function() {
-    jQuery('#panel').jtedit({"data": {{ record | safe }} });
-});
-</script>
-
-<div id="panel" class="clearfix">
-</div>
 {% else %}
-    <p>noedit</p>
+    <div class="hero-unit">
+        {% if prettyrecord %}
+            {{ prettyrecord | safe }}
+        {% else %}
+            <p>non-admin content</p>
+        {% endif %}
+    </div>
+
+    {% if admin %}
+    <script type="text/javascript">
+    jQuery(document).ready(function() {
+        jQuery('#panel').jtedit({"data": {{ record | safe }} });
+    });
+    </script>
+
+    <div class="row">
+        <div id="panel" class="span12">
+        </div>
+    </div>
+    {% endif %}
 {% endif %}
 
 {% endblock %}
