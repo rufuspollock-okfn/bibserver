@@ -5,6 +5,7 @@ import UserDict
 import httplib
 import urllib
 from datetime import datetime
+import hashlib
 
 import pyes
 from werkzeug import generate_password_hash, check_password_hash
@@ -13,6 +14,20 @@ from flaskext.login import UserMixin
 from bibserver.config import config
 import bibserver.util
 
+def make_id(data):
+    '''Create a new id for data object based on a hash of the data representation
+    Ignore the _last_modified, _created fields
+    ##TODO Ignore ALL fields that startswith _
+    '''
+    if 'id' in data: return data['id']
+    new_data = {}
+    for k,v in data.items():
+        if k in ('_last_modified', '_created'): continue
+        new_data[k] = v
+    buf = json.dumps(new_data, sort_keys=True)
+    new_id = hashlib.md5(buf).hexdigest()
+    return new_id
+    
 def init_db():
     conn, db = get_conn()
     try:
@@ -123,7 +138,7 @@ class DomainObject(UserDict.IterableUserDict):
             if 'id' in data:
                 id_ = data['id'].strip()
             else:
-                id_ = uuid.uuid4().hex
+                id_ = make_id(data)
                 data['id'] = id_
             
             if '_created' not in data:
