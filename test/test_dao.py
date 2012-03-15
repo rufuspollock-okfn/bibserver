@@ -55,6 +55,26 @@ class TestDAO:
         # should only be one collection for this account so this is ok
         account_colls = Fixtures.account.collections
         assert coll.id == account_colls[0].id, account_colls
+        
+    def test_making_ids(self):
+        recdict1 = fixtures['records'][0].copy()
+        del recdict1['id']
+        recdict2 = recdict1.copy()
+        recdict3 = recdict1.copy()
+        recdict3['foobar'] = 'baz'
+        a = dao.make_id(recdict1)
+        b = dao.make_id(recdict3)
+        print a
+        print b
+        assert a != b
+        record1 = dao.Record.upsert(recdict1)
+        record2 = dao.Record.upsert(recdict2)
+        record3 = dao.Record.upsert(recdict3)
+        print record1, '*'*5
+        print record2, '*'*5
+        print record3, '*'*5
+        assert record1['id'] == record2['id']
+        assert record1['id'] != record3['id']
 
 class TestDAOQuery:
     @classmethod

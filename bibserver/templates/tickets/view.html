@@ -22,6 +22,15 @@
         
     </div>
 {% endif %}
+{% if ticket.failed_index %}
+<div>
+    <h4>Failed imports</h4>
+    {% for r in ticket.failed_index %}
+    <p>{{r}}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
 
 {% endif %}
 

@@ -3,6 +3,7 @@ import urllib2
 import unicodedata
 import httplib
 import json
+import subprocess
 from copy import deepcopy
 from datetime import datetime
 
@@ -51,7 +52,7 @@ def standard_authentication():
                 login_user(user, remember=False)
 
 
-@app.route('/query', methods=['GET','POST'])
+@app.route('/query/', methods=['GET','POST'])
 @app.route('/query/<path:path>')
 def query(path='Record'):
     if path.lower() == 'account':
@@ -174,8 +175,8 @@ def default(path):
 
 
 if __name__ == "__main__":
-    if not os.path.exists('download_cache'):
-        os.makedirs('download_cache')
+    if config["allow_upload"]:
+        ingest= subprocess.Popen(['python', 'bibserver/ingest.py'])
     bibserver.dao.init_db()
     app.run(host='0.0.0.0', debug=config['debug'], port=config['port'])
 
