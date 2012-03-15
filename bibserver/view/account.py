@@ -30,7 +30,7 @@ def login():
         if user and user.check_password(password):
             login_user(user, remember=True)
             flash('Welcome back', 'success')
-            return redirect(url_for('home'))
+            return redirect('/'+user.id)
         else:
             flash('Incorrect email/password', 'error')
     if request.method == 'POST' and not form.validate():

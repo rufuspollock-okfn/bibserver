@@ -859,7 +859,7 @@
                <div class="span9" id="facetview_rightcol"> \
                    <div id="facetview_searchbar" style="display:inline; float:left;" class="input-prepend"> \
                    <span class="add-on"><i class="icon-search"></i></span> \
-                   <input class="span4" id="facetview_freetext" name="q" value="" placeholder="search term" autofocus /> \
+                   <input class="span4" id="facetview_freetext" name="q" value="" placeholder="search term" /> \
                    </div> \
                    <div style="display:inline; float:left;margin-left:-2px;" class="btn-group"> \
                     <a style="-moz-border-radius:0px 3px 3px 0px; \
