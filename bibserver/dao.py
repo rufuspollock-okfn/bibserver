@@ -117,6 +117,7 @@ class DomainObject(UserDict.IterableUserDict):
         '''Bulk update backend object with a list of dicts of data.
         If no id is supplied an uuid id will be created before saving.'''
         conn, db = get_conn()
+        buf = []
         for data in dataset:
             if not type(data) is dict: continue
             if 'id' in data:
@@ -130,10 +131,10 @@ class DomainObject(UserDict.IterableUserDict):
             data['_last_modified'] = datetime.now().isoformat()
             
             # TODO: as owner is now required per record, should perhaps insert a check for owner here
-            conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True)
+            buf.append(conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True))
         # refresh required after bulk index
         conn.refresh()
-        return dataset
+        return buf
     
     @classmethod
     def delete_by_query(cls, query):
