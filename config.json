@@ -159,11 +159,12 @@
     "mappings" : {
         "record" : {
             "record" : {
+                "date_detection" : false,
                 "dynamic_templates" : [
                     {
                         "default" : {
                             "match" : "*",
-                            "match_mapping_type": "*",
+                            "match_mapping_type": "string",
                             "mapping" : {
                                 "type" : "multi_field",
                                 "fields" : {
@@ -178,6 +179,7 @@
         },
         "collection" : {
             "collection" : {
+                "date_detection" : false,
                 "dynamic_templates" : [
                     {
                         "default" : {

@@ -28,9 +28,11 @@ def init_db():
         c.request('GET', fullpath)
         result = c.getresponse()
         if result.status == 404:
+            print mapping
             c =  httplib.HTTPConnection(host)
             c.request('PUT', fullpath, json.dumps(mappings[mapping]))
-            c.getresponse()
+            res = c.getresponse()
+            print res.read()
 
 
 def get_conn():

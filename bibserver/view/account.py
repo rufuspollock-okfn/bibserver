@@ -72,7 +72,7 @@ def register():
         account.save()
         login_user(account, remember=True)
         flash('Thanks for signing-up', 'success')
-        return redirect(url_for('home'))
+        return redirect('/'+account.id)
     if request.method == 'POST' and not form.validate():
         flash('Please correct the errors', 'error')
     return render_template('account/register.html', form=form, upload=config['allow_upload'])
