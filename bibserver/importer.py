@@ -38,52 +38,6 @@ class Importer(object):
         
         return self.index(collection, record_dicts)
 
-    def upload_from_web(self, request):
-        '''
-        :param request_data: Flask request.values attribute.
-        '''
-        source = ''
-        fileobj = None
-        if request.values.get("source"):
-            src = request.values.get("source").strip('"')
-            if not src.startswith('http://') and not src.startswith('https://'):
-                src = 'http://' + src
-            source = urllib2.unquote(src)
-            fileobj = urllib2.urlopen(source)
-            format = findformat(source)
-        elif request.files.get('upfile'):
-            fileobj = request.files.get('upfile')
-            format = findformat(fileobj.filename)
-        elif request.json:
-            # see flask repo for further info
-            # https://github.com/mitsuhiko/flask/issues/110
-            # TODO: these are not working. see following comment
-            fileobj = StringIO(request.json)
-        elif request.data:
-            fileobj = StringIO(request.data)
-
-        # request.data and request.json never appear to have content
-        # can solve by getting it out of the key it appears to get stuck into
-        # update: request.json has content only if content-type is sent on the incoming
-        import json
-        obj = ''
-        for thing in request.values:
-            if not request.values[thing] and not obj:
-                obj = thing
-        if obj and not fileobj:
-            fileobj = StringIO(obj)
-        # end of request data oddity
-
-        if not 'collection' in request.values:
-            raise ValueError('You must provide a collection label')
-        collection = {
-            'label': request.values['collection'],
-            'description': request.values.get('description',""),
-            'source': source,
-            }
-        collection, records = self.upload(fileobj, collection)
-        return (collection, records)
-
     def bulk_upload(self, colls_list):
         '''upload a list of collections from provided file locations.
 
@@ -117,27 +71,14 @@ class Importer(object):
         :return: (collection, records) tuple of collection and associated
         record objects.
         '''
-        collection = bibserver.dao.Collection(**collection_dict)
-        assert 'label' in collection, 'Collection must have a label'
-        if not 'collection' in collection:
-            collection['collection'] = util.slugify(collection['label'])
-        collection['owner'] = self.owner.id
-
-        delid = collection['collection']
-        for coll in self.owner.collections:
-            if 'source' in coll and 'source' in collection:
-                if coll['source'] == collection['source']:
-                    if coll['collection'] != collection['collection']:
-                        delid = coll['collection']
-                        bibserver.dao.Collection.delete_by_query('collection:"' + coll['collection'] + '" AND owner:"' + collection['owner'] + '"')
-                        break
-                    else:
-                        collection = coll
-                        break
-            if coll['collection'] == collection['collection']:
-                collection = coll
-                break
-        bibserver.dao.Record.delete_by_query('collection'+config["facet_field"]+':"' + delid + '" AND owner'+config["facet_field"]+':"' + collection['owner'] + '"')
+        col_label_slug = util.slugify(collection_dict['label'])
+        collection = bibserver.dao.Collection.get_by_owner_coll(self.owner.id, col_label_slug)
+        if not collection:
+            collection = bibserver.dao.Collection(**collection_dict)
+            assert 'label' in collection, 'Collection must have a label'
+            if not 'collection' in collection:
+                collection['collection'] = col_label_slug
+            collection['owner'] = self.owner.id
 
         collection.save()
 
@@ -154,13 +95,12 @@ class Importer(object):
             if self.requesturl:
                 if not self.requesturl.endswith('/'):
                     self.requesturl += '/'
+                if 'id' not in rec:
+                    rec['id'] = bibserver.dao.make_id(rec)
                 rec['url'] = self.requesturl + collection['owner'] + '/' + collection['collection'] + '/'
                 if 'cid' in rec:
                     rec['url'] += rec['cid']
                 elif 'id' in rec:
-                    rec['url'] += rec['id']
-                else:
-                    rec['id'] = uuid.uuid4().hex
                     rec['url'] += rec['id']
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
         return collection, records
