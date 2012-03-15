@@ -16,6 +16,7 @@ import bibserver.dao
 from bibserver.config import config
 from bibserver.importer import Importer
 from bibserver.core import app
+import bibserver.util as util
 from flask import render_template, make_response, abort, send_from_directory
 
 # Constant used to track installed plugins
@@ -90,17 +91,20 @@ def index(ticket):
     if len(data) < 1:
         raise Exception('The parsed data in this ticket is empty.' )
     
-    record_dicts = json.loads(data)
     # TODO check for metadata section to update collection from this?
     owner = bibserver.dao.Account.get(ticket['owner'])
     importer = Importer(owner=owner)
     collection = {
         'label': ticket['collection'],
+        'collection': util.slugify(ticket['collection']),
         'description': ticket.get('description'),
         'source': ticket['source_url'],
         'format': ticket['format']
     }
-    importer.upload(open(in_path), collection)
+    collection, records = importer.upload(open(in_path), collection)
+    failed = [b for a,b in records if not a]
+    if failed:
+        ticket['failed_index'] = failed
     ticket['state'] = 'done'
     ticket.save()
     
@@ -175,7 +179,7 @@ def determine_action(ticket):
     'For the given ticket determine what the next action to take is based on the state'
     try:
         state = ticket['state']
-        print 'Trying:', ticket['_id'], ticket['state'],
+        print ticket['state'], ticket['_id'],
         if state == 'new':
             download(ticket)
         if state == 'downloaded':
