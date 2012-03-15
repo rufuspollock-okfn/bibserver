@@ -136,6 +136,15 @@ class DomainObject(UserDict.IterableUserDict):
         return dataset
     
     @classmethod
+    def delete_by_query(cls, query):
+        url = str(config['ELASTIC_SEARCH_HOST'])
+        loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + urllib.quote_plus(query)
+        conn = httplib.HTTPConnection(url)
+        conn.request('DELETE', loc)
+        resp = conn.getresponse()
+        return resp.read()
+
+    @classmethod
     def query(cls, q='', terms=None, facet_fields=None, flt=False, default_operator='AND', **kwargs):
         '''Perform a query on backend.
 

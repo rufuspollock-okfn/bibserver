@@ -163,7 +163,7 @@
                     {
                         "default" : {
                             "match" : "*",
-                            "match_mapping_type": "string",
+                            "match_mapping_type": "*",
                             "mapping" : {
                                 "type" : "multi_field",
                                 "fields" : {

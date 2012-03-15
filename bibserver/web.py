@@ -71,20 +71,25 @@ def content():
 
 @app.route('/')
 def home():
-    colldata = bibserver.dao.Collection.query(sort='_created')
-    data = []
-    if colldata['hits']['total'] != 0:
-        for coll in colldata['hits']['hits']:
-            colln = bibserver.dao.Collection.get(coll['_id'])
-            if colln:
-                data.append({
-                    'name': colln['label'], 
-                    'records': len(colln), 
-                    'owner': colln['owner'], 
-                    'slug': colln['collection'] 
-                })
-    colls = colldata['hits']['total']
-    records = bibserver.dao.Record.query()['hits']['total']
+    try:
+        colldata = bibserver.dao.Collection.query(sort='_created')
+        data = []
+        if colldata['hits']['total'] != 0:
+            for coll in colldata['hits']['hits']:
+                colln = bibserver.dao.Collection.get(coll['_id'])
+                if colln:
+                    data.append({
+                        'name': colln['label'], 
+                        'records': len(colln), 
+                        'owner': colln['owner'], 
+                        'slug': colln['collection'] 
+                    })
+        colls = colldata['hits']['total']
+        records = bibserver.dao.Record.query()['hits']['total']
+    except:
+        data = []
+        colls = None
+        records = None
     return render_template('home/index.html', colldata=json.dumps(data), colls=colls, records=records)
 
 
