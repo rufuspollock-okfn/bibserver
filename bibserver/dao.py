@@ -43,9 +43,11 @@ def init_db():
         c.request('GET', fullpath)
         result = c.getresponse()
         if result.status == 404:
+            print mapping
             c =  httplib.HTTPConnection(host)
             c.request('PUT', fullpath, json.dumps(mappings[mapping]))
-            c.getresponse()
+            res = c.getresponse()
+            print res.read()
 
 
 def get_conn():
@@ -151,6 +153,15 @@ class DomainObject(UserDict.IterableUserDict):
         conn.refresh()
         return buf
     
+    @classmethod
+    def delete_by_query(cls, query):
+        url = str(config['ELASTIC_SEARCH_HOST'])
+        loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + urllib.quote_plus(query)
+        conn = httplib.HTTPConnection(url)
+        conn.request('DELETE', loc)
+        resp = conn.getresponse()
+        return resp.read()
+
     @classmethod
     def query(cls, q='', terms=None, facet_fields=None, flt=False, default_operator='AND', **kwargs):
         '''Perform a query on backend.
