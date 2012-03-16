@@ -99,9 +99,10 @@ class UploadView(MethodView):
             flash('You need to login to create a collection.')
             return redirect('/account/login')
         if request.values.get("source") is not None:
-            return self.post()
+            return self.post()        
         return render_template('upload.html', upload=config["allow_upload"], 
-                               ingest_tickets = bibserver.ingest.get_tickets())
+                               ingest_tickets = bibserver.ingest.get_tickets(),
+                               parser_plugins=bibserver.ingest.PLUGINS.values())
 
     def post(self):
         if not auth.collection.create(current_user, None):
@@ -176,7 +177,11 @@ def default(path):
 
 if __name__ == "__main__":
     if config["allow_upload"]:
-        ingest= subprocess.Popen(['python', 'bibserver/ingest.py'])
+        bibserver.ingest.init()
+        if not os.path.exists('ingest.pid'):
+            ingest=subprocess.Popen(['python', 'bibserver/ingest.py'])
+            open('ingest.pid', 'w').write('%s' % ingest.pid)
     bibserver.dao.init_db()
     app.run(host='0.0.0.0', debug=config['debug'], port=config['port'])
-
+    if os.path.exists('ingest.pid'):
+        os.remove('ingest.pid')
