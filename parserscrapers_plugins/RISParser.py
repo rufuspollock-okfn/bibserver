@@ -126,7 +126,7 @@ def parse():
         sys.stderr.write('Zero records were parsed from the data')
     
 def main():
-    conf = {"display_name": "RIS Parser",
+    conf = {"display_name": "RIS",
             "format": "ris",
             "contact": "openbiblio-dev@lists.okfn.org", 
             "bibserver_plugin": True, 

@@ -2665,7 +2665,7 @@ def parse():
         sys.stderr.write('Zero records were parsed from the data')
     
 def main():
-    conf = {"display_name": "BibTex Parser",
+    conf = {"display_name": "BibTex",
             "format": "bibtex",
             "contact": "openbiblio-dev@lists.okfn.org", 
             "bibserver_plugin": True, 

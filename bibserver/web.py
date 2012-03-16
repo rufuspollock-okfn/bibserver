@@ -52,8 +52,9 @@ def standard_authentication():
                 login_user(user, remember=False)
 
 
+@app.route('/query/<path:path>', methods=['GET','POST'])
 @app.route('/query/', methods=['GET','POST'])
-@app.route('/query/<path:path>')
+@app.route('/query', methods=['GET','POST'])
 def query(path='Record'):
     if path.lower() == 'account':
         abort(401)

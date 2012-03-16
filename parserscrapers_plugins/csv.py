@@ -38,7 +38,7 @@ def parse():
         sys.stderr.write('Zero records were parsed from the data')
 
 def main():
-    conf = {"display_name": "CSV Parser",
+    conf = {"display_name": "CSV",
             "format": "csv",
             "contact": "openbiblio-dev@lists.okfn.org", 
             "bibserver_plugin": True, 
