@@ -34,7 +34,7 @@ class Search(object):
                 return self.collection() # request for collection
             elif len(self.parts) == 3:
                 return self.record() # request for record in collection
-        elif len(self.parts) == 1 and self.parts[0] == 'collection':
+        elif len(self.parts) == 1 and self.parts[0] == 'collections':
             return self.collections()
         elif len(self.parts) == 2:
             return self.implicit_facet()
@@ -212,8 +212,8 @@ class Search(object):
                 return resp
             else:
                 admin = True if metadata != None and auth.collection.update(self.current_user, metadata) else False
-                if metadata and 'display_settings' in metadata:
-                    search_options = metadata['display_settings']
+                if metadata and '_display_settings' in metadata:
+                    self.search_options.update(metadata['_display_settings'])
                 return render_template('search/index.html', 
                     current_user=self.current_user, 
                     search_options=json.dumps(self.search_options), 

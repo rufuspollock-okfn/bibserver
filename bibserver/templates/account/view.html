@@ -41,8 +41,7 @@ jQuery(document).ready(function() {
     <div class="row">
         <div class="span3">
             <h3>Your collections</h3>
-            <p>Choose one to view, and your admin options will be available at the 
-            bottom of the result display page.</p>
+            <p>Choose one to view - admin options are available in each collection.</p>
             {% if current_user['collections']|length == 0 %}
             <p>You have no collections yet. <a href="/upload">Create one!</a></p>
             {% else %}

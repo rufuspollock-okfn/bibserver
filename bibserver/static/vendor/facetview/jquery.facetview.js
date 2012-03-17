@@ -44,6 +44,7 @@
 
 // now the facetview function
 (function($){
+
     $.fn.facetview = function(options) {
 
         // a big default value (pulled into options below)
@@ -117,10 +118,13 @@
             "q":"*:*",
             "predefined_filters":{},
             "paging":{}
-        };
+        }
 
         // and add in any overrides from the call
-        var options = $.extend(defaults, options);
+        // facetview options are declared as a function so they are available externally
+        // (see bottom of this file)
+        $.fn.facetview.options = $.extend(defaults, options)
+        var options = $.fn.facetview.options
 
         // ===============================================
         // functions to do with filters
@@ -737,7 +741,7 @@
             // set any facets
             qs['facets'] = {};
             for (var item in options.facets) {
-                var obj = options.facets[item]
+                var obj = jQuery.extend(true, {}, options.facets[item] );
                 delete obj['display']
                 qs['facets'][obj['field']] = {"terms":obj}
             }
@@ -955,8 +959,12 @@
 
         }); // end of the function  
 
-
     };
+
+    // facetview options are declared as a function so that they can be retrieved
+    // externally (which allows for saving them remotely etc)
+    $.fn.facetview.options = {}
+
 })(jQuery);
 
 

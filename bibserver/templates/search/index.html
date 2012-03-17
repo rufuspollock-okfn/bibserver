@@ -2,77 +2,115 @@
 
 {% block content %}
 
-<script type="text/javascript">
+    <script type="text/javascript">
     jQuery(document).ready(function($) {
         $('#panel').facetview( {{ search_options | safe }} )
-
-        var bibserver_collection_delete = function(event) {
+    
+        var shareembed = function(event) {
             event.preventDefault()
-            jQuery.ajax({
-                type: "DELETE",
-                url: window.location,
-                success: function() {
-                    alert('Collection deleted')
-                    window.location = '/'
-                },
-                error: function() {
-                    alert('Sorry, the deletion failed. Please try again.')
-                }
-            })
+            jQuery('#shareembeddets').toggle()
         }
-        jQuery('#bibserver_collection_delete').bind('click',bibserver_collection_delete)
+        jQuery('#shareembed').bind('click',shareembed)
     });
-</script>
+    </script>
     
     <div id="panel">
+        <div class="row" style="margin-bottom:10px;">
         {% if collection.id %}
         <a style="float:right;margin-right:10px;" class="btn btn-primary" href="/{{collection.owner}}/{{collection.collection}}.json">
             <i class="icon-list-alt icon-white"></i> Download as BibJSON</a>
         {% endif %}
+        <a style="float:right;margin-right:10px;" class="btn btn-primary" id="shareembed" href="">
+            <i class="icon-list-alt icon-white"></i> share / embed</a>
         
         {% if admin %}
-        <!--
-        <a style="float:right;margin-right:10px;" class="btn btn-danger" id="bibserver_collection_delete" href="">
-            <i class="icon-remove icon-white"></i> delete collection</a>
-        -->
-        <div style="float:right;margin-right:10px;" class="btn-group">
-            <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">
-                <i class="icon-cog icon-white"></i> collection admin <span class="caret"></span></a>
-            <ul style="margin-left:-80px;" id="adminoptions" class="dropdown-menu">
-            <li><a id="bibserver_add_filters" href=""><i class="icon-search"></i> add / remove facet filters</a></li>
-            <li><a id="bibserver_display_save" href=""><i class="icon-check"></i> save current display settings</a></li>
-            <li><a id="bibserver_coll_meta" href=""><i class="icon-edit"></i> edit collection metadata</a></li>
-            <li><a id="bibserver_share_admin" href=""><i class="icon-share"></i> share admin rights</a></li>
-            <!--
-            <li class="divider"></li>
-            {% if 'source' in collection %}
-            <li><a href="/upload?source=%22{{ collection['source'] }}%22&collection={{collection['collection']}}">
-                <i class="icon-refresh"></i> refresh this collection</a>
-            </li>
-            <li><a href="/upload?source=%22{{ collection['source'] }}%22&collection={{collection['collection']}}">
-                <i class="icon-refresh"></i> set auto-refresh</a>
-            </li>
-            {% endif %}
-            -->
-            </ul>
+        <a id="showadmin" class="btn btn-primary" style="float:right;margin-right:10px;" href="#"><i class="icon-cog icon-white"></i> collection admin</a>
         </div>
 
         <script type="text/javascript">
         jQuery(document).ready(function() {
+            var showadmin = function(event) {
+                event.preventDefault()
+                jQuery('#adminarea').toggle()
+            }
+            jQuery('#showadmin').bind('click',showadmin)
+
             jQuery('#user').jtedit({
                 "data": {{ record | safe }}, 
                 "hide": ["_created","_last_modified","id","owner","collection","source","format"], 
                 "target": "#",
                 "delete_redirect": "/"
             })
+                        
+            var savedisplay = function(event) {
+                event.preventDefault()
+                var metadata = JSON.parse(jQuery('#jtedit_json').val())
+                if ( !('_display_settings' in metadata) ) {
+                    metadata['_display_settings'] = {}
+                }
+                var newsettings = jQuery.fn.facetview.options
+                delete newsettings['data']
+                delete newsettings['query_parameter']
+                delete newsettings['visualise_filters']
+                delete newsettings['description']
+                delete newsettings['search_index']
+                delete newsettings['config_file']
+                delete newsettings['q']
+                delete newsettings['display_images']
+                delete newsettings['default_url_params']
+                delete newsettings['search_url']
+                delete newsettings['freetext_submit_delay']
+                delete newsettings['predefined_filters']
+                delete newsettings['addremovefacets']
+                metadata['_display_settings'] = newsettings
+                jQuery('#jtedit_json').val(JSON.stringify(metadata,"","    "))
+                jQuery('.jtedit_saveit').trigger('click')
+            }
+            jQuery('#savedisplay').bind('click',savedisplay)
         });
         </script>
 
-        <div class="hero-unit clearfix">
-            <div id="user" class="span12">
+        <div id="adminarea" class="hero-unit clearfix">
+            <div class="row">
+                <div class="span7">
+                    <h3>Save your display preferences</h3>
+                    <p>If you edit the settings of your search display, such as the 
+                    number of filter values to show, the number of results to show, 
+                    the order of things and so on, you can save all those settings as 
+                    the default view for your collection.</p>
+                </div>
+                <div class="span3">
+                    <p><br /><a id="savedisplay" class="btn btn-primary" href="">
+                        <i class="icon-check icon-white"></i>
+                        set current display settings as
+                        <br />default display for this collection
+                    </a></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span7">
+                    <h3>Share admin permissions</h3>
+                    <p>You can let other users have adminstrative control of this collection
+                     - they will be able to do every thing you can do, including delete things.</p>
+                </div>
+                <div class="span3">
+                    <p><a id="bibserver_share_admin" class="btn btn-primary" href="">
+                        <i class="icon-share"></i> share admin rights
+                    </a></p>
+                </div>
+            </div>
+            <div id="user">
+                <h3>Edit metadata / DELETE collection</h3>
+                <p>You can directly edit the metadata of your collection, or delete it altogether.
+                You can also directly edit specific aspects of your results and search displays too.<br />
+                DELETION CANNOT BE UNDONE, AND INCLUDES DELETION OF ALL RECORDS AND ASSOCIATED METADATA.</p>
             </div>
         </div>
         {% endif %}
+
+        <div id="shareembeddets" class="hero-unit clearfix">
+            <p>Info on how to share and embed the current results</p>
+        </div>
 
         {% if implicit %}
             <h2>{{ implicit }}</h2>

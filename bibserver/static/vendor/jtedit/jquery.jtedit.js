@@ -214,7 +214,7 @@
                         url: options.target
                         , type: 'DELETE'
                         , success: function(data, statusText, xhr) {
-                            alert("Record deleted.")
+                            alert("Deleted.")
                             window.location = options.delete_redirect
                         }
                         , error: function(xhr, message, error) {
