@@ -5,10 +5,10 @@
     <div class="span6 hero-unit">
         <form action="/upload" method="POST" enctype="multipart/form-data">
         
-            <h2>Upload your bibJSON collection</h2>
+            <h2>Upload your collection</h2>
             
             <div id="fromurl">
-            <span class="upload_label">bibJSON collection URL:</span> <input class="sourcefile" type="text" name="source" /><br />
+            <span class="upload_label">collection URL:</span> <input class="sourcefile" type="text" name="source" /><br />
             </div>
 
             <div id="frompc">
@@ -21,16 +21,16 @@
 
             <br /><br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
 
-            <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="upload" />
             <div id="fileformat">
                     <p>We could not identify the file format, please specify:</p>
-                    <input name="format" type="radio" value="bibtex" /> bibtex <br />
-                    <input name="format" type="radio" value="json" /> JSON <br />
-                    <input name="format" type="radio" value="csv" /> csv <br />
-                    <input name="format" type="radio" value="ris" /> ris <br />
-                    <input name="format" type="radio" value="wikipedia" /> wikipedia <br />
-                    <p></p>
+                    {% for p in parser_plugins %}
+                    <input name="format" type="radio" value="{{p.format}}" /> {{p.display_name}} <br />
+                    {% endfor %}
             </div>
+            
+            <br /><br />
+            <span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="upload" />
+            
         </form>
     </div>
     

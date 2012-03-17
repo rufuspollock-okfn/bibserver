@@ -235,24 +235,28 @@ def init():
     parserscrapers_plugin_directory = config.get('parserscrapers_plugin_directory')
     if not parserscrapers_plugin_directory:
         sys.stderr.write('Error: parserscrapers_plugin_directory config entry not found\n')
-        sys.exit(2)
     plugins = scan_parserscrapers(parserscrapers_plugin_directory)
     if plugins:
         for ps in plugins:
             PLUGINS[ps['format']] = ps
-        print 'Plugins found:', ', '.join(PLUGINS.keys())
 
 def run():
     last_flash = time.time() - 500
     count = 0
-    while True:
+    running = True
+    while running:
+        if os.path.exists('ingest.pid'):
+            pid = open('ingest.pid').read()
+            if str(pid) != str(os.getpid()):
+                print 'Other ingest process %s detected not %s, exiting' % (pid, os.getpid())
+                break
         for state in ('new', 'downloaded', 'parsed'):
             for t in get_tickets(state):
                 determine_action(t)
                 count += 1
         time.sleep(15)
         if time.time() - last_flash > (5 * 60):
-            sys.stdout.write('Ingest pipeline %s performed %s actions\n' % (time.ctime(), count))
+            sys.stdout.write('Ingest pipeline %s %s performed %s actions\n' % (os.getpid(), time.ctime(), count))
             last_flash = time.time()
 
 def reset_all_tickets():

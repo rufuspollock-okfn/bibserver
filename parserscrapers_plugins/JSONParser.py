@@ -57,7 +57,7 @@ def parse():
         sys.stderr.write('Zero records were parsed from the data')
 
 def main():
-    conf = {"display_name": "JSON Parser",
+    conf = {"display_name": "JSON",
             "format": "json",
             "contact": "openbiblio-dev@lists.okfn.org", 
             "bibserver_plugin": True, 

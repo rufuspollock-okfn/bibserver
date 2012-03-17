@@ -15,7 +15,7 @@ def parse():
     sys.stdout.write(json.dumps(data_json, indent=2))
     
 def main():
-    conf = {"display_name": "BibJSON Identity Parser",
+    conf = {"display_name": "BibJSON",
             "format": "jsoncheck",
             "contact": "openbiblio-dev@lists.okfn.org", 
             "bibserver_plugin": True, 
