@@ -17,7 +17,7 @@ from bibserver.config import config
 from bibserver.importer import Importer
 from bibserver.core import app
 import bibserver.util as util
-from flask import render_template, make_response, abort, send_from_directory
+from flask import render_template, make_response, abort, send_from_directory, redirect
 
 # Constant used to track installed plugins
 PLUGINS = {}
@@ -281,21 +281,13 @@ def view_ticket(ticket_id=None):
     return render_template('tickets/view.html', ticket=t, ingest_tickets = ingest_tickets)
 
 @app.route('/ticket/<ticket_id>/<payload>')
-def serve(ticket_id, payload):
+def ticket_serve(ticket_id, payload):
     t = IngestTicket.load(ticket_id)
     if payload == 'data':
         filename = t['data_md5']
     elif payload == 'bibjson':
         filename = t['data_json']
-    path = config['download_cache_directory']
-    if not path.startswith('/'):
-        path = os.path.join(os.getcwd(), path)
-    response = send_from_directory(path, filename)
-    if payload == 'bibjson':
-        response.headers['Content-Type'] = 'application/json'
-    else:
-        response.headers['Content-Type'] = t.get('data_content_type', 'text/plain')
-    return response
+    return redirect('/data/'+filename)
 
 @app.route('/data.txt')
 def data_list():
@@ -308,6 +300,15 @@ def data_list():
     resp.mimetype = "text/plain"
     return resp
 
+@app.route('/data/<filename>')
+def data_serve(filename):
+    path = config['download_cache_directory']
+    if not path.startswith('/'):
+        path = os.path.join(os.getcwd(), path)
+    response = send_from_directory(path, filename)
+    response.headers['Content-Type'] = 'text/plain'
+    return response
+    
 if __name__ == '__main__':
     init()
     for x in sys.argv[1:]:
