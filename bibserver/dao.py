@@ -94,7 +94,7 @@ class DomainObject(UserDict.IterableUserDict):
         conn = httplib.HTTPConnection(url)
         conn.request('DELETE', loc)
         resp = conn.getresponse()
-        return True
+        return ''
 
     @classmethod
     def get(cls, id_):
@@ -234,9 +234,11 @@ class Collection(DomainObject):
     def delete(self):
         url = str(config['ELASTIC_SEARCH_HOST'])
         loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
+        print loc
         conn = httplib.HTTPConnection(url)
         conn.request('DELETE', loc)
         resp = conn.getresponse()
+        print resp.read()
         for record in self.records:
             record.delete()
     
@@ -267,6 +269,6 @@ class Account(DomainObject, UserMixin):
         conn = httplib.HTTPConnection(url)
         conn.request('DELETE', loc)
         resp = conn.getresponse()
-        for coll in self.collections():
+        for coll in self.collections:
             coll.delete()
 

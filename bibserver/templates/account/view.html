@@ -12,27 +12,34 @@ jQuery(document).ready(function() {
 
     <script type="text/javascript">
     jQuery(document).ready(function() {
-        jQuery('#user').jtedit({"data": {{ record | safe }} })
+        jQuery('#user').jtedit({
+            "data": {{ record | safe }}, 
+            "hide": ["api_key","_created","_last_modified","id"], 
+            "target": "#",
+            "delete_redirect": "/"
+        })
     });
     </script>
 
     <div class="hero-unit clearfix">
-        <div class="span4">
+        <div class="span5">
             <h2>Hi {{ current_user.id }}</h2>
+            <p>{{ current_user.description }}</p>
+            <p><br />Your api_key is:<p>
+            <p> {{current_user['api_key']}}</p>
+            <p>You need to append this to your API calls if you want to make changes.</p>
             {% if superuser %}
-                <p>You are the superuser!
-                <br />You can view and edit anything!
+                <p>You are the superuser! You can view and edit anything!
                 <br />Be careful...</p>
             {% endif %}
         </div>
-        <div class="span6">
-            <p>Your api_key is {{current_user['api_key']}}
-            <br />You need to append this to your API calls if you want to make changes.</p>
+        <div id="user" class="span5">
+            <h2>Edit your details</h2>
         </div>
     </div>
 
     <div class="row">
-        <div class="span6">
+        <div class="span3">
             <h3>Your collections</h3>
             <p>Choose one to view, and your admin options will be available at the 
             bottom of the result display page.</p>
@@ -45,33 +52,29 @@ jQuery(document).ready(function() {
             {% endfor %}
             {% endif %}
         </div>
-        <div id="user" class="span6">
-            <h3>Edit your user profile</h3>
+        <div id="panel" class="span9">
+            <h3>All your records</h3>
         </div>
     </div>
 
 {% else %}
 
-    <div class="hero-unit">
-        <div class="span4">
-            <h2>{{ account.id }}</h2>
-        </div>
+    <div class="hero-unit clearfix">
         <div class="span6">
+            <h2>{{ account.id }}</h2>
             <p>{{ account.description }}</p>
+        </div>
+        <div class="span4">
+            <p>You are not logged in as this user. Use the <a href="/account/login">login page</a> if you want to change this</p>
         </div>
     </div>
     
     <div class="row">
-        <div class="span12">
-            <p>You are not logged in as this user. Use the <a href="/account/login">login page</a> if you want to change this</p>
+        <div id="panel" class="span12">
         </div>
     </div>
 
 {% endif %}
-
-<div id="panel" class="hero-unit">
-    <h3>{{ account.id }} - all records</h3>
-</div>
 
 {% endblock %}
 

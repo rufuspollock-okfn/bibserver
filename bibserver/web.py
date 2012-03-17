@@ -75,7 +75,7 @@ def content():
 def home():
     data = []
     try:
-        colldata = bibserver.dao.Collection.query(sort={"_created":{"order":"desc"}})
+        colldata = bibserver.dao.Collection.query(sort={"_created":{"order":"desc"}},size=20)
         if colldata['hits']['total'] != 0:
             for coll in colldata['hits']['hits']:
                 colln = bibserver.dao.Collection.get(coll['_id'])
@@ -84,15 +84,32 @@ def home():
                         'name': colln['label'], 
                         'records': len(colln), 
                         'owner': colln['owner'], 
-                        'slug': colln['collection'] 
+                        'slug': colln['collection'],
+                        'description': colln['description']
                     })
     except:
         pass
     colls = bibserver.dao.Collection.query()['hits']['total']
     records = bibserver.dao.Record.query()['hits']['total']
-    return render_template('home/index.html', colldata=json.dumps(data), colls=colls, records=records)
+    users = bibserver.dao.Account.query()['hits']['total']
+    return render_template('home/index.html', colldata=json.dumps(data), colls=colls, records=records, users=users)
 
 
+@app.route('/users')
+@app.route('/users.json')
+def users():
+    if current_user.is_anonymous():
+        abort(401)
+    users = bibserver.dao.Account.query(sort={'id':{'order':'asc'}},size=1000000)
+    if users['hits']['total'] != 0:
+        users = [{'id':i['_source']['id'],'description':i['_source']['description']} for i in users['hits']['hits']]
+    if util.request_wants_json():
+        resp = make_response( json.dumps(users, sort_keys=True, indent=4) )
+        resp.mimetype = "application/json"
+        return resp
+    else:
+        return render_template('account/users.html',users=users)
+    
 # handle or disable uploads
 class UploadView(MethodView):
     def get(self):

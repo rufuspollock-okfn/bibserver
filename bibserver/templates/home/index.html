@@ -14,7 +14,8 @@
                     "packageName": item,
                     "value": indata[item]['records'],
                     "owner": indata[item]['owner'],
-                    "slug": indata[item]['slug']
+                    "slug": indata[item]['slug'],
+                    "description": indata[item]['description']
                 }
                 data["children"].push(arr);
             }
@@ -35,14 +36,14 @@
                 .attr("class", "node")
                 .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
             node.append("svg:title")
-                .text(function(d) { return d.data.className + ": " + format(d.value); })
+                .text(function(d) { return d.data.className + " : " + format(d.value) + " records : " + d.data.description; })
             node.append("svg:circle")
                 .attr("r", function(d) { return d.r; })
                 .style("fill", function(d) { return fill(d.data.packageName); })
             node.append("svg:text")
                 .attr("text-anchor", "middle")
                 .attr("dy", ".3em")
-                .text(function(d) { return d.data.className.substr(0,12) + ".. (" + d.data.value + ")"; })
+                .text(function(d) { return d.data.className.substr(0,12); })
             node.on('click',function(d) {
                 clickbubble(d.data.owner,d.data.slug)
             })
@@ -61,10 +62,10 @@
       <div class="hero-unit clearfix">
         <div class="span7">
             <h1>Welcome to BibSoup!</h1>
-            <p><br />BibSoup makes it easy to find, manage and share bibliographies. <small>(now in beta)</small></p>
         </div>
         <div class="span3">
-            <p><a class="btn btn-primary" style="font-size:14px;" href="/faq">import from reference tools or files or webpages; build, share and collaboratively manage collections; browse, search, filter and visualise; embed records and collections on your webpages.</a></p>
+            <p>BibSoup makes it easy to find, manage and share bibliography.</p>
+            <a class="btn" href="/faq">Learn more &raquo;</a>
         </div>
       </div>
 
@@ -72,12 +73,17 @@
         <div class="span4">
           <div class="hero-unit">
             <h3>We have <span class="label label-info" style="font-size:20px;">{{records}}</span> records 
-            <br /><br />across <span class="label label-info" style="font-size:20px;">{{colls}}</span> collections</h3>
+            <br /><br />across <span class="label label-info" style="font-size:20px;">{{colls}}</span> collections
+            <br /><br />shared by <span class="label label-info" style="font-size:20px;">{{users}}</span> users</h3>
           </div>
           <div class="hero-unit">
             <h2>Search all records</h3>
             <p>Search shared collections and records, find material relevant to your interests, make new collections.</p>
             <p><a href="/search" class="btn">Search everything &raquo;</a></p>
+          </div>
+          <div class="hero-unit">
+            <h2>What's this all about</h3>
+            <p>Check out our <a href="/faq">FAQ</a> for more links and info.</p>
           </div>
         </div>
 

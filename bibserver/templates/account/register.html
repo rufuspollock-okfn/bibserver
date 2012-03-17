@@ -11,7 +11,7 @@
                 {{ render_field(form.email, placeholder="hello@mywebsite.org") }}
                 {{ render_field(form.password, placeholder="********") }}
                 {{ render_field(form.confirm, placeholder="********") }}
-                {{ render_field(form.about, placeholder="just a bit") }}
+                {{ render_field(form.description, placeholder="just a bit") }}
                 <div class="actions">
                     <input type="submit" value="Signup" class="btn btn-primary" />
                 </div>
@@ -19,10 +19,10 @@
         </div>
         <div class="span5">
             <p>It is necessary to register to use this service. This is only so that 
-            your collections can be allocated to you. There is no cost. You will never be emailed.</p>
+            your collections can be allocated to you. There is no cost. You will only be emailed about service issues.</p>
 
             <p>After registering and signing in, you can view your user information 
-            by clicking your username on the top right menu. This includes your API-KEY, 
+            by clicking your username on the top right menu. This includes your api_key, 
             which you will need if you want to send data via the API.</p>
 
             <p>Don't get your username wrong! We can't change it! (If you do, just 

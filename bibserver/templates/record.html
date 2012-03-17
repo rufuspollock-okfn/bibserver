@@ -31,7 +31,12 @@
     {% if admin %}
     <script type="text/javascript">
     jQuery(document).ready(function() {
-        jQuery('#panel').jtedit({"data": {{ record | safe }} });
+        jQuery('#panel').jtedit({
+            "data": {{ record | safe }},
+            "hide": ["id","_created","_last_modified","owner","collection","cid"],
+            "target": "#",
+            "delete_redirect": "./"
+        });
     });
     </script>
 

@@ -102,7 +102,9 @@ class Search(object):
                             abort(401)
                         record.data = request.json
                         record.save()
-                        return ''
+                        resp = make_response( json.dumps(record.data, sort_keys=True, indent=4) )
+                        resp.mimetype = "application/json"
+                        return resp
                 else:
                     admin = True if auth.collection.update(self.current_user, collection) else False
                     return render_template('record.html', 
@@ -131,9 +133,20 @@ class Search(object):
         elif request.method == 'POST':
             if not auth.user.update(self.current_user,acc):
                 abort(401)
-            acc.data = request.json
+            info = request.json
+            if info.get('id',False):
+                if info['id'] != self.parts[0]:
+                    acc = bibserver.dao.Account.get(info['id'])
+                else:
+                    info['api_key'] = acc.data['api_key']
+                    info['_created'] = acc.data['_created']
+            acc.data = info
+            if 'password' in info and not info['password'].startswith('sha1'):
+                acc.set_password(info['password'])
             acc.save()
-            return ''
+            resp = make_response( json.dumps(acc.data, sort_keys=True, indent=4) )
+            resp.mimetype = "application/json"
+            return resp
         else:
             if util.request_wants_json():
                 if not auth.user.update(self.current_user,acc):
@@ -165,14 +178,9 @@ class Search(object):
 
         # look for collection metadata
         metadata = bibserver.dao.Collection.get_by_owner_coll(self.parts[0],self.parts[1])
-        if metadata:
-            if 'display_settings' in metadata:
-                # set display settings from collection info
-                #search_options = metadata['display_settings']
-                pass
 
         if request.method == 'DELETE':
-            if metadata:
+            if metadata != None:
                 if not auth.collection.update(self.current_user, metadata):
                     abort(401)
                 else: metadata.delete()
@@ -186,9 +194,8 @@ class Search(object):
                         record = bibserver.dao.Record.get(rid['_id'])
                         if record: record.delete()
                     return ''
-
         elif request.method == 'POST':
-            if metadata:
+            if metadata != None:
                 metadata.data = request.json
                 metadata.save()
                 return ''
@@ -204,8 +211,17 @@ class Search(object):
                 resp.mimetype = "application/json"
                 return resp
             else:
-                admin = True if auth.collection.update(self.current_user, metadata) else False
-                return render_template('search/index.html', current_user=self.current_user, search_options=json.dumps(self.search_options), collection=metadata, admin=admin)
+                admin = True if metadata != None and auth.collection.update(self.current_user, metadata) else False
+                if metadata and 'display_settings' in metadata:
+                    search_options = metadata['display_settings']
+                return render_template('search/index.html', 
+                    current_user=self.current_user, 
+                    search_options=json.dumps(self.search_options), 
+                    collection=metadata.data, 
+                    record = json.dumps(metadata.data),
+                    admin=admin
+                )
+
 
     def prettify(self,record):
         result = ''

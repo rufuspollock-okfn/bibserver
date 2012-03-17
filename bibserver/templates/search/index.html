@@ -5,6 +5,7 @@
 <script type="text/javascript">
     jQuery(document).ready(function($) {
         $('#panel').facetview( {{ search_options | safe }} )
+
         var bibserver_collection_delete = function(event) {
             event.preventDefault()
             jQuery.ajax({
@@ -24,33 +25,75 @@
 </script>
     
     <div id="panel">
+        {% if collection.id %}
+        <a style="float:right;margin-right:10px;" class="btn btn-primary" href="/{{collection.owner}}/{{collection.collection}}.json">
+            <i class="icon-list-alt icon-white"></i> Download as BibJSON</a>
+        {% endif %}
+        
+        {% if admin %}
+        <!--
+        <a style="float:right;margin-right:10px;" class="btn btn-danger" id="bibserver_collection_delete" href="">
+            <i class="icon-remove icon-white"></i> delete collection</a>
+        -->
+        <div style="float:right;margin-right:10px;" class="btn-group">
+            <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">
+                <i class="icon-cog icon-white"></i> collection admin <span class="caret"></span></a>
+            <ul style="margin-left:-80px;" id="adminoptions" class="dropdown-menu">
+            <li><a id="bibserver_add_filters" href=""><i class="icon-search"></i> add / remove facet filters</a></li>
+            <li><a id="bibserver_display_save" href=""><i class="icon-check"></i> save current display settings</a></li>
+            <li><a id="bibserver_coll_meta" href=""><i class="icon-edit"></i> edit collection metadata</a></li>
+            <li><a id="bibserver_share_admin" href=""><i class="icon-share"></i> share admin rights</a></li>
+            <!--
+            <li class="divider"></li>
+            {% if 'source' in collection %}
+            <li><a href="/upload?source=%22{{ collection['source'] }}%22&collection={{collection['collection']}}">
+                <i class="icon-refresh"></i> refresh this collection</a>
+            </li>
+            <li><a href="/upload?source=%22{{ collection['source'] }}%22&collection={{collection['collection']}}">
+                <i class="icon-refresh"></i> set auto-refresh</a>
+            </li>
+            {% endif %}
+            -->
+            </ul>
+        </div>
+
+        <script type="text/javascript">
+        jQuery(document).ready(function() {
+            jQuery('#user').jtedit({
+                "data": {{ record | safe }}, 
+                "hide": ["_created","_last_modified","id","owner","collection","source","format"], 
+                "target": "#",
+                "delete_redirect": "/"
+            })
+        });
+        </script>
+
+        <div class="hero-unit clearfix">
+            <div id="user" class="span12">
+            </div>
+        </div>
+        {% endif %}
+
         {% if implicit %}
             <h2>{{ implicit }}</h2>
         {% endif %}
         {% if collection.id %}
-            <h2><a href="/{{collection.owner}}">{{collection.owner}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection.label }}</a> 
+            <h2><a href="/{{collection.owner}}">{{collection['owner']}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection['label'] }}</a> 
             <small>{{ collection['description'] }}</small></h2>
         {% endif %}
     </div>
+
 {% if collection.id %}
+<!--
 <p>
-<a href="/{{collection.owner}}/{{collection.collection}}.json">Download</a> this collection<br />
-{% if admin %}
-{% if source in collection %}
-<a href="/upload?source=%22{{ collection.source }}%22&collection={{collection.collection}}">Refresh</a> this collection (overwrites local changes)<br />
-{% endif %}
-<a href="">Save current display</a> settings as default for this collection<br />
-<a id="bibserver_collection_delete" href="">Delete</a> this collection<br />
-</p>
-{% endif %}
-<p>
-{% if source in collection %}
+{% if 'source' in collection %}
 The source of this collection is <a href="{{collection.source}}">{{collection.source}}</a><br />
 {% endif %}
-{% if _last_modified in collection %}
-This collection was last updated on {{collection._last_modified}}
+{% if '_last_modified' in collection %}
+Last updated {{collection._last_modified}}
 {% endif %}
 </p>
+-->
 {% endif %}
 
 {% endblock %}

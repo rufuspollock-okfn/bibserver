@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% for user in users %}
+
+    <div style="padding:20px; margin:20px; border:2px solid #ccc; width:300px; height:100px; float:left; overflow:hidden;">
+        <h2><a href="/{{ user.id }}">{{ user.id }}</a></h2>
+        <p>{{ user.description}}</p>
+    </div>
+
+    {% endfor %}
+
+    <div class="clearfix"></div>
+
+{% endblock %}
+
