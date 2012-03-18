@@ -16,10 +16,8 @@
     
     <div id="panel">
         <div class="row" style="margin-bottom:10px;">
-        {% if collection._id %}
-        <a style="float:right;margin-right:10px;" class="btn btn-primary" href="/{{collection.owner}}/{{collection.collection}}.json">
+        <a style="float:right;margin-right:10px;" class="btn btn-primary" href="?format=json">
             <i class="icon-list-alt icon-white"></i> Download as BibJSON</a>
-        {% endif %}
         <a style="float:right;margin-right:10px;" class="btn btn-primary" id="shareembed" href="">
             <i class="icon-list-alt icon-white"></i> share / embed</a>
         
@@ -67,11 +65,37 @@
                 jQuery('.jtedit_saveit').trigger('click')
             }
             jQuery('#savedisplay').bind('click',savedisplay)
+            
+            var removeadmin = function(event) {
+                event.preventDefault()
+                var admin = jQuery(this).text().replace(/^\s+|\s+$/g,'')
+                var metadata = JSON.parse(jQuery('#jtedit_json').val())
+                var idx = metadata['_admins'].indexOf(admin)
+                if ( idx != -1 ) metadata['_admins'].splice(idx, 1)
+                if ( metadata['_admins'].length == 0 ) delete metadata['_admins']
+                jQuery('#jtedit_json').val(JSON.stringify(metadata,"","    "))
+                jQuery('.jtedit_saveit').trigger('click')
+            }
+            jQuery('.removeadmin').bind('click',removeadmin)
+            
+            var addadmin = function(event) {
+                var newadmin = jQuery('#newadmin').val()
+                var metadata = JSON.parse(jQuery('#jtedit_json').val())            
+                if ( !('_admins' in metadata) ) metadata['_admins'] = []
+                var idx = metadata['_admins'].indexOf(newadmin)
+                if ( idx == -1 ) metadata['_admins'].push(newadmin)
+                jQuery('#jtedit_json').val(JSON.stringify(metadata,"","    "))
+                jQuery('.jtedit_saveit').trigger('click')
+            }
+            jQuery('#addadmin').bind('click',addadmin)
+
+            // this should probably change to remotely call the /users route
+		    jQuery('#newadmin').autocomplete({ source: {{ userlist | safe }} })
         });
         </script>
 
         <div id="adminarea" class="hero-unit clearfix">
-            <div class="row">
+            <div class="row well">
                 <div class="span7">
                     <h3>Save your display preferences</h3>
                     <p>If you edit the settings of your search display, such as the 
@@ -87,23 +111,38 @@
                     </a></p>
                 </div>
             </div>
-            <div class="row">
+            <div class="row well">
+                {% if '_admins' in collection %}
+                <div class="span4">
+                {% else %}
                 <div class="span7">
+                {% endif %}
                     <h3>Share admin permissions</h3>
                     <p>You can let other users have adminstrative control of this collection
                      - they will be able to do every thing you can do, including delete things.</p>
                 </div>
+                {% if '_admins' in collection %}
                 <div class="span3">
-                    <p><a id="bibserver_share_admin" class="btn btn-primary" href="">
-                        <i class="icon-share"></i> share admin rights
-                    </a></p>
+                    <h3>Remove an admin</h3><p> 
+                    {% for admin in collection['_admins'] %}
+                    <a class="btn btn-danger removeadmin" style="margin-bottom:3px;" href=""><i class="icon-remove icon-white"></i> {{ admin }}</a>
+                    {% endfor %}
+                    </p>
+                </div>
+                {% endif %}
+                <div class="span3">
+                    <h3>Add new admin</h3>
+                    <p><input type="text" id="newadmin" placeholder="search users" />
+                    <input type="submit" id="addadmin" class="btn btn-primary" value="add" /></p>
                 </div>
             </div>
-            <div id="user">
-                <h3>Edit metadata / DELETE collection</h3>
-                <p>You can directly edit the metadata of your collection, or delete it altogether.
-                You can also directly edit specific aspects of your results and search displays too.<br />
-                DELETION CANNOT BE UNDONE, AND INCLUDES DELETION OF ALL RECORDS AND ASSOCIATED METADATA.</p>
+            <div class="row well">
+                <div id="user" class="span10">
+                    <h3>Edit metadata / DELETE collection</h3>
+                    <p>You can directly edit the metadata of your collection, or delete it altogether.<br />
+                    You can also directly edit specific aspects of your results and search displays too.<br />
+                    DELETION CANNOT BE UNDONE, AND INCLUDES DELETION OF ALL RECORDS AND ASSOCIATED METADATA.</p>
+                </div>
             </div>
         </div>
         {% endif %}

@@ -29,22 +29,36 @@ class Search(object):
     def find(self):
         if bibserver.dao.Account.get(self.parts[0]):
             if len(self.parts) == 1:
-                return self.account()
+                return self.account() # user account
             elif len(self.parts) == 2:
-                return self.collection() # request for collection
+                return self.collection() # get a collection
             elif len(self.parts) == 3:
-                return self.record() # request for record in collection
-        elif len(self.parts) == 1 and self.parts[0] == 'collections':
-            return self.collections()
+                return self.record() # get a record in collection
+        elif ( len(self.parts) == 1 or len(self.parts) == 3 ) and self.parts[0] == 'collections':
+            return self.collections() # get search list of all collections
+        elif len(self.parts) == 1:
+            if self.parts[0] != 'search':
+                self.search_options['q'] = self.parts[0]
+            return self.default() # get search result of implicit search term
         elif len(self.parts) == 2:
-            return self.implicit_facet()
+            return self.implicit_facet() # get search result of implicit facet filter
+        else:
+            abort(404)
+
+    def default(self):
+        # default search page
+        if util.request_wants_json():
+            res = bibserver.dao.Record.query()
+            resp = make_response( json.dumps([i['_source'] for i in res['hits']['hits']], sort_keys=True, indent=4) )
+            resp.mimetype = "application/json"
+            return resp
         else:
             return render_template('search/index.html', 
                 current_user=self.current_user, 
                 search_options=json.dumps(self.search_options), 
                 collection=None
             )
-
+        
 
     def implicit_facet(self):
         self.search_options['predefined_filters'][self.parts[0]+config['facet_field']] = self.parts[1]
@@ -52,22 +66,47 @@ class Search(object):
         for count,facet in enumerate(self.search_options['facets']):
             if facet['field'] == self.parts[0]+config['facet_field']:
                 del self.search_options['facets'][count]
-        return render_template('search/index.html', 
-            current_user=self.current_user, 
-            search_options=json.dumps(self.search_options), 
-            collection=None, 
-            implicit=self.parts[0]+': ' + self.parts[1]
-        )
+        if util.request_wants_json():
+            res = bibserver.dao.Record.query(terms=self.search_options['predefined_filters'])
+            resp = make_response( json.dumps([i['_source'] for i in res['hits']['hits']], sort_keys=True, indent=4) )
+            resp.mimetype = "application/json"
+            return resp
+        else:
+            return render_template('search/index.html', 
+                current_user=self.current_user, 
+                search_options=json.dumps(self.search_options), 
+                collection=None, 
+                implicit=self.parts[0]+': ' + self.parts[1]
+            )
 
 
     def collections(self):
-        # search collection records
-        self.search_options['search_url'] = '/query/collection?'
-        self.search_options['facets'] = [{'field':'owner','size':100},{'field':'_created','size':100}]
-        self.search_options['result_display'] = [[{'pre':'<h3>','field':'label','post':'</h3>'}],[{'field':'description'}],[{'pre':'created by ','field':'owner'}]]
-        self.search_options['result_display'] = config['colls_result_display']
-        return render_template('collection/index.html', current_user=self.current_user, search_options=json.dumps(self.search_options), collection=None)
-
+        if len(self.parts) == 1:
+            if util.request_wants_json():
+                res = bibserver.dao.Collection.query(size=1000000)
+                colls = [i['_source'] for i in res['hits']['hits']]
+                resp = make_response( json.dumps(colls, sort_keys=True, indent=4) )
+                resp.mimetype = "application/json"
+                return resp
+            else:
+                # search collection records
+                self.search_options['search_url'] = '/query/collection?'
+                self.search_options['facets'] = [{'field':'owner','size':100},{'field':'_created','size':100}]
+                self.search_options['result_display'] = [[{'pre':'<h3>','field':'label','post':'</h3>'}],[{'field':'description'}],[{'pre':'created by ','field':'owner'}]]
+                self.search_options['result_display'] = config['colls_result_display']
+                return render_template('collection/index.html', current_user=self.current_user, search_options=json.dumps(self.search_options), collection=None)
+        elif len(self.parts) == 3:
+            coll = bibserver.dao.Collection.get_by_owner_coll(self.parts[1],self.parts[2])
+            if coll:
+                coll.data['records'] = len(coll)
+                resp = make_response( json.dumps(coll.data, sort_keys=True, indent=4) )
+                resp.mimetype = "application/json"
+                return resp
+            else:
+                abort(404)
+        else:
+            abort(404)
+            
 
     def record(self):            
         found = None
@@ -146,6 +185,8 @@ class Search(object):
                 else:
                     info['api_key'] = acc.data['api_key']
                     info['_created'] = acc.data['_created']
+                    info['collection'] = acc.data['collection']
+                    info['owner'] = acc.data['collection']
             acc.data = info
             if 'password' in info and not info['password'].startswith('sha1'):
                 acc.set_password(info['password'])
@@ -224,11 +265,14 @@ class Search(object):
                 admin = True if metadata != None and auth.collection.update(self.current_user, metadata) else False
                 if metadata and '_display_settings' in metadata:
                     self.search_options.update(metadata['_display_settings'])
+                users = bibserver.dao.Account.query(size=1000000)
+                userlist = [i['_source']['_id'] for i in users['hits']['hits']]
                 return render_template('search/index.html', 
                     current_user=self.current_user, 
                     search_options=json.dumps(self.search_options), 
                     collection=metadata.data, 
                     record = json.dumps(metadata.data),
+                    userlist=json.dumps(userlist),
                     admin=admin
                 )
 
