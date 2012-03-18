@@ -70,46 +70,52 @@ class Search(object):
 
 
     def record(self):            
+        found = None
         res = bibserver.dao.Record.query(terms = {
             'owner'+config['facet_field']:self.parts[0],
             'collection'+config['facet_field']:self.parts[1],
-            'cid'+config['facet_field']:self.parts[2]
+            'id'+config['facet_field']:self.parts[2]
         })
         if res['hits']['total'] == 0:
-            res = bibserver.dao.Record.query(terms = {'id'+config['facet_field']:self.parts[2]})
-
-        if res["hits"]["total"] == 0:
-            abort(404)
+            rec = bibserver.dao.Record.get(self.parts[2])
+            if rec: found = 1
         elif res['hits']['total'] == 1:
+            rec = bibserver.dao.Record.get(res['hits']['hits'][0]['_id'])
+            found = 1
+        else:
+            found = 2
+
+        if not found:
+            abort(404)
+        elif found == 1:
             if util.request_wants_json():
-                resp = make_response( json.dumps(res['hits']['hits'][0]['_source'], sort_keys=True, indent=4) )
+                resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
                 resp.mimetype = "application/json"
                 return resp
             else:
-                record = bibserver.dao.Record.get(res['hits']['hits'][0]['_id'])
-                collection = bibserver.dao.Collection.get_by_owner_coll(record.data['owner'],record.data['collection'])
+                collection = bibserver.dao.Collection.get_by_owner_coll(rec.data['owner'],rec.data['collection'])
                 if request.method == 'DELETE':
-                    if record:
+                    if rec:
                         if not auth.collection.update(self.current_user, collection):
                             abort(401)
-                        record.delete()
+                        rec.delete()
                         return ''
                     else:
                         abort(404)
                 elif request.method == 'POST':
-                    if record:
+                    if rec:
                         if not auth.collection.update(self.current_user, collection):
                             abort(401)
-                        record.data = request.json
-                        record.save()
-                        resp = make_response( json.dumps(record.data, sort_keys=True, indent=4) )
+                        rec.data = request.json
+                        rec.save()
+                        resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
                         resp.mimetype = "application/json"
                         return resp
                 else:
                     admin = True if auth.collection.update(self.current_user, collection) else False
                     return render_template('record.html', 
-                        record=json.dumps(res['hits']['hits'][0]['_source']), 
-                        prettyrecord=self.prettify(res['hits']['hits'][0]['_source']),
+                        record=json.dumps(rec.data), 
+                        prettyrecord=self.prettify(rec.data),
                         admin=admin
                     )
         else:
@@ -134,9 +140,9 @@ class Search(object):
             if not auth.user.update(self.current_user,acc):
                 abort(401)
             info = request.json
-            if info.get('id',False):
-                if info['id'] != self.parts[0]:
-                    acc = bibserver.dao.Account.get(info['id'])
+            if info.get('_id',False):
+                if info['_id'] != self.parts[0]:
+                    acc = bibserver.dao.Account.get(info['_id'])
                 else:
                     info['api_key'] = acc.data['api_key']
                     info['_created'] = acc.data['_created']
@@ -156,10 +162,14 @@ class Search(object):
                 return resp
             else:
                 admin = True if auth.user.update(self.current_user,acc) else False
+                recordcount = bibserver.dao.Record.query(terms={'owner':self.current_user.id})['hits']['total']
+                collcount = bibserver.dao.Collection.query(terms={'owner':self.current_user.id})['hits']['total']
                 return render_template('account/view.html', 
                     current_user=self.current_user, 
                     search_options=json.dumps(self.search_options), 
                     record=json.dumps(acc.data), 
+                    recordcount=recordcount,
+                    collcount=collcount,
                     admin=admin,
                     account=acc,
                     superuser=auth.user.is_super(self.current_user)

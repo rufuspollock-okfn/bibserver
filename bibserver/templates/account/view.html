@@ -14,7 +14,7 @@ jQuery(document).ready(function() {
     jQuery(document).ready(function() {
         jQuery('#user').jtedit({
             "data": {{ record | safe }}, 
-            "hide": ["api_key","_created","_last_modified","id"], 
+            "hide": ["api_key","_created","_last_modified","_id"], 
             "target": "#",
             "delete_redirect": "/"
         })
@@ -41,12 +41,12 @@ jQuery(document).ready(function() {
     <div class="row">
         <div class="span3">
             <h3>Your collections</h3>
-            <p>Choose one to view - admin options are available in each collection.</p>
+            <p>You have {{ recordcount }} records across {{ collcount }} collections. Choose one to view - admin options are available in each collection.</p>
             {% if current_user['collections']|length == 0 %}
             <p>You have no collections yet. <a href="/upload">Create one!</a></p>
             {% else %}
             {% for coll in current_user['collections'] %}
-                <p><a href="/{{current_user['id']}}/{{coll.collection}}">{{coll['label']}}</a> -  
+                <p><a href="/{{current_user.id}}/{{coll.collection}}">{{coll['label']}}</a> -  
                 {{coll['description']}} ({{coll|length}} records)</p>
             {% endfor %}
             {% endif %}

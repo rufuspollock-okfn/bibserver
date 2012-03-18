@@ -13,7 +13,7 @@
 #BIBJSON example collection - target data output
 #{
 #    "metadata": {
-#        "id": "my_collection",
+#        "_id": "my_collection",
 #        "label": "My collection of records",
 #        "owner": "test",
 #        "query": "http://bibsoup.net/test/my_collection.json?",

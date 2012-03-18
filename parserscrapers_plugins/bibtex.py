@@ -127,7 +127,7 @@ class BibTexParser(object):
             return d
 
         d['type'] = bibtype
-        d['cid'] = cid
+        d['id'] = cid
         if not self.has_metadata and 'type' in d:
             if d['type'] == 'personal bibliography' or d['type'] == 'comment':
                 self.has_metadata = True

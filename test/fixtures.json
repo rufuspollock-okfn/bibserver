@@ -9,7 +9,7 @@
   ],
   "records": [
     {
-      "cid":"someID",
+      "id":"someID",
       "type": "book",
       "title":"Great Unwritten Collaborations",
       "author": [{"name":"Leo Tolstoy"},{"name":"Robert Musil"}],

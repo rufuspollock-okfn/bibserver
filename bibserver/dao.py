@@ -19,7 +19,7 @@ def make_id(data):
     Ignore the _last_modified, _created fields
     ##TODO Ignore ALL fields that startswith _
     '''
-    if 'id' in data: return data['id']
+    if '_id' in data: return data['_id']
     new_data = {}
     for k,v in data.items():
         if k in ('_last_modified', '_created'): continue
@@ -77,7 +77,7 @@ class DomainObject(UserDict.IterableUserDict):
     @property
     def id(self):
         '''Get id of this object.'''
-        return self.data.get('id', None)
+        return self.data.get('_id', None)
         
     @property
     def version(self):
@@ -137,17 +137,16 @@ class DomainObject(UserDict.IterableUserDict):
         buf = []
         for data in dataset:
             if not type(data) is dict: continue
-            if 'id' in data:
-                id_ = data['id'].strip()
+            if '_id' in data:
+                id_ = data['_id'].strip()
             else:
                 id_ = make_id(data)
-                data['id'] = id_
+                data['_id'] = id_
             
             if '_created' not in data:
                 data['_created'] = datetime.now().isoformat()
             data['_last_modified'] = datetime.now().isoformat()
             
-            # TODO: as owner is now required per record, should perhaps insert a check for owner here
             index_result = conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True)
             buf.append( (index_result, data) )
         # refresh required after bulk index
@@ -219,7 +218,7 @@ class Collection(DomainObject):
     def records(self):
         size = Record.query(terms={'owner':self['owner'],'collection':self['collection']})['hits']['total']
         if size != 0:
-            res = [Record.get(i['_source']['id']) for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
+            res = [Record.get(i['_source']['_id']) for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
         else: res = []
         return res
 

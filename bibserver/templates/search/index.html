@@ -16,7 +16,7 @@
     
     <div id="panel">
         <div class="row" style="margin-bottom:10px;">
-        {% if collection.id %}
+        {% if collection._id %}
         <a style="float:right;margin-right:10px;" class="btn btn-primary" href="/{{collection.owner}}/{{collection.collection}}.json">
             <i class="icon-list-alt icon-white"></i> Download as BibJSON</a>
         {% endif %}
@@ -37,7 +37,7 @@
 
             jQuery('#user').jtedit({
                 "data": {{ record | safe }}, 
-                "hide": ["_created","_last_modified","id","owner","collection","source","format"], 
+                "hide": ["_created","_last_modified","_id","owner","collection","source"], 
                 "target": "#",
                 "delete_redirect": "/"
             })
@@ -115,7 +115,7 @@
         {% if implicit %}
             <h2>{{ implicit }}</h2>
         {% endif %}
-        {% if collection.id %}
+        {% if collection._id %}
             <h2><a href="/{{collection.owner}}">{{collection['owner']}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection['label'] }}</a> 
             <small>{{ collection['description'] }}</small></h2>
         {% endif %}

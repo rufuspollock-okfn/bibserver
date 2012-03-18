@@ -67,7 +67,7 @@ def register():
     if request.method == 'POST' and form.validate():
         api_key = str(uuid.uuid4())
         account = dao.Account(
-            id=form.username.data, 
+            _id=form.username.data, 
             email=form.email.data,
             description = form.description.data,
             api_key=api_key

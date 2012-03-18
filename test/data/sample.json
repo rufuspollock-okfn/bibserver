@@ -7,7 +7,7 @@
             "Pitman, J W"
         ], 
         "collection": "pitnoid", 
-        "citekey": "p74t", 
+        "id": "p74t", 
         "year": "1974", 
         "keywords": [
             "Stopping time", 
@@ -31,7 +31,7 @@
         "mrclass": "60J10", 
         "collection": "pitnoid", 
         "volume": "5", 
-        "citekey": "jp77", 
+        "id": "jp77", 
         "mrnumber": "MR0445613", 
         "year": "1977", 
         "keywords": [
@@ -55,7 +55,7 @@
         ], 
         "collection": "pitnoid", 
         "volume": "10", 
-        "citekey": "p78", 
+        "id": "p78", 
         "year": "1978", 
         "type": "article", 
         "pages": "268 to 270"
@@ -71,7 +71,7 @@
         "mrclass": "60G42 (28D99)", 
         "collection": "pitnoid", 
         "volume": "251", 
-        "citekey": "dp79", 
+        "id": "dp79", 
         "mrnumber": "MR531981", 
         "year": "1980", 
         "keywords": [
@@ -92,7 +92,7 @@
         "mrclass": "60J60 (60J55)", 
         "collection": "pitnoid", 
         "volume": "59", 
-        "citekey": "py82", 
+        "id": "py82", 
         "mrnumber": "MR656509", 
         "year": "1982", 
         "keywords": [
@@ -118,7 +118,7 @@
         "mrclass": "60J65", 
         "collection": "pitnoid", 
         "volume": "305", 
-        "citekey": "py87", 
+        "id": "py87", 
         "mrnumber": "MR921145", 
         "year": "1987", 
         "keywords": [
@@ -143,7 +143,7 @@
         "mrclass": "60J65 (60F05 60G44)", 
         "collection": "pitnoid", 
         "volume": "17", 
-        "citekey": "py89", 
+        "id": "py89", 
         "mrnumber": "MR1009441", 
         "year": "1989", 
         "keywords": [
@@ -169,7 +169,7 @@
         "mrclass": "52A40", 
         "collection": "pitnoid", 
         "volume": "96, No 4", 
-        "citekey": "ap89", 
+        "id": "ap89", 
         "mrnumber": "MR992078", 
         "year": "1989", 
         "keywords": [
@@ -188,7 +188,7 @@
         ], 
         "number": "345", 
         "collection": "pitnoid", 
-        "citekey": "jp.ew", 
+        "id": "jp.ew", 
         "year": "1992", 
         "keywords": [
             "Ewens sampling formula", 
@@ -209,7 +209,7 @@
         "mrclass": "60J65", 
         "collection": "pitnoid", 
         "volume": "t. 316, Se\u0301rie I", 
-        "citekey": "py93c", 
+        "id": "py93c", 
         "mrnumber": "MR1214423", 
         "year": "1993", 
         "keywords": [
