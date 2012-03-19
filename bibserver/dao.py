@@ -144,8 +144,8 @@ class DomainObject(UserDict.IterableUserDict):
                 data['_id'] = id_
             
             if '_created' not in data:
-                data['_created'] = datetime.now().isoformat()
-            data['_last_modified'] = datetime.now().isoformat()
+                data['_created'] = datetime.now().strftime("%Y%m%d%H%M")
+            data['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M")
             
             index_result = conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True)
             buf.append( (index_result, data) )
