@@ -2,55 +2,175 @@
 
 {% block content %}
 
-<script type="text/javascript">
+    <script type="text/javascript">
     jQuery(document).ready(function($) {
         $('#panel').facetview( {{ search_options | safe }} )
-        var bibserver_collection_delete = function(event) {
+    
+        var shareembed = function(event) {
             event.preventDefault()
-            jQuery.ajax({
-                type: "DELETE",
-                url: window.location,
-                success: function() {
-                    alert('Collection deleted')
-                    window.location = '/'
-                },
-                error: function() {
-                    alert('Sorry, the deletion failed. Please try again.')
-                }
-            })
+            jQuery('#shareembeddets').toggle()
         }
-        jQuery('#bibserver_collection_delete').bind('click',bibserver_collection_delete)
+        jQuery('#shareembed').bind('click',shareembed)
     });
-</script>
+    </script>
     
     <div id="panel">
+        <div class="row" style="margin-bottom:10px;">
+        <a style="float:right;margin-right:10px;" class="btn btn-primary" href="?format=json">
+            <i class="icon-list-alt icon-white"></i> Download as BibJSON</a>
+        <a style="float:right;margin-right:10px;" class="btn btn-primary" id="shareembed" href="">
+            <i class="icon-list-alt icon-white"></i> share / embed</a>
+        
+        {% if admin %}
+        <a id="showadmin" class="btn btn-primary" style="float:right;margin-right:10px;" href="#"><i class="icon-cog icon-white"></i> collection admin</a>
+        </div>
+
+        <script type="text/javascript">
+        jQuery(document).ready(function() {
+            var showadmin = function(event) {
+                event.preventDefault()
+                jQuery('#adminarea').toggle()
+            }
+            jQuery('#showadmin').bind('click',showadmin)
+
+            jQuery('#user').jtedit({
+                "data": {{ record | safe }}, 
+                "hide": ["_created","_last_modified","_id","owner","collection","source"], 
+                "target": "#",
+                "delete_redirect": "/"
+            })
+                        
+            var savedisplay = function(event) {
+                event.preventDefault()
+                var metadata = JSON.parse(jQuery('#jtedit_json').val())
+                if ( !('_display_settings' in metadata) ) {
+                    metadata['_display_settings'] = {}
+                }
+                var newsettings = jQuery.fn.facetview.options
+                delete newsettings['data']
+                delete newsettings['query_parameter']
+                delete newsettings['visualise_filters']
+                delete newsettings['description']
+                delete newsettings['search_index']
+                delete newsettings['config_file']
+                delete newsettings['q']
+                delete newsettings['display_images']
+                delete newsettings['default_url_params']
+                delete newsettings['search_url']
+                delete newsettings['freetext_submit_delay']
+                delete newsettings['predefined_filters']
+                delete newsettings['addremovefacets']
+                metadata['_display_settings'] = newsettings
+                jQuery('#jtedit_json').val(JSON.stringify(metadata,"","    "))
+                jQuery('.jtedit_saveit').trigger('click')
+            }
+            jQuery('#savedisplay').bind('click',savedisplay)
+            
+            var removeadmin = function(event) {
+                event.preventDefault()
+                var admin = jQuery(this).text().replace(/^\s+|\s+$/g,'')
+                var metadata = JSON.parse(jQuery('#jtedit_json').val())
+                var idx = metadata['_admins'].indexOf(admin)
+                if ( idx != -1 ) metadata['_admins'].splice(idx, 1)
+                if ( metadata['_admins'].length == 0 ) delete metadata['_admins']
+                jQuery('#jtedit_json').val(JSON.stringify(metadata,"","    "))
+                jQuery('.jtedit_saveit').trigger('click')
+            }
+            jQuery('.removeadmin').bind('click',removeadmin)
+            
+            var addadmin = function(event) {
+                var newadmin = jQuery('#newadmin').val()
+                var metadata = JSON.parse(jQuery('#jtedit_json').val())            
+                if ( !('_admins' in metadata) ) metadata['_admins'] = []
+                var idx = metadata['_admins'].indexOf(newadmin)
+                if ( idx == -1 ) metadata['_admins'].push(newadmin)
+                jQuery('#jtedit_json').val(JSON.stringify(metadata,"","    "))
+                jQuery('.jtedit_saveit').trigger('click')
+            }
+            jQuery('#addadmin').bind('click',addadmin)
+
+            // this should probably change to remotely call the /users route
+		    jQuery('#newadmin').autocomplete({ source: {{ userlist | safe }} })
+        });
+        </script>
+
+        <div id="adminarea" class="hero-unit clearfix">
+            <div class="row well">
+                <div class="span7">
+                    <h3>Save your display preferences</h3>
+                    <p>If you edit the settings of your search display, such as the 
+                    number of filter values to show, the number of results to show, 
+                    the order of things and so on, you can save all those settings as 
+                    the default view for your collection.</p>
+                </div>
+                <div class="span3">
+                    <p><br /><a id="savedisplay" class="btn btn-primary" href="">
+                        <i class="icon-check icon-white"></i>
+                        set current display settings as
+                        <br />default display for this collection
+                    </a></p>
+                </div>
+            </div>
+            <div class="row well">
+                {% if '_admins' in collection %}
+                <div class="span4">
+                {% else %}
+                <div class="span7">
+                {% endif %}
+                    <h3>Share admin permissions</h3>
+                    <p>You can let other users have adminstrative control of this collection
+                     - they will be able to do every thing you can do, including delete things.</p>
+                </div>
+                {% if '_admins' in collection %}
+                <div class="span3">
+                    <h3>Remove an admin</h3><p> 
+                    {% for admin in collection['_admins'] %}
+                    <a class="btn btn-danger removeadmin" style="margin-bottom:3px;" href=""><i class="icon-remove icon-white"></i> {{ admin }}</a>
+                    {% endfor %}
+                    </p>
+                </div>
+                {% endif %}
+                <div class="span3">
+                    <h3>Add new admin</h3>
+                    <p><input type="text" id="newadmin" placeholder="search users" />
+                    <input type="submit" id="addadmin" class="btn btn-primary" value="add" /></p>
+                </div>
+            </div>
+            <div class="row well">
+                <div id="user" class="span10">
+                    <h3>Edit metadata / DELETE collection</h3>
+                    <p>You can directly edit the metadata of your collection, or delete it altogether.<br />
+                    You can also directly edit specific aspects of your results and search displays too.<br />
+                    DELETION CANNOT BE UNDONE, AND INCLUDES DELETION OF ALL RECORDS AND ASSOCIATED METADATA.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div id="shareembeddets" class="hero-unit clearfix">
+            <p>Info on how to share and embed the current results</p>
+        </div>
+
         {% if implicit %}
             <h2>{{ implicit }}</h2>
         {% endif %}
-        {% if collection.id %}
-            <h2><a href="/{{collection.owner}}">{{collection.owner}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection.label }}</a> 
+        {% if collection._id %}
+            <h2><a href="/{{collection.owner}}">{{collection['owner']}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection['label'] }}</a> 
             <small>{{ collection['description'] }}</small></h2>
         {% endif %}
     </div>
+
 {% if collection.id %}
+<!--
 <p>
-<a href="/{{collection.owner}}/{{collection.collection}}.json">Download</a> this collection<br />
-{% if admin %}
-{% if source in collection %}
-<a href="/upload?source=%22{{ collection.source }}%22&collection={{collection.collection}}">Refresh</a> this collection (overwrites local changes)<br />
-{% endif %}
-<a href="">Save current display</a> settings as default for this collection<br />
-<a id="bibserver_collection_delete" href="">Delete</a> this collection<br />
-</p>
-{% endif %}
-<p>
-{% if source in collection %}
+{% if 'source' in collection %}
 The source of this collection is <a href="{{collection.source}}">{{collection.source}}</a><br />
 {% endif %}
-{% if _last_modified in collection %}
-This collection was last updated on {{collection._last_modified}}
+{% if '_last_modified' in collection %}
+Last updated {{collection._last_modified}}
 {% endif %}
 </p>
+-->
 {% endif %}
 
 {% endblock %}

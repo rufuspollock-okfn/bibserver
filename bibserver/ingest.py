@@ -37,7 +37,7 @@ class IngestTicket(dict):
         if 'state' not in kwargs:
             kwargs['state'] = 'new'
         if '_created' not in kwargs:
-            kwargs['_created'] = datetime.now().isoformat()
+            kwargs['_created'] = datetime.now().strftime("%Y%m%d%H%M")
         owner = kwargs.get('owner')
         if not type(owner) in (str, unicode):
             raise IngestTicketInvalidOwnerException()
@@ -55,13 +55,13 @@ class IngestTicket(dict):
         return cls(**data)
         
     def save(self):
-        self['_last_modified'] = datetime.now().isoformat()
+        self['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M")
         filename = os.path.join(config['download_cache_directory'], self['_id'])  + '.ticket'
         open(filename, 'wb').write(json.dumps(self))
         
     def fail(self, msg):
         self['state'] = 'failed'
-        err = (datetime.now().isoformat(), msg)
+        err = (datetime.now().strftime("%Y%m%d%H%M"), msg)
         self.setdefault('exception', []).append(err)
         self.save()
 

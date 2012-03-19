@@ -47,7 +47,7 @@ def standard_authentication():
     elif 'api_key' in request.values:
         res = bibserver.dao.Account.query(q='api_key:"' + request.values['api_key'] + '"')['hits']['hits']
         if len(res) == 1:
-            user = bibserver.dao.Account.get(res[0]['_source']['id'])
+            user = bibserver.dao.Account.get(res[0]['_source']['_id'])
             if user:
                 login_user(user, remember=False)
 
@@ -75,7 +75,7 @@ def content():
 def home():
     data = []
     try:
-        colldata = bibserver.dao.Collection.query(sort={"_created":{"order":"desc"}})
+        colldata = bibserver.dao.Collection.query(sort={"_created":{"order":"desc"}},size=20)
         if colldata['hits']['total'] != 0:
             for coll in colldata['hits']['hits']:
                 colln = bibserver.dao.Collection.get(coll['_id'])
@@ -84,15 +84,33 @@ def home():
                         'name': colln['label'], 
                         'records': len(colln), 
                         'owner': colln['owner'], 
-                        'slug': colln['collection'] 
+                        'slug': colln['collection'],
+                        'description': colln['description']
                     })
     except:
         pass
     colls = bibserver.dao.Collection.query()['hits']['total']
     records = bibserver.dao.Record.query()['hits']['total']
-    return render_template('home/index.html', colldata=json.dumps(data), colls=colls, records=records)
+    users = bibserver.dao.Account.query()['hits']['total']
+    print data
+    return render_template('home/index.html', colldata=json.dumps(data), colls=colls, records=records, users=users)
 
 
+@app.route('/users')
+@app.route('/users.json')
+def users():
+    if current_user.is_anonymous():
+        abort(401)
+    users = bibserver.dao.Account.query(sort={'_id':{'order':'asc'}},size=1000000)
+    if users['hits']['total'] != 0:
+        users = [{'_id':i['_source']['_id'],'description':i['_source']['description']} for i in users['hits']['hits']]
+    if util.request_wants_json():
+        resp = make_response( json.dumps(users, sort_keys=True, indent=4) )
+        resp.mimetype = "application/json"
+        return resp
+    else:
+        return render_template('account/users.html',users=users)
+    
 # handle or disable uploads
 class UploadView(MethodView):
     def get(self):
@@ -101,7 +119,7 @@ class UploadView(MethodView):
             return redirect('/account/login')
         if request.values.get("source") is not None:
             return self.post()        
-        return render_template('upload.html', upload=config["allow_upload"], 
+        return render_template('upload.html',
                                ingest_tickets = bibserver.ingest.get_tickets(),
                                parser_plugins=bibserver.ingest.PLUGINS.values())
 

@@ -20,12 +20,13 @@
 
         // specify the defaults
         var defaults = {
-            "editable":true,                    // whether or not to make the table editable
+            "editable":true,                // whether or not to make the table editable
             "source":undefined,             // a source from which to GET the JSON data object
             "target":undefined,             // a target to which updated JSON should be POSTed
             "noedit":[],                    // a list of keys that should not be editable, when edit is enabled
             "hide":[],                      // a list of keys that should be hidden from view
             "data":undefined,               // a JSON object to render for editing
+            "delete_redirect":"#",          // where to redirect to after deleting
             "tags": []
         }
 
@@ -85,23 +86,26 @@
                 }
                 
                 if (editable) {
-                    if (data[key].constructor.toString().indexOf("Array") != -1) { // if this key points to a list
-                    } else {
-                    }
                     if ( data.constructor.toString().indexOf("Array") == -1 ) {
                         var addname = key
                     } else {
                         var addname = ''
                     }
-                    s += '<div class="jtedit_opts btn-group">'
-                    s += '<a class="btn" href=""><i class="icon-plus"></i> add ' + addname + '</a>'
+                    s += '<div class="jtedit_opts btn-group"'
+                    if (data[key].constructor.toString().indexOf("Array") == -1) { // if this key does not point to a list
+                        s += ' style="display:none;"'
+                    }
+                    s += '>'
+                    if (data[key].constructor.toString().indexOf("Array") != -1) { // if this key points to a list
+                        s += '<a class="btn" href=""><i class="icon-plus"></i> add ' + addname + '</a>'
+                    }
                     s += '<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i> <span class="caret"></span></a>'
                     s += '<ul class="dropdown-menu">'
                     s += '<li><a class="jtedit_remove" href="#"><i class="icon-remove"></i> Remove entry</a></li>'
                     if (data[key].constructor.toString().indexOf("Array") == -1) { // if this key does not point to a list
                         s += '<li><a class="jtedit_tolist" href="#"><i class="icon-edit"></i> Convert to list</a></li>'
                     }
-                    s += '<li><a class="jtedit_showhidedetails" href="#"><i class="icon-minus"></i> Hide details</a></li>'
+                    //s += '<li><a class="jtedit_showhidedetails" href="#"><i class="icon-minus"></i> Hide details</a></li>'
                     s += '</ul></div>'
                 }                
                 s += '</div>' // close the listitems
@@ -175,15 +179,11 @@
         // save the record
         var jtedit_saveit = function(event,datain) {
             event.preventDefault()
-            if ($(this).attr('href') == "saveas") {
-                // trigger a save as new record instead of save over
-                alert("do saveas")
-            }
             !datain ? datain = $.parseJSON(jQuery('#jtedit_json').val()) : false
-            !options.source ? options.source = prompt('Please provide URL to save this record to:') : false
-            if (options.source) {
+            !options.target ? options.target = prompt('Please provide URL to save this record to:') : false
+            if (options.target) {
                 $.ajax({
-                    url: options.source
+                    url: options.target
                     , type: 'POST'
                     , data: JSON.stringify(datain)
                     , contentType: "application/json; charset=utf-8" 
@@ -191,7 +191,7 @@
                     , processData: false
                     , success: function(data, statusText, xhr) {
                         alert("Changes saved")
-                        //window.location = '#'
+                        window.location = window.location
                     }
                     , error: function(xhr, message, error) {
                         alert("Error... " + error)
@@ -205,18 +205,17 @@
         // delete the record
         var jtedit_deleteit = function(event) {
             event.preventDefault()
-            if (!options.source) {
+            if (!options.target) {
                 alert('There is no available source URL to delete from')
             } else {
                 var confirmed = confirm("You are about to irrevocably delete this. Are you sure you want to do so?")
                 if (confirmed) {
                     $.ajax({
-                        url: options.source
+                        url: options.target
                         , type: 'DELETE'
                         , success: function(data, statusText, xhr) {
-                            alert("Record deleted.")
-                            //window.location = '../'
-                            //$('body').html('')
+                            alert("Deleted.")
+                            window.location = options.delete_redirect
                         }
                         , error: function(xhr, message, error) {
                             alert("Error... " + error)
@@ -323,10 +322,9 @@
                 '<li><a class="jtedit_mode" href="json">JSON</a></li>' +
                 '</ul></div>' +
                 '<a class="jtedit_saveit btn btn-primary" href="save"><i class="icon-check icon-white"></i> save</a> ' + 
-                '<a class="jtedit_saveit btn btn-primary" href="saveas"><i class="icon-share icon-white"></i> save as</a> ' + 
                 '<a class="btn btn-warning" href=""><i class="icon-refresh icon-white"></i> reload</a> ' + 
                 '<a class="jtedit_deleteit btn btn-danger" href=""><i class="icon-remove icon-white"></i> delete</a></div>'
-            $('#jtedit').append(actions + '<div id="jtedit_visual"></div><textarea id="jtedit_json"></textarea>' + actions)
+            $('#jtedit').append(actions + '<div id="jtedit_visual"></div><textarea id="jtedit_json"></textarea>') // + actions)
             
             var testdata = '{"abstract": "Folien zu einem Vortrag auf der ODOK 2010 in Leoben zu Linked Data und Open Data, mit einer knappen Darstellung der Linked-Open-Data-Aktivit\u110e\u1162ten im hbz-Verbund.", "added-at": "2011-02-17T13:00:20.000+0100", "author": ["pretend",["list","inalist"],{"id": "PohlAdrian","name": "Pohl, Adrian"},{"id": "PohlAdrian","name": "Pohl, Adrian"}], "journal":{"id":"somejournal","name":"somename"}, "biburl": "http://www.bibsonomy.org/bibtex/229ff5da471fd9d2706f2fd08c17b43dc/acka47", "cid": "Pohl_2010_LOD", "collection": "pohl", "copyright": "http://creativecommons.org/licenses/by/2.5/", "howpublished": "published via slideshare.net", "id": "531e7aa806574787897314010f29d4cf", "interhash": "558af6397a6aad826d47925a12eda76c", "intrahash": "29ff5da471fd9d2706f2fd08c17b43dc", "keyword": ["ODOK hbz libraries linkeddata myown opendata presentation"], "link": [{"url": "http://www.slideshare.net/acka47/pohl-20100923-odoklod"}], "month": "September", "owner": "test", "timestamp": "2011-02-17T13:00:20.000+0100", "title": "Freie Katalogdaten und Linked Data", "type": "misc", "url": "http://localhost:5000/test/pohl/Pohl_2010_LOD", "year": "2010" }'
             

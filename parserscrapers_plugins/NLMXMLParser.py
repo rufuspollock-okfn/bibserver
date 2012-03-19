@@ -86,7 +86,7 @@ class NLMXMLParser(BaseParser):
         else:
             raise Exception('Unsupported citation type: ' + citation.attrib['citation-type'])
 
-        record['citekey'] = reference.attrib['id']
+        record['id'] = reference.attrib['id']
 
         return record
 

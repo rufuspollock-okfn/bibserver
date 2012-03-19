@@ -14,7 +14,7 @@
             identifier we assigned it:</p>
             <ul>
             {% for item in multiple %}
-                <li><a href="/{{item['owner']}}/{{item['collection']}}/{{item['id']}}">{{item['id']}}</a></li>
+                <li><a href="/{{item['owner']}}/{{item['collection']}}/{{item['_id']}}">{{item['_id']}}</a></li>
             {% endfor %}
             </ul>
         </div>
@@ -31,7 +31,12 @@
     {% if admin %}
     <script type="text/javascript">
     jQuery(document).ready(function() {
-        jQuery('#panel').jtedit({"data": {{ record | safe }} });
+        jQuery('#panel').jtedit({
+            "data": {{ record | safe }},
+            "hide": ["_id","_created","_last_modified","owner","collection"],
+            "target": "#",
+            "delete_redirect": "./"
+        });
     });
     </script>
 

@@ -32,7 +32,7 @@ def login():
             flash('Welcome back', 'success')
             return redirect('/'+user.id)
         else:
-            flash('Incorrect email/password', 'error')
+            flash('Incorrect username/password', 'error')
     if request.method == 'POST' and not form.validate():
         flash('Invalid form', 'error')
     return render_template('account/login.html', form=form, upload=config['allow_upload'])
@@ -58,7 +58,7 @@ class RegisterForm(Form):
         validators.EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
-    about = TextAreaField('Describe yourself')
+    description = TextAreaField('Describe yourself')
 
 @blueprint.route('/register', methods=['GET', 'POST'])
 def register():
@@ -66,8 +66,12 @@ def register():
     form = RegisterForm(request.form, csrf_enabled=False)
     if request.method == 'POST' and form.validate():
         api_key = str(uuid.uuid4())
-        account = dao.Account(id=form.username.data, email=form.email.data,
-                api_key=api_key)
+        account = dao.Account(
+            _id=form.username.data, 
+            email=form.email.data,
+            description = form.description.data,
+            api_key=api_key
+        )
         account.set_password(form.password.data)
         account.save()
         login_user(account, remember=True)
@@ -75,5 +79,5 @@ def register():
         return redirect('/'+account.id)
     if request.method == 'POST' and not form.validate():
         flash('Please correct the errors', 'error')
-    return render_template('account/register.html', form=form, upload=config['allow_upload'])
+    return render_template('account/register.html', form=form)
 

@@ -28,3 +28,9 @@ span.upload_label{
     text-align:right;
 }
 
+#adminarea{
+    display:none;
+}
+#shareembeddets{
+    display:none;
+}

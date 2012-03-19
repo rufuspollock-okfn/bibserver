@@ -38,7 +38,7 @@ class Importer(object):
         
         return self.index(collection, record_dicts)
 
-    def bulk_upload(self, colls_list):
+    #def bulk_upload(self, colls_list):
         '''upload a list of collections from provided file locations.
 
         :param colls_list: a list of dictionaries with 3 keys::
@@ -52,7 +52,7 @@ class Importer(object):
                 collection: {label for the collection}
             }
         '''
-        for coll in colls_list["collections"]:
+        '''for coll in colls_list["collections"]:
             if "upfile" in coll:
                 fileobj = coll["upfile"]
             elif "data" in coll:
@@ -64,7 +64,7 @@ class Importer(object):
                 'label': coll['collection']
                 }
             self.upload(fileobj, format_, collection_dict)
-        return True
+        return True'''
     
     def index(self, collection_dict, record_dicts):
         '''Add this collection and its records to the database index.
@@ -95,13 +95,13 @@ class Importer(object):
             if self.requesturl:
                 if not self.requesturl.endswith('/'):
                     self.requesturl += '/'
-                if 'id' not in rec:
-                    rec['id'] = bibserver.dao.make_id(rec)
+                if '_id' not in rec:
+                    rec['_id'] = bibserver.dao.make_id(rec)
                 rec['url'] = self.requesturl + collection['owner'] + '/' + collection['collection'] + '/'
-                if 'cid' in rec:
-                    rec['url'] += rec['cid']
-                elif 'id' in rec:
+                if 'id' in rec:
                     rec['url'] += rec['id']
+                elif '_id' in rec:
+                    rec['url'] += rec['_id']
         records = bibserver.dao.Record.bulk_upsert(record_dicts)
         return collection, records
 

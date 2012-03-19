@@ -41,7 +41,9 @@ class JSONParser(object):
                     record['author'][index] = {"name":item}
             # copy an citekey to cid
             if 'citekey' in record:
-                record['cid'] = record['citekey']
+                record['id'] = record['citekey']
+            if 'cid' in record:
+                record['id'] = record['cid']
             # copy keys to singular
             if 'links' in record:
                 record['link'] = record['links']

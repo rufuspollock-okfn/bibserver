@@ -70,7 +70,7 @@
         ],
         [
             {
-                "pre":"<strong><a style=\"color:#333;\" href=\"/",
+                "pre":"<span style=\"font-weight:bold;font-size:16px;\"><a title=\"view record\" style=\"color:#666;text-decoration:underline;\" href=\"/",
                 "field":"owner",
                 "post":"/"
             },
@@ -79,12 +79,12 @@
                 "post":"/"
             },
             {
-                "field":"id",
+                "field":"_id",
                 "post":"\">"
             },
             {
                 "field":"title",
-                "post":"</a></strong>"
+                "post":"</a></span>"
             }
         ],
         [
