@@ -412,7 +412,7 @@ jQuery.extend({
             $('#facetview_addremovefilters').toggle()
         }
         var addremovefacets = function() {
-            $('#facetview_filters').append('<a id="facetview_showarf" href="">' + 
+            $('#facetview_filters').append('<br /><a id="facetview_showarf" href="">' + 
                 'add or remove filters</a><div id="facetview_addremovefilters"></div>')
             for (var idx in options.facets) {
                 if ( options.addremovefacets.indexOf(options.facets[idx].field) == -1 ) {
