@@ -115,7 +115,23 @@ class DomainObject(UserDict.IterableUserDict):
     def get_mapping(cls):
         conn, db = get_conn()
         return conn.get_mapping(cls.__type__, db)
-
+        
+    @classmethod
+    def get_facets_from_mapping(cls,mapping=False,prefix=''):
+        # return a sorted list of all the keys in the index
+        if not mapping:
+            mapping = cls.get_mapping()[cls.__type__]['properties']
+        keys = []
+        for item in mapping:
+            if mapping[item].has_key('fields'):
+                for item in mapping[item]['fields'].keys():
+                    if item != 'exact' and not item.startswith('_'):
+                        keys.append(prefix + item + config['facet_field'])
+            else:
+                keys = keys + cls.get_facets_from_mapping(mapping=mapping[item]['properties'],prefix=prefix+item+'.')
+        keys.sort()
+        return keys
+        
     @classmethod
     def upsert(cls, data, state=None):
         '''Update backend object with a dictionary of data.
