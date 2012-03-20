@@ -273,6 +273,7 @@ class Search(object):
                     collection=metadata.data, 
                     record = json.dumps(metadata.data),
                     userlist=json.dumps(userlist),
+                    request=request,
                     admin=admin
                 )
 
