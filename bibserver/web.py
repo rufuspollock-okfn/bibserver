@@ -205,7 +205,9 @@ if __name__ == "__main__":
         if not os.path.exists('ingest.pid'):
             ingest=subprocess.Popen(['python', 'bibserver/ingest.py'])
             open('ingest.pid', 'w').write('%s' % ingest.pid)
-    bibserver.dao.init_db()
-    app.run(host='0.0.0.0', debug=config['debug'], port=config['port'])
-    if os.path.exists('ingest.pid'):
-        os.remove('ingest.pid')
+    try:
+        bibserver.dao.init_db()
+        app.run(host='0.0.0.0', debug=config['debug'], port=config['port'])
+    finally:
+        if os.path.exists('ingest.pid'):
+            os.remove('ingest.pid')

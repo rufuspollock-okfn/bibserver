@@ -17,7 +17,7 @@ from bibserver.config import config
 from bibserver.importer import Importer
 from bibserver.core import app
 import bibserver.util as util
-from flask import render_template, make_response, abort, send_from_directory, redirect
+from flask import render_template, make_response, abort, send_from_directory, redirect, request
 
 # Constant used to track installed plugins
 PLUGINS = {}
@@ -245,11 +245,17 @@ def run():
     count = 0
     running = True
     while running:
-        if os.path.exists('ingest.pid'):
+        try:
             pid = open('ingest.pid').read()
             if str(pid) != str(os.getpid()):
                 print 'Other ingest process %s detected not %s, exiting' % (pid, os.getpid())
-                break
+                sys.exit(2)
+        except IOError:
+            print 'Ingest process exiting: ingest.pid file cound not be read'
+            sys.exit(3)
+        except:
+            traceback.print_exc()
+            sys.exit(4)
         for state in ('new', 'downloaded', 'parsed'):
             for t in get_tickets(state):
                 determine_action(t)
@@ -280,13 +286,20 @@ def view_ticket(ticket_id=None):
         t = None
     return render_template('tickets/view.html', ticket=t, ingest_tickets = ingest_tickets)
 
-@app.route('/ticket/<ticket_id>/<payload>')
+@app.route('/ticket/<ticket_id>/<payload>', methods=['GET', 'POST'])
 def ticket_serve(ticket_id, payload):
     t = IngestTicket.load(ticket_id)
     if payload == 'data':
         filename = t['data_md5']
     elif payload == 'bibjson':
         filename = t['data_json']
+    elif (payload == 'reset') and (request.method == 'POST'):
+        t['state'] =  'new'
+        for cleanfield in ('failed_index', 'parse_feedback'):
+            if cleanfield in t:
+                del t[cleanfield]
+        t.save()
+        return make_response('OK')
     return redirect('/data/'+filename)
 
 @app.route('/data.txt')
