@@ -28,13 +28,13 @@
         {% endif %}
     </div>
 
-    {% if admin %}
     <script type="text/javascript">
     jQuery(document).ready(function() {
         jQuery('#panel').jtedit({
             "data": {{ record | safe }},
             "hide": ["_id","_created","_last_modified","owner","collection"],
             "target": "#",
+            {% if not admin %}"editable": false,{% endif %}
             "delete_redirect": "./"
         });
     });
@@ -44,7 +44,6 @@
         <div id="panel" class="span12">
         </div>
     </div>
-    {% endif %}
 {% endif %}
 
 {% endblock %}

@@ -56,13 +56,18 @@ def standard_authentication():
 @app.route('/query/', methods=['GET','POST'])
 @app.route('/query', methods=['GET','POST'])
 def query(path='Record'):
-    if path.lower() == 'account':
+    pathparts = path.split('/')
+    subpath = pathparts[0]
+    if subpath.lower() == 'account':
         abort(401)
-    klass = getattr(bibserver.dao, path[0].capitalize() + path[1:] )
+    klass = getattr(bibserver.dao, subpath[0].capitalize() + subpath[1:] )
     qs = request.query_string
     if request.method == "POST":
         qs += "&source=" + json.dumps(dict(request.form).keys()[-1])
-    resp = make_response( klass().raw_query(qs) )
+    if len(pathparts) > 1 and pathparts[1] == '_mapping':
+        resp = make_response( json.dumps(klass().get_mapping()) )
+    else:
+        resp = make_response( klass().raw_query(qs) )
     resp.mimetype = "application/json"
     return resp
         

@@ -28,9 +28,11 @@ class TestWeb(object):
         assert 'This service is an example' in res.data, res.data
 
     def test_record(self):
-        res = self.app.get('/' + Fixtures.account.id + '/' + self.record["collection"] + '/' + self.record["cid"])
+        res = self.app.get('/' + Fixtures.account.id + '/' + self.record["collection"] + '/' + self.record["id"] + '.json')
+        print '/' + Fixtures.account.id + '/' + self.record["collection"] + '/' + self.record["id"] + '.json'
         assert res.status == '200 OK', res.status
-        assert '%s' % self.record["cid"] in res.data, res.data
+        out = json.loads(res.data)
+        assert out["id"] == self.record["id"], out
 
     def test_upload(self):
         res = self.app.get('/upload')
@@ -69,17 +71,22 @@ class TestWeb(object):
     def test_query(self):
         res = self.app.get('/query')
         assert res.status == '200 OK', res.status
-        assert 'Query endpoint' in res.data, res.data
 
         res = self.app.get('/query?q=title:non-existent')
         assert res.status == '200 OK', res.status
         out = json.loads(res.data)
         assert out['hits']['total'] == 0, out
 
+    def test_accounts_query_inaccessible(self):
+        res = self.app.get('/query/account')
+        assert res.status == '401 UNAUTHORIZED', res.status
+
     def test_search(self):
-        res = self.app.get('/search?q=tolstoy')
+        res = self.app.get('/search?q=tolstoy&format=json')
         assert res.status == '200 OK', res.status
-        assert 'Tolstoy' in res.data, res.data
+        out = json.loads(res.data)
+        assert len(out) == 1, out
+        assert "Tolstoy" in out[0]["author"][0]["name"], out
 
-
+        
 

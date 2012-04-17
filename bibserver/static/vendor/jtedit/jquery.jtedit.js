@@ -27,6 +27,7 @@
             "hide":[],                      // a list of keys that should be hidden from view
             "data":undefined,               // a JSON object to render for editing
             "delete_redirect":"#",          // where to redirect to after deleting
+            "addable":[],                   // things that should be provided as addables to the item
             "tags": []
         }
 
@@ -59,55 +60,56 @@
 
         // create a pretty display of a JSON record
         var visify = function(data,edit) {
-            edit == undefined ? edit = options.editable : false
-            data == undefined ? data = options.data : false
+            edit == undefined ? edit = options.editable : ""
+            data == undefined ? data = options.data : ""
+            var isdict = false
+            data.constructor.toString().indexOf("Array") == -1 ? isdict = true : ""
             var s = ""
             for (var key in data) {
+                var partisdict = false
+                data[key].constructor.toString().indexOf("Array") == -1 ? partisdict = true : ""
                 $.inArray(key,options.noedit) != -1 ? editable = false : editable = edit
                 s += '<div class="jtedit_kvcontainer clearfix'
-                $.inArray(key,options.hide) != -1 ? s += ' jtedit_hidden' : false
+                $.inArray(key,options.hide) != -1 ? s += ' jtedit_hidden' : ""
                 s += '">'
                 
                 // do keys
-                if (data.constructor.toString().indexOf("Array") == -1) { // if this data is a dict
+                s += '<div class="jtedit_optionsgroup btn-group">'
+                s += '<a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i></a>'
+                s += '<ul class="dropdown-menu">'
+                if (editable) {
+                    isdict ? addname = key : addname = ""
+                    !partisdict ? s += '<li><a class="jtedit_addanother" href=""><i class="icon-plus"></i> add another ' + addname + '</a></li>' : ""
+                    if (addname.substr(-1) == "y") {
+                        addname = addname.substr(0,-1) + "ies"
+                    } else {
+                        if (addname.length > 0 && !partisdict) {
+                            addname = addname + "s"
+                        } else {
+                            addname = "this"
+                        }
+                    }
+                    s += '<li><a class="jtedit_remove" href="#"><i class="icon-remove"></i> Remove ' + addname + '</a></li>'
+                    partisdict ? s += '<li><a class="jtedit_tolist" href="#"><i class="icon-edit"></i> Make this a list</a></li>' : ""
+                    //s += '<li><a class="jtedit_showhidedetails" href="#"><i class="icon-minus"></i> Hide details</a></li>'
+                }                
+                s += '</ul></div>'
+                if (isdict) {
                     key.length > 30 ? s += '<textarea class="jtedit_key"' : s += '<input type="text" class="jtedit_key"'
                     !editable ? s += ' disabled="disabled" ' : false
                     key.length > 30 ? s += '>' + key + '</textarea>' : s += ' value="' + key + '" />'
                 }
-                s += '<div class="jtedit_vals">'
                 
                 // do values
-                if (typeof(data[key]) == 'object') { // if the data this key points at is an object
+                s += '<div class="jtedit_vals">'
+                if (typeof(data[key]) == 'object') {
                     s += visify(data[key],editable)
                 } else {
                     data[key].length > 30 ? s += '<textarea class="jtedit_value"' : s += '<input type="text" class="jtedit_value"'
-                    !editable ? s += ' disabled="disabled" ' : false
+                    !editable ? s += ' disabled="disabled" ' : ""
                     data[key].length > 30 ? s += '>' + data[key] + '</textarea>' : s += ' value="' + data[key] + '" />'
                 }
                 
-                if (editable) {
-                    if ( data.constructor.toString().indexOf("Array") == -1 ) {
-                        var addname = key
-                    } else {
-                        var addname = ''
-                    }
-                    s += '<div class="jtedit_opts btn-group"'
-                    if (data[key].constructor.toString().indexOf("Array") == -1) { // if this key does not point to a list
-                        s += ' style="display:none;"'
-                    }
-                    s += '>'
-                    if (data[key].constructor.toString().indexOf("Array") != -1) { // if this key points to a list
-                        s += '<a class="btn" href=""><i class="icon-plus"></i> add ' + addname + '</a>'
-                    }
-                    s += '<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i> <span class="caret"></span></a>'
-                    s += '<ul class="dropdown-menu">'
-                    s += '<li><a class="jtedit_remove" href="#"><i class="icon-remove"></i> Remove entry</a></li>'
-                    if (data[key].constructor.toString().indexOf("Array") == -1) { // if this key does not point to a list
-                        s += '<li><a class="jtedit_tolist" href="#"><i class="icon-edit"></i> Convert to list</a></li>'
-                    }
-                    //s += '<li><a class="jtedit_showhidedetails" href="#"><i class="icon-minus"></i> Hide details</a></li>'
-                    s += '</ul></div>'
-                }                
                 s += '</div>' // close the listitems
                 s += '</div>' // close the kv container
             }
@@ -164,10 +166,10 @@
         // update JSON when changes occur on visual display
         var updates = function(event) {
             $('#jtedit_json').val(JSON.stringify(parsevis(),"","    "))
-            $(this).removeClass('text_empty')
+            /*$(this).removeClass('text_empty')
             if ($(this).val() == "") {
                 $(this).addClass('text_empty')
-            }
+            }*/
         }
 
         // select all in input / textarea
@@ -228,18 +230,16 @@
         // switch visual type
         var jtedit_mode = function(event) {
             event.preventDefault()
-            if ($(this).attr('href') == 'json') {
-                if ( !$('#jtedit_json').is(':visible') ) {
-                    $('#jtedit_visual').hide()
-                    $('#jtedit_json').val( JSON.stringify(parsevis(),"","    ") )
-                    $('#jtedit_json').show()
-                }
+            if ( $('#jtedit_json').is(':visible') ) {
+                $(this).html('view as JSON')
+                $('#jtedit_json').hide()
+                dovisify( $.parseJSON( $('#jtedit_json').val() ) )
+                $('#jtedit_visual').show()
             } else {
-                if ( !$('#jtedit_visual').is(':visible') ) {
-                    $('#jtedit_json').hide()
-                    dovisify( $.parseJSON( $('#jtedit_json').val() ) )
-                    $('#jtedit_visual').show()
-                }
+                $(this).html('view tabular')
+                $('#jtedit_visual').hide()
+                $('#jtedit_json').val( JSON.stringify(parsevis(),"","    ") )
+                $('#jtedit_json').show()
             }
         }
         
@@ -247,6 +247,7 @@
         var jtedit_remove = function(event) {
             event.preventDefault()
             $(this).closest('.jtedit_kvcontainer').remove()
+            updates(event)
         }
         
         // highlight an object on options hover
@@ -265,6 +266,12 @@
         var jtedit_addanother = function(event) {
             event.preventDefault()
             alert("add another")
+        }
+        
+        // add an item to the object
+        var jtedit_additem = function(event) {
+            event.preventDefault()
+            alert("add a new item to this object")
         }
         
         // convert to a list
@@ -315,15 +322,17 @@
             $('#jtedit',obj).remove()
             $(obj).append('<div id="jtedit" class="clearfix"></div>')
             var actions = '<div class="jtedit_actions"><div class="btn-group">' +
-                '<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-eye-open"></i> mode ' +
-                '<span class="caret"></span></a>' +
+                '<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i> options </a>' +
                 '<ul class="dropdown-menu">' +
-                '<li><a class="jtedit_mode" href="visual">visual</a></li>' + 
-                '<li><a class="jtedit_mode" href="json">JSON</a></li>' +
-                '</ul></div>' +
-                '<a class="jtedit_saveit btn btn-primary" href="save"><i class="icon-check icon-white"></i> save</a> ' + 
+                '<li><a class="jtedit_mode" href="">view as JSON</a></li>'
+            actions += '<li><a class="jtedit_additem" href="">add a new item to this</a></li>'
+            actions += '</ul></div>'
+            if ( options.editable ) {
+                actions += '<a class="jtedit_saveit btn btn-primary" href="save"><i class="icon-check icon-white"></i> save</a> ' + 
                 '<a class="btn btn-warning" href=""><i class="icon-refresh icon-white"></i> reload</a> ' + 
-                '<a class="jtedit_deleteit btn btn-danger" href=""><i class="icon-remove icon-white"></i> delete</a></div>'
+                '<a class="jtedit_deleteit btn btn-danger" href=""><i class="icon-remove icon-white"></i> delete</a>'
+            }
+            actions += '</div>'
             $('#jtedit').append(actions + '<div id="jtedit_visual"></div><textarea id="jtedit_json"></textarea>') // + actions)
             
             var testdata = '{"abstract": "Folien zu einem Vortrag auf der ODOK 2010 in Leoben zu Linked Data und Open Data, mit einer knappen Darstellung der Linked-Open-Data-Aktivit\u110e\u1162ten im hbz-Verbund.", "added-at": "2011-02-17T13:00:20.000+0100", "author": ["pretend",["list","inalist"],{"id": "PohlAdrian","name": "Pohl, Adrian"},{"id": "PohlAdrian","name": "Pohl, Adrian"}], "journal":{"id":"somejournal","name":"somename"}, "biburl": "http://www.bibsonomy.org/bibtex/229ff5da471fd9d2706f2fd08c17b43dc/acka47", "cid": "Pohl_2010_LOD", "collection": "pohl", "copyright": "http://creativecommons.org/licenses/by/2.5/", "howpublished": "published via slideshare.net", "id": "531e7aa806574787897314010f29d4cf", "interhash": "558af6397a6aad826d47925a12eda76c", "intrahash": "29ff5da471fd9d2706f2fd08c17b43dc", "keyword": ["ODOK hbz libraries linkeddata myown opendata presentation"], "link": [{"url": "http://www.slideshare.net/acka47/pohl-20100923-odoklod"}], "month": "September", "owner": "test", "timestamp": "2011-02-17T13:00:20.000+0100", "title": "Freie Katalogdaten und Linked Data", "type": "misc", "url": "http://localhost:5000/test/pohl/Pohl_2010_LOD", "year": "2010" }'
@@ -343,6 +352,7 @@
             $('.jtedit_saveit').bind('click',jtedit_saveit)
             $('.jtedit_deleteit').bind('click',jtedit_deleteit)
             $('.jtedit_mode').bind('click',jtedit_mode)
+            $('.jtedit_additem').bind('click',jtedit_additem)
             /*$('.jtedit_field').each(function() {
                 if ( $(this).prev('input').hasClass('jtedit_key') ) {
                     if ( $(this).prev('input').val().search("_date") != -1 ) {

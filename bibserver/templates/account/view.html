@@ -18,6 +18,13 @@ jQuery(document).ready(function() {
             "target": "#",
             "delete_redirect": "/"
         })
+
+        // select all in input / textarea
+        var selectall = function(event) {
+            event.preventDefault()
+            $(this).select()
+        }
+        jQuery('.selectable').bind('click',selectall)
     });
     </script>
 
@@ -25,8 +32,8 @@ jQuery(document).ready(function() {
         <div class="span5">
             <h2>Hi {{ current_user.id }}</h2>
             <p>{{ current_user.description }}</p>
-            <p><br />Your api_key is:<p>
-            <p> {{current_user['api_key']}}</p>
+            <p><br />Your api_key is:</p>
+            <p><input type="text" value="{{current_user['api_key']}}" class="span4 selectable" /></p>
             <p>You need to append this to your API calls if you want to make changes.</p>
             {% if superuser %}
                 <p>You are the superuser! You can view and edit anything!
@@ -35,6 +42,7 @@ jQuery(document).ready(function() {
         </div>
         <div id="user" class="span5">
             <h2>Edit your details</h2>
+            <p>(Deleting your details irrevocably deletes your account.)</p>
         </div>
     </div>
 

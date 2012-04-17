@@ -1,7 +1,7 @@
 {
   "accounts": [
     {
-      "id": "tester",
+      "_id": "tester",
       "fullname": "The Tester",
       "email": "tester@okfn.org",
       "password_raw": "pass"
@@ -24,7 +24,7 @@
       "title":"A mathematical theory of communication",
       "author": [{"name":"Claude Shannon"}],
       "journal": {"name":"Bell System Technical Journal"},
-      "cid": "otherid",
+      "id": "otherid",
       "owner": "tester",
       "collection": "information_theory"
     }
