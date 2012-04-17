@@ -53,6 +53,26 @@
         }
     ],
 
+    # list of additional facet names that could be made available for users to choose
+    "add_remove_facets" : [
+        "keyword.exact",
+        "subject.name.exact",
+        "volume.exact",
+        "publisher.exact",
+        "editor.name.exact",
+        "title.exact",
+        "_created.exact",
+        "_last_modified.exact",
+        "theme.exact",
+        "chapter.exact",
+        "booktitle.exact",
+        "abstract.exact",
+        "journal.id.exact",
+        "author.id.exact",
+        "link.url.exact",
+        "pages.exact"
+    ],
+
     # search result display layout
     # a list of lists. each list represents a line on the display.
     # in each line, there are objects for each key to include on the line.

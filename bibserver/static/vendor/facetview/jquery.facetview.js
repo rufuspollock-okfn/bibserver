@@ -126,23 +126,23 @@ jQuery.extend({
 
         // specify the defaults
         var defaults = {
-            "config_file": false,
-            "facets":[],
-            "addremovefacets": false,
-            "result_display": resdisplay,
-            "display_images": true,
-            "visualise_filters": true,
-            "description":"",
-            "search_url":"",
-            "search_index":"elasticsearch",
-            "default_url_params":{},
-            "freetext_submit_delay":"700",
-            "query_parameter":"q",
-            "q":"",
-            "predefined_filters":{},
+            "config_file": false,           // a remote config file URL
+            "facets":[],                    // facet objects: {"field":"blah", "display":"arg",...}
+            "addremovefacets": false,       // false if no facets can be added at front end, otherwise list of facet names
+            "result_display": resdisplay,   // display template for search results
+            "display_images": true,         // whether or not to display images found in links in search results
+            "visualise_filters": true,      // whether or not to allow filter vis via d3
+            "description":"",               // a description of the current search to embed in the display
+            "search_url":"",                // the URL against which to submit searches
+            "search_index":"elasticsearch", // elasticsearch or SOLR
+            "default_url_params":{},        // any params that the search URL needs by default
+            "freetext_submit_delay":"700",  // delay for auto-update of search results
+            "query_parameter":"q",          // the query parameter if required for setting to the search URL
+            "q":"",                         // default query value
+            "predefined_filters":{},        // predefined filters to apply to all searches
             "paging":{
-                "from":0,
-                "size":10
+                "from":0,                   // where to start the results from
+                "size":10                   // how many results to get
             }
         }
 
@@ -195,6 +195,26 @@ jQuery.extend({
             } else if ( $(this).hasClass('facetview_rterm') ) {
                 options.facets[which]['order'] = 'reverse_term'
             }
+            dosearch()
+            if ( !$(this).parent().parent().siblings('.facetview_filtershow').hasClass('facetview_open') ) {
+                $(this).parent().parent().siblings('.facetview_filtershow').trigger('click')
+            }
+        }
+        
+        var renamefilter = function(event) {
+            event.preventDefault()
+            var renamewhat = $(this).attr('href')
+            var which = 0
+            for (item in options.facets) {
+                if ('field' in options.facets[item]) {
+                    if ( options.facets[item]['field'] == renamewhat) {
+                        which = item
+                    }
+                }
+            }
+            var newname = prompt('What would you like to call this filter?')
+            options.facets[which]['display'] = newname
+            buildfilters()
             dosearch()
             if ( !$(this).parent().parent().siblings('.facetview_filtershow').hasClass('facetview_open') ) {
                 $(this).parent().parent().siblings('.facetview_filtershow').trigger('click')
@@ -316,14 +336,15 @@ jQuery.extend({
                         <li><a class="facetview_sort facetview_rterm" href="{{FILTER_EXACT}}">sort reverse term</a></li> \
                         <li class="divider"></li> \
                         <li><a class="facetview_facetrange" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">apply a filter range</a></li>{{FACET_VIS}} \
-                        <li class="divider"></li> \
                         <li><a class="facetview_morefacetvals" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">show up to ({{FILTER_HOWMANY}})</a></li> \
+                        <li class="divider"></li> \
+                        <li><a class="facetview_renamefilter" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">rename this filter</a></li> \
                         </ul></div> \
                   <ul id="facetview_{{FILTER_NAME}}" \
                     class="facetview_filters"></ul> \
                     ';
                 if (options.visualise_filters) {
-                    var vis = '<li class="divider"></li><li><a class="facetview_visualise" rel="{{FACET_IDX}}" href="{{FILTER_DISPLAY}}">visualise this filter</a></li>'
+                    var vis = '<li><a class="facetview_visualise" rel="{{FACET_IDX}}" href="{{FILTER_DISPLAY}}">visualise this filter</a></li>'
                     thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, vis)
                 } else {
                     thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, '')
@@ -346,6 +367,7 @@ jQuery.extend({
             $('.facetview_morefacetvals').bind('click',morefacetvals)
             $('.facetview_facetrange').bind('click',facetrange)
             $('.facetview_sort').bind('click',sortfilters)
+            $('.facetview_renamefilter').bind('click',renamefilter)
             $('.facetview_filtershow').bind('click',showfiltervals)
             options.addremovefacets ? addremovefacets() : ""
             if (options.description) {
@@ -375,12 +397,12 @@ jQuery.extend({
         // show the add/remove filters options
         var addremovefacet = function(event) {
             event.preventDefault()
-            if ( $(this).hasClass('facetview_filterselected') ) {
-                $(this).removeClass('facetview_filterselected')
-                // and remove from options.facets
+            if ( $(this).hasClass('facetview_filterexists') ) {
+                $(this).removeClass('facetview_filterexists')
+                delete options.facets[$(this).attr('href')]
             } else {
-                $(this).addClass('facetview_filterselected')
-                options.facets.push({'field':$(this).attr('href')})
+                $(this).addClass('facetview_filterexists')
+                options.facets.push({'field':$(this).attr('title')})
             }
             buildfilters()
             dosearch()
@@ -390,10 +412,27 @@ jQuery.extend({
             $('#facetview_addremovefilters').toggle()
         }
         var addremovefacets = function() {
-            $('#facetview_filters').append('<a id="facetview_showarf" href="">' + 
-                'add more filters</a><div id="facetview_addremovefilters"></div>')
+            $('#facetview_filters').append('<br /><a id="facetview_showarf" href="">' + 
+                'add or remove filters</a><div id="facetview_addremovefilters"></div>')
+            for (var idx in options.facets) {
+                if ( options.addremovefacets.indexOf(options.facets[idx].field) == -1 ) {
+                    options.addremovefacets.push(options.facets[idx].field)
+                }
+            }
             for (var facet in options.addremovefacets) {
-                $('#facetview_addremovefilters').append()
+                var thisfacet = options.addremovefacets[facet]
+                var filter = '<a class="btn '
+                var index = 0
+                var icon = '<i class="icon-plus"></i>' 
+                for (var idx in options.facets) {
+                    if ( options.facets[idx].field == thisfacet ) {
+                        filter += 'btn-info facetview_filterexists'
+                        index = idx
+                        icon = '<i class="icon-remove icon-white"></i> '
+                    }
+                }
+                filter += ' facetview_filterchoose" style="margin-top:5px;" href="' + index + '" title="' + thisfacet + '">' + icon + thisfacet + '</a><br />'
+                $('#facetview_addremovefilters').append(filter)
             }
             $('#facetview_addremovefilters').hide()
             $('#facetview_showarf').bind('click',showarf)

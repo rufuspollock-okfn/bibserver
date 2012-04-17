@@ -20,7 +20,8 @@ class Search(object):
             'paging': { 'from': 0, 'size': 10 },
             'predefined_filters': {},
             'facets': config['search_facet_fields'],
-            'result_display': config['search_result_display']
+            'result_display': config['search_result_display'],
+            'addremovefacets': config['add_remove_facets']      # (full list could also be pulled from DAO)
         }
 
         self.parts = self.path.strip('/').split('/')
@@ -108,7 +109,7 @@ class Search(object):
             abort(404)
             
 
-    def record(self):            
+    def record(self):
         found = None
         res = bibserver.dao.Record.query(terms = {
             'owner'+config['facet_field']:self.parts[0],
