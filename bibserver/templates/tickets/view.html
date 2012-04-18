@@ -15,18 +15,26 @@
 <div>
     <table class="table table-striped table-condensed">
         <thead><tr>
-            <th>State</th><th>Owner</th><th>Timestamp</th>
+            <th><a href="/ticket/?sort=state">State</a></th>
+            <th><a href="/ticket/?sort=owner">Owner</a></th>
+            <th><a href="/ticket/?sort=_last_modified">Timestamp</a></th>
+            <th><a href="/ticket/?sort=format">Format</a></th>
             <th>Source</th><th>&nbsp;</th><th>&nbsp;</th>
             <th>Description</th>
         </tr></thead>
     {% for t in ingest_tickets %}
     
     <tbody><tr>
-        <td><a title="Click to view more details" href="/ticket/{{t.id}}">{{t.state}}</a>{% if (t.id == ticket.id) and (t.state != 'new')  %}<br/><a class="btn reset_ticket" href="{{ticket.id}}">Reset</a>{% endif%}
+        <td><a title="Click to view more details" href="/ticket/{{t.id}}">{{t.state}}</a>{% if (t.id == ticket.id) and (t.state != 'new') and (t.owner == current_user._id) %}<br/><a class="btn reset_ticket" href="{{ticket.id}}">Reset</a>{% endif%}
         </td>
         <td>{{t.owner}}</td>
         <td>{{t._last_modified}}</td>
-        <td>{{t.source_url}}{% if t.id == ticket.id %}<br/>
+        <td>{{t.format}}</td>
+        <td>{% if t.source_url.startswith('http') %}<a href="{{t.source_url}}">Source URL</a>
+            {% else %}
+            '{{t.source_url}}'
+            {% endif %}
+            {% if t.id == ticket.id %}<br/>
             {% if ticket.state == 'failed' %}
                 <div>
                     <h4>Has an error condition</h4>

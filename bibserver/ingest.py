@@ -30,14 +30,14 @@ class IngestTicketInvalidId(Exception):
     pass
     
 class IngestTicket(dict):
-    def __init__(self,*args,**kwargs):
+    def __init__(self,*args,**kwargs):        
         'Creates a new Ingest Ticket, ready for processing by the ingest pipeline'
         if '_id' not in kwargs:
             kwargs['_id'] = uuid.uuid4().hex
         if 'state' not in kwargs:
             kwargs['state'] = 'new'
         if '_created' not in kwargs:
-            kwargs['_created'] = datetime.now().strftime("%Y%m%d%H%M")
+            kwargs['_created'] = datetime.now()
         owner = kwargs.get('owner')
         if not type(owner) in (str, unicode):
             raise IngestTicketInvalidOwnerException()
@@ -45,6 +45,8 @@ class IngestTicket(dict):
             if not kwargs.get(x):
                 raise IngestTicketInvalidInit('You need to supply the parameter %s' % x)
         dict.__init__(self,*args,**kwargs)
+        # if self['_id'] == '0216cc9cc3a54ca08b3a33beb0915151':
+        #     import pdb; pdb.set_trace()
     
     @classmethod
     def load(cls, ticket_id):
@@ -52,13 +54,19 @@ class IngestTicket(dict):
         if not os.path.exists(filename):
             raise IngestTicketInvalidId(ticket_id)
         data = json.loads(open(filename).read())
+        data['_last_modified'] = datetime.strptime(data['_last_modified'], "%Y%m%d%H%M")  
+        data['_created'] = datetime.strptime(data['_created'], "%Y%m%d%H%M")
         return cls(**data)
         
     def save(self):
-        self['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M")
+        try:
+            self['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M")
+            self['_created'] = self['_created'].strftime("%Y%m%d%H%M")
+        except AttributeError:
+            pass
         filename = os.path.join(config['download_cache_directory'], self['_id'])  + '.ticket'
         open(filename, 'wb').write(json.dumps(self))
-        
+            
     def fail(self, msg):
         self['state'] = 'failed'
         err = (datetime.now().strftime("%Y%m%d%H%M"), msg)
@@ -102,9 +110,6 @@ def index(ticket):
         'format': ticket['format']
     }
     collection, records = importer.upload(open(in_path), collection)
-    failed = [b for a,b in records if not a]
-    if failed:
-        ticket['failed_index'] = failed
     ticket['state'] = 'done'
     ticket.save()
     
@@ -275,6 +280,9 @@ def reset_all_tickets():
 @app.route('/ticket/<ticket_id>')
 def view_ticket(ticket_id=None):
     ingest_tickets = get_tickets()
+    sort_key = request.values.get('sort')
+    if sort_key:
+        ingest_tickets.sort(key=lambda x: x.get(sort_key))
     if ticket_id:
         try:
             t = IngestTicket.load(ticket_id)
@@ -322,16 +330,19 @@ def data_serve(filename):
     
 if __name__ == '__main__':
     init()
-    for x in sys.argv[1:]:
+    for x in sys.argv[1:]:        
         if x == '-x':
             reset_all_tickets()
-        if x.startswith('-p'):
+        elif x.startswith('-p'):
             for t in get_tickets():
                 print t
                 if x == '-pp':
                     print '-' * 80
                     for k,v in t.items():
                         print ' '*4, k+':', v
+        elif x == '-d':
+            open('ingest.pid', 'w').write('%s' % os.getpid())
+            run()
     if len(sys.argv) == 1:
         run()
     

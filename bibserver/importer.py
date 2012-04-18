@@ -102,8 +102,8 @@ class Importer(object):
                     rec['url'] += rec['id']
                 elif '_id' in rec:
                     rec['url'] += rec['_id']
-        records = bibserver.dao.Record.bulk_upsert(record_dicts)
-        return collection, records
+        bibserver.dao.Record.bulk_upsert(record_dicts)
+        return collection, record_dicts
 
 def findformat(filename):
     if filename.endswith(".json"): return "json"
