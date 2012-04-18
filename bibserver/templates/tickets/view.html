@@ -1,48 +1,59 @@
 {% extends "/base.html" %}
 
 {% block content %}
-<h1>Uploads</h1>
-{% if ticket %}
+<h1>Upload Tickets</h1>
+{% if False  %}
     
-<p>{{ticket}}{% if ticket.description %}
+<p>{{ticket}} <a class="btn reset_ticket" href="{{ticket.id}}">Reset</a>{% if ticket.description %}
 <span style="font-style: italic">- {{ticket.description}}</span>
 {% endif %} 
 </p>
-<p>The URL: <a href="{{ticket.source_url}}">{{ticket.source_url}}</a>
-{% if ticket.data_md5 %}produced <a href="/ticket/{{ticket.id}}/data">this data</a>{% endif %}
-{% if ticket.data_json %}which was parsed to <a href="/ticket/{{ticket.id}}/bibjson">BibJSON</a>{% endif %}
-</p>
-{% if ticket.state == 'failed' %}
-    <div>
-        <h4>Has an error condition</h4>
-        
-        {% for e in ticket.exception %}
-            <ul>{{e.0}} <pre>{{e.1}}</pre></ul>
-        {% endfor %}
-        
-    </div>
-{% endif %}
-{% if ticket.failed_index %}
-<div>
-    <h4>Failed imports</h4>
-    {% for r in ticket.failed_index %}
-    <p>{{r}}</p>
-    {% endfor %}
-</div>
-{% endif %}
-
 
 {% endif %}
 
 {% if ingest_tickets|length > 1 %}
 <div>
-    <h3><a href="/ticket/" id="ingest_tickets_toggle">All Tickets</a></h3>
-    <div id="ingest_tickets"><ul>
+    <table class="table table-striped table-condensed">
+        <thead><tr>
+            <th>State</th><th>Owner</th><th>Timestamp</th>
+            <th>Source</th><th>&nbsp;</th><th>&nbsp;</th>
+            <th>Description</th>
+        </tr></thead>
     {% for t in ingest_tickets %}
-    {% if t.id != ticket.id %}
-    <li><a href="/ticket/{{t.id}}">{{t}}</a></li>
-    {% endif %}
-    {% endfor %}</ul></div>
+    
+    <tbody><tr>
+        <td><a title="Click to view more details" href="/ticket/{{t.id}}">{{t.state}}</a>{% if (t.id == ticket.id) and (t.state != 'new')  %}<br/><a class="btn reset_ticket" href="{{ticket.id}}">Reset</a>{% endif%}
+        </td>
+        <td>{{t.owner}}</td>
+        <td>{{t._last_modified}}</td>
+        <td>{{t.source_url}}{% if t.id == ticket.id %}<br/>
+            {% if ticket.state == 'failed' %}
+                <div>
+                    <h4>Has an error condition</h4>
+
+                    {% for e in ticket.exception %}
+                        <ul>{{e.0}} <pre>{{e.1}}</pre></ul>
+                    {% endfor %}
+
+                </div>
+            {% endif %}
+            {% if ticket.failed_index %}
+            <div>
+                <h4>Failed imports</h4>
+                {% for r in ticket.failed_index %}
+                <p>{{r}}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endif %}
+        </td>
+        <td>{% if ticket.data_md5 %}<a href="/ticket/{{ticket.id}}/data">Raw data</a>{% endif %}</td>
+        <td>{% if ticket.data_json %}<a href="/ticket/{{ticket.id}}/bibjson">BibJSON</a>{% endif %}</td>
+        <td><span style="font-style: italic">{{t.description}}</span></td>
+    </tr></tbody>
+    
+    {% endfor %}
+    </table>
 </div>
 {% endif %}
 
