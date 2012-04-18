@@ -280,8 +280,6 @@ def view_ticket(ticket_id=None):
             t = IngestTicket.load(ticket_id)
         except bibserver.ingest.IngestTicketInvalidId:
             abort(404)
-    elif ingest_tickets:
-        t = ingest_tickets[0]
     else:
         t = None
     return render_template('tickets/view.html', ticket=t, ingest_tickets = ingest_tickets)
