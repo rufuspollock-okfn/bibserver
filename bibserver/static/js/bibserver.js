@@ -244,6 +244,16 @@ jQuery(document).ready(function() {
         jQuery('#submit_main_search').trigger('click');
     }
     jQuery('#search_key').bind('change',search_key);
+    
+    // In ticket view, bind a click event to reset buttons to allow re-import of upload tickets
+    jQuery('.reset_ticket').click(function(event) {
+        event.preventDefault();
+        var ticket_id = jQuery(this).attr('href');        
+        jQuery.post('/ticket/'+ticket_id+'/reset', function(data) {
+            document.location.reload();
+        });
+    });
+    
 });
 
 
