@@ -42,24 +42,12 @@
         and this also enables you to one-click refresh your collection whenever you make changes to that source file.</p>
         <p>If your collection is not already in bibJSON, then try using one of our parsers to convert it.</p>
         <p>Visit <a href="http://bibjson.org">http://bibjson.org</a> to learn more about bibJSON.</p>
+        
+        <div style="margin-top: 100px">
+            <a class="btn btn-large btn-info" href="/ticket/">View Upload Tickets</a>
+        </div>
+        
     </div>
-</div>
-<div>
-    <h2><a href="#" id="ingest_tickets_toggle">List of Upload Tickets</a></h2>
-    <div id="ingest_tickets" style="display:none"><ul>
-    {% for t in ingest_tickets %}
-    <li><a href="/ticket/{{t.id}}">{{t}}</a></li>
-    {% endfor %}</ul></div>
-    <script type="text/javascript" charset="utf-8">
-        jQuery('#ingest_tickets_toggle').toggle(
-          function(event) {
-              jQuery('#ingest_tickets').show();
-          },
-          function(event) {
-              jQuery('#ingest_tickets').fadeOut('fast');
-          }
-        );
-    </script>
 </div>
 {% endblock %}
 
