@@ -20,6 +20,29 @@
             <br /><span class="upload_label">name your collection:</span> <input id="collection" type="text" name="collection" />
 
             <br /><br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
+            
+            <div>
+            <p>What is the license for this data?</p>
+            <select id="license_choice" name="license">
+            </select>
+            <script type="text/javascript" charset="utf-8">
+            // Retrieve the available license options from http://licenses.opendefinition.org/
+            jQuery.ajax({
+              url:'http://licenses.opendefinition.org/licenses/jsonp/ckan.js',
+              dataType: 'jsonp',
+              // you *must* set the callback function to be licenses_callback
+              jsonpCallback: 'license_callback',
+              success: function(data) {
+                var options = '';
+                for(var idx=0; idx<data.length; idx++) {
+                    var o = '<option value="' + data[idx].url + '">' + data[idx].title + '</option>';
+                    options += o;
+                }  
+                jQuery('#license_choice').html(options);
+              }
+            });
+            </script>            
+            </div>
 
             <div id="fileformat">
                     <p>We could not identify the file format, please specify:</p>

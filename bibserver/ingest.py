@@ -107,7 +107,8 @@ def index(ticket):
         'collection': util.slugify(ticket['collection']),
         'description': ticket.get('description'),
         'source': ticket['source_url'],
-        'format': ticket['format']
+        'format': ticket['format'],
+        'license': ticket.get('license', u"Not specified"),
     }
     collection, records = importer.upload(open(in_path), collection)
     ticket['state'] = 'done'

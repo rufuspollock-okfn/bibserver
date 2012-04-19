@@ -17,6 +17,7 @@
         <thead><tr>
             <th><a href="/ticket/?sort=state">State</a></th>
             <th><a href="/ticket/?sort=owner">Owner</a></th>
+            <th><a href="/ticket/?sort=collection">Collection</a></th>
             <th><a href="/ticket/?sort=_last_modified">Timestamp</a></th>
             <th><a href="/ticket/?sort=format">Format</a></th>
             <th>Source</th><th>&nbsp;</th><th>&nbsp;</th>
@@ -25,9 +26,10 @@
     {% for t in ingest_tickets %}
     
     <tbody><tr>
-        <td><a title="Click to view more details" href="/ticket/{{t.id}}">{{t.state}}</a>{% if (t.id == ticket.id) and (t.state != 'new') and (t.owner == current_user._id) %}<br/><a class="btn reset_ticket" href="{{ticket.id}}">Reset</a>{% endif%}
+        <td><a title="Click to view more details" href="/ticket/{{t.id}}">{{t.state}}</a>{% if (t.id == ticket.id) and (t.state != 'new') and ((t.owner == current_user._id) or current_user.is_super) %}<br/><a class="btn reset_ticket" href="{{ticket.id}}">Reset</a>{% endif%}
         </td>
         <td>{{t.owner}}</td>
+        <td>{{t.collection}}</td>
         <td>{{t._last_modified}}</td>
         <td>{{t.format}}</td>
         <td>{% if t.source_url.startswith('http') %}<a href="{{t.source_url}}">Source URL</a>
