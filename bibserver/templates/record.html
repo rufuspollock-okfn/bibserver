@@ -41,6 +41,10 @@
         jQuery('#searcher').append(searcher)
         var searchvals = {{ searchvals | safe }}
         jQuery('#extsrch_value').autocomplete({source:searchvals})
+
+
+
+
         var dosearch = function(event) {
             var target = jQuery('#extsrch_target').val()
             var value = jQuery('#extsrch_value').val()
@@ -52,7 +56,11 @@
             //window.open(href)
             window.location = href
         }
-        jQuery('#extsrch_value').bind('keyup',dosearch)
+        var checkenter = function(event) {
+            var keycode = (event.keyCode ? event.keyCode : event.which)
+            if (keycode == '13') { dosearch(event) }
+        }
+        jQuery('#extsrch_value').bind('keyup',checkenter)
 
     });
     </script>
