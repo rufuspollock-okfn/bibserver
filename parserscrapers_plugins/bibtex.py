@@ -96,9 +96,9 @@ class BibTexParser(object):
         for kv in kvs:
             if kv.startswith('@') and not inkey:
                 # it is the start of the record - set the bibtype and citekey (id)
-                bibtype, cid = kv.split('{',1)
+                bibtype, id = kv.split('{',1)
                 bibtype = self.add_key(bibtype)
-                cid = cid.strip('}').strip(',')
+                id = id.strip('}').strip(',')
             elif '=' in kv and not inkey:
                 # it is a line with a key value pair on it
                 key, val = [i.strip() for i in kv.split('=',1)]
@@ -127,7 +127,7 @@ class BibTexParser(object):
             return d
 
         d['type'] = bibtype
-        d['id'] = cid
+        d['id'] = id
         if not self.has_metadata and 'type' in d:
             if d['type'] == 'personal bibliography' or d['type'] == 'comment':
                 self.has_metadata = True
