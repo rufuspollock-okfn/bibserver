@@ -153,6 +153,9 @@ class UploadView(MethodView):
             if only_parse:
                ticket['only_parse'] = True
             
+            license = request.values.get('license')
+            if license: ticket['license'] = license
+            
             # If the user is uploading a file, update the ticket with the 'downloaded' file
             # And correct source
             if request.files.get('upfile'):
