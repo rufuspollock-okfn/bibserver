@@ -12,7 +12,7 @@ from werkzeug import generate_password_hash, check_password_hash
 from flaskext.login import UserMixin
 
 from bibserver.config import config
-import bibserver.util
+import bibserver.util, bibserver.auth
 
 def make_id(data):
     '''Create a new id for data object based on a hash of the data representation
@@ -150,7 +150,6 @@ class DomainObject(UserDict.IterableUserDict):
         '''Bulk update backend object with a list of dicts of data.
         If no id is supplied an uuid id will be created before saving.'''
         conn, db = get_conn()
-        buf = []
         for data in dataset:
             if not type(data) is dict: continue
             if '_id' in data:
@@ -164,10 +163,8 @@ class DomainObject(UserDict.IterableUserDict):
             data['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M")
             
             index_result = conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True)
-            buf.append( (index_result, data) )
         # refresh required after bulk index
         conn.refresh()
-        return buf
     
     @classmethod
     def delete_by_query(cls, query):
@@ -270,6 +267,10 @@ class Account(DomainObject, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.data['password'], password)
 
+    @property
+    def is_super(self):
+        return bibserver.auth.user.is_super(self)
+    
     @property
     def collections(self):
         colls = Collection.query(terms={
