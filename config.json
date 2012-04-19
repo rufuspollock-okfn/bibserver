@@ -1,7 +1,7 @@
 {
     # service and super user account
     "service_name" : "BibSoup",
-    "super_user" : "test",
+    "super_user" : ["test"],
     "host" : "0.0.0.0",
     "debug" : true,
     "port" : 5000,
@@ -213,6 +213,29 @@
                 ]
             }
         }
+    },
+
+    # list of external sites to search for record data at    
+    "searchables" : {
+        "Google" : "http://www.google.com/search?q=",
+        "Google scholar" : "http://scholar.google.com/scholar?q=",
+        "Google video" : "http://www.google.com/search?tbm=vid&q=",
+        "Google blogs" : "http://www.google.com/search?tbm=blg&q=",
+        "Google books" : "http://www.google.com/search?tbm=bks&q=",
+        "Google images" : "http://www.google.com/search?tbm=isch&q=",
+        "Google + ResearcherID" : "http://www.google.com/search?q=XXXX+site%3Awww.researcherid.com",
+        "Google + ACM Author Profiles" : "http://www.google.com/search?q=XXXX+ACM+author+profile+site%3Adl.acm.org",
+        "Google + Mathemtatics genealogy" : "http://www.google.com/search?q=XXXX+site%3Agenealogy.math.ndsu.nodak.edu",
+        "Microsoft academic search" : "http://academic.research.microsoft.com/Search?query=",
+        "Bing" : "http://www.bing.com/search?q=",
+        "Bing images" : "http://www.bing.com/images/search?q=",
+        "Bing + author" : "http://www.bing.com/search?q=XXXX+author",
+        "Bing + ResearcherID" : "http://www.bing.com/search?q=XXXX+site%3Aresearcherid.com",
+        "Homepage Seer" : "http://thelma.ist.psu.edu/search.php?q=",
+        "Zentralblatt Math" : "http://www.zentralblatt-math.org/zmath/en/search/?q=",
+        "Zentralblatt Math authors" : "http://www.zentralblatt-math.org/zmath/en/authors/?au=",
+        "MathSciNet HTML" : "http://www.ams.org/mathscinet-mref?dataType=mathscinet&ref=",
+        "MathSciNet BibTex" : "http://www.ams.org/mathscinet-mref?mref-submit=Search&dataType=bibtex&ref="          
     }
-        
+       
 }

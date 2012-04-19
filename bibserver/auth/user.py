@@ -9,4 +9,4 @@ def update(account, user):
     return allowed
 
 def is_super(account):
-    return not account.is_anonymous() and account.id == config['super_user']
+    return not account.is_anonymous() and account.id in config['super_user']

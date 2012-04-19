@@ -111,6 +111,7 @@ jQuery(document).ready(function() {
 
     // add external search autocomplete box to record display page
     //if ( window.location.pathname.match('record') ) {
+    /*
     if ( false ) {
         var searchables = {
             "Google" : "http://www.google.com/search?q=",
@@ -157,7 +158,7 @@ jQuery(document).ready(function() {
             jQuery(this).attr('href',href);
         }
         jQuery('.submit_extsrch').bind('click',dosearch);
-    }
+    }*/
 
     // attach functionality to trigger rpp, page, sort selections
     jQuery('#paging_trigger').remove();

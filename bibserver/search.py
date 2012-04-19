@@ -153,10 +153,30 @@ class Search(object):
                         return resp
                 else:
                     admin = True if auth.collection.update(self.current_user, collection) else False
+                    # make a list of all the values in the record, for autocomplete on the search field
+                    searchvals = []
+                    def valloop(obj):
+                        for val in obj:
+                            if not val.startswith('_'):
+                                if isinstance(obj[val],dict):
+                                    valloop(obj[val])
+                                elif isinstance(obj[val],list):
+                                    for thing in obj[val]:
+                                        searchvals.append(thing)
+                                else:
+                                    searchvals.append(obj[val])
+                    valloop(rec.data)
+                    # get fuzzy like this
+                    flt = ["hello","world"]
+                    # render the record with all extras
                     return render_template('record.html', 
                         record=json.dumps(rec.data), 
                         prettyrecord=self.prettify(rec.data),
-                        admin=admin
+                        objectrecord = rec.data,
+                        searchvals=json.dumps(searchvals),
+                        admin=admin,
+                        flt=flt,
+                        searchables=json.dumps(config["searchables"])
                     )
         else:
             if util.request_wants_json():
