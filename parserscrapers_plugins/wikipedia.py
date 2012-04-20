@@ -45,13 +45,13 @@ def parse(local_cache):
     q = sys.stdin.read()
     URL = 'http://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=50&srprop=wordcount&format=json&srsearch='
     URLraw = 'http://en.wikipedia.org/w/index.php?action=raw&title='
+    data_json = False
     if local_cache:
         try:
             cached_data = json.loads(open('wikipedia.py.data').read())
             data_json = cached_data.get('data1', {})
         except IOError:
-            cached_data = {'data1':{}, 'data2':{}}
-            data_json = False
+            cached_data = {'data1':{}, 'data2':{}}            
     if not data_json:
         data = urllib2.urlopen(URL+urllib.quote_plus(q)).read()
         data_json = json.loads(data)

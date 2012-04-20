@@ -37,16 +37,16 @@ class IngestTicket(dict):
         if 'state' not in kwargs:
             kwargs['state'] = 'new'
         if '_created' not in kwargs:
-            kwargs['_created'] = datetime.now()
+            kwargs['_created'] = time.time()
         owner = kwargs.get('owner')
         if not type(owner) in (str, unicode):
             raise IngestTicketInvalidOwnerException()
         for x in ('collection', 'format'):
             if not kwargs.get(x):
                 raise IngestTicketInvalidInit('You need to supply the parameter %s' % x)
+        for x in ('_created', '_last_modified'):
+            kwargs[x] = datetime.fromtimestamp(kwargs[x])
         dict.__init__(self,*args,**kwargs)
-        # if self['_id'] == '0216cc9cc3a54ca08b3a33beb0915151':
-        #     import pdb; pdb.set_trace()
     
     @classmethod
     def load(cls, ticket_id):
@@ -54,18 +54,16 @@ class IngestTicket(dict):
         if not os.path.exists(filename):
             raise IngestTicketInvalidId(ticket_id)
         data = json.loads(open(filename).read())
-        data['_last_modified'] = datetime.strptime(data['_last_modified'], "%Y%m%d%H%M")  
-        data['_created'] = datetime.strptime(data['_created'], "%Y%m%d%H%M")
         return cls(**data)
         
     def save(self):
-        try:
-            self['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M")
-            self['_created'] = self['_created'].strftime("%Y%m%d%H%M")
-        except AttributeError:
-            pass
+        self['_last_modified'] = time.time()
+        self['_created'] = time.mktime(self['_created'].timetuple())
         filename = os.path.join(config['download_cache_directory'], self['_id'])  + '.ticket'
         open(filename, 'wb').write(json.dumps(self))
+        for x in ('_created', '_last_modified'):
+            self[x] = datetime.fromtimestamp(self[x])
+        
             
     def fail(self, msg):
         self['state'] = 'failed'
