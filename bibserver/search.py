@@ -156,15 +156,14 @@ class Search(object):
                     # make a list of all the values in the record, for autocomplete on the search field
                     searchvals = []
                     def valloop(obj):
-                        for val in obj:
-                            if not val.startswith('_'):
-                                if isinstance(obj[val],dict):
-                                    valloop(obj[val])
-                                elif isinstance(obj[val],list):
-                                    for thing in obj[val]:
-                                        searchvals.append(thing)
-                                else:
-                                    searchvals.append(obj[val])
+                        if isinstance(obj,dict):
+                            for item in obj:
+                                valloop(obj[item])
+                        elif isinstance(obj,list):
+                            for thing in obj:
+                                valloop(thing)
+                        else:
+                            searchvals.append(obj)
                     valloop(rec.data)
                     # get fuzzy like this
                     flt = ["hello","world"]
@@ -176,7 +175,7 @@ class Search(object):
                         searchvals=json.dumps(searchvals),
                         admin=admin,
                         flt=flt,
-                        searchables=json.dumps(config["searchables"])
+                        searchables=json.dumps(config["searchables"], sort_keys=True)
                     )
         else:
             if util.request_wants_json():
@@ -300,7 +299,7 @@ class Search(object):
 
 
     def prettify(self,record):
-        result = ''
+        result = '<p>'
         # given a result record, build how it should look on the page
         img = False
         if img:
@@ -343,6 +342,7 @@ class Search(object):
             result += lines
         else:
             result += json.dumps(record,sort_keys=True,indent=4)
+        result += '</p>'
         return result
 
 
