@@ -45,7 +45,8 @@ class IngestTicket(dict):
             if not kwargs.get(x):
                 raise IngestTicketInvalidInit('You need to supply the parameter %s' % x)
         for x in ('_created', '_last_modified'):
-            kwargs[x] = datetime.fromtimestamp(kwargs[x])
+            if x in kwargs:
+                kwargs[x] = datetime.fromtimestamp(kwargs[x])
         dict.__init__(self,*args,**kwargs)
     
     @classmethod
