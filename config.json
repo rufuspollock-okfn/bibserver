@@ -90,7 +90,7 @@
         ],
         [
             {
-                "pre":"<span style=\"font-weight:bold;font-size:16px;\"><a title=\"view record\" style=\"color:#666;text-decoration:underline;\" href=\"/",
+                "pre":"<span style=\"font-weight:bold;font-size:120%;\"><a title=\"view record\" style=\"color:#666;text-decoration:underline;\" href=\"/",
                 "field":"owner",
                 "post":"/"
             },
@@ -223,19 +223,17 @@
         "Google blogs" : "http://www.google.com/search?tbm=blg&q=",
         "Google books" : "http://www.google.com/search?tbm=bks&q=",
         "Google images" : "http://www.google.com/search?tbm=isch&q=",
-        "Google + ResearcherID" : "http://www.google.com/search?q=XXXX+site%3Awww.researcherid.com",
-        "Google + ACM Author Profiles" : "http://www.google.com/search?q=XXXX+ACM+author+profile+site%3Adl.acm.org",
-        "Google + Mathemtatics genealogy" : "http://www.google.com/search?q=XXXX+site%3Agenealogy.math.ndsu.nodak.edu",
+        "Google search ResearcherID" : "http://www.google.com/search?q=XXXX+site%3Awww.researcherid.com",
+        "Google search ACM Author Profiles" : "http://www.google.com/search?q=XXXX+ACM+author+profile+site%3Adl.acm.org",
+        "Google search Mathemtatics Genealogy" : "http://www.google.com/search?q=XXXX+site%3Agenealogy.math.ndsu.nodak.edu",
         "Microsoft academic search" : "http://academic.research.microsoft.com/Search?query=",
-        "Bing" : "http://www.bing.com/search?q=",
-        "Bing images" : "http://www.bing.com/images/search?q=",
-        "Bing + author" : "http://www.bing.com/search?q=XXXX+author",
-        "Bing + ResearcherID" : "http://www.bing.com/search?q=XXXX+site%3Aresearcherid.com",
-        "Homepage Seer" : "http://thelma.ist.psu.edu/search.php?q=",
         "Zentralblatt Math" : "http://www.zentralblatt-math.org/zmath/en/search/?q=",
         "Zentralblatt Math authors" : "http://www.zentralblatt-math.org/zmath/en/authors/?au=",
-        "MathSciNet HTML" : "http://www.ams.org/mathscinet-mref?dataType=mathscinet&ref=",
-        "MathSciNet BibTex" : "http://www.ams.org/mathscinet-mref?mref-submit=Search&dataType=bibtex&ref="          
+        "MathSciNet" : "http://www.ams.org/mathscinet-mref?ref=",
+        "DOI resolver" : "http://dx.doi.org/",
+        "PubMed" : "http://www.ncbi.nlm.nih.gov/pubmed?term=",
+        "PubMed Central" : "http://www.ncbi.nlm.nih.gov/pmc/?term=",
+        "BioMed Central" : "http://www.biomedcentral.com/search/results?terms="
     }
        
 }
