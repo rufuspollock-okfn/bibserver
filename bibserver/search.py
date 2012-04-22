@@ -128,29 +128,29 @@ class Search(object):
         if not found:
             abort(404)
         elif found == 1:
-            if util.request_wants_json():
-                resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
-                resp.mimetype = "application/json"
-                return resp
+            collection = bibserver.dao.Collection.get_by_owner_coll(rec.data['owner'],rec.data['collection'])
+            if request.method == 'DELETE':
+                if rec:
+                    if not auth.collection.update(self.current_user, collection):
+                        abort(401)
+                    rec.delete()
+                    abort(404)
+                else:
+                    abort(404)
+            elif request.method == 'POST':
+                if rec:
+                    if not auth.collection.update(self.current_user, collection):
+                        abort(401)
+                    rec.data = request.json
+                    rec.save()
+                    resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
+                    resp.mimetype = "application/json"
+                    return resp
             else:
-                collection = bibserver.dao.Collection.get_by_owner_coll(rec.data['owner'],rec.data['collection'])
-                if request.method == 'DELETE':
-                    if rec:
-                        if not auth.collection.update(self.current_user, collection):
-                            abort(401)
-                        rec.delete()
-                        return ''
-                    else:
-                        abort(404)
-                elif request.method == 'POST':
-                    if rec:
-                        if not auth.collection.update(self.current_user, collection):
-                            abort(401)
-                        rec.data = request.json
-                        rec.save()
-                        resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
-                        resp.mimetype = "application/json"
-                        return resp
+                if util.request_wants_json():
+                    resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
+                    resp.mimetype = "application/json"
+                    return resp
                 else:
                     admin = True if auth.collection.update(self.current_user, collection) else False
                     # make a list of all the values in the record, for autocomplete on the search field

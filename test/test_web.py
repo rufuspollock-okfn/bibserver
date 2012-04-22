@@ -29,7 +29,6 @@ class TestWeb(object):
 
     def test_record(self):
         res = self.app.get('/' + Fixtures.account.id + '/' + self.record["collection"] + '/' + self.record["id"] + '.json')
-        print '/' + Fixtures.account.id + '/' + self.record["collection"] + '/' + self.record["id"] + '.json'
         assert res.status == '200 OK', res.status
         out = json.loads(res.data)
         assert out["id"] == self.record["id"], out

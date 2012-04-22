@@ -193,7 +193,7 @@ def create():
 
 # this is a catch-all that allows us to present everything as a search
 # typical catches are /user, /user/collection, /user/collection/record, 
-# /collection, /implicit_facet_key/implicit_facet_value
+# /implicit_facet_key/implicit_facet_value
 # and any thing else passed as a search
 @app.route('/<path:path>', methods=['GET','POST','DELETE'])
 def default(path):
