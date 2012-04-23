@@ -1,7 +1,7 @@
 from test.base import fixtures, Fixtures, TESTDB
 import bibserver.dao as dao
 import nose.tools
-from bibserver import ingest
+from bibserver import ingest, dao
 from bibserver.config import config
 import os
 
@@ -31,8 +31,9 @@ class TestIngest:
         t = ingest.IngestTicket(owner=None, 
                                     collection='test', format='json', source_url='')
 
-    @nose.tools.raises(ingest.IngestTicketInvalidOwnerException)
     def test_owner_valid_01(self):
+        unknown_owner = dao.Account.get('moocow')
+        assert unknown_owner is None
         t = ingest.IngestTicket(owner='moocow',
                                     collection='test', format='json', source_url='')
 
