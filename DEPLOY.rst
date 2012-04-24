@@ -46,22 +46,27 @@ autostart=true
 
 
 # create a virtualenv and get the latest bibserver code installed
-virtualenv bibsoup.net --no-site-packages
+# bibserver requires python2.7+ so make sure that is available on your system 
+virtualenv -p python2.7 bibsoup.net --no-site-packages
 cd bibsoup.net
 mkdir src
 cd bin
 source activate
 cd ../src
 git clone https://github.com/okfn/bibserver
+cd bibserver
 python setup.py install
 
 
 # create a local_config.json with details as necessary
 {
-    "ES_HOST" : "elasticsearch.okserver.org:9200"
+    "ELASTIC_SEARCH_HOST" : "elasticsearch.okserver.org:9200"
 }
 
 
-# in the case of OKF service deployment, copy 
+# in the case of OKF service deployment, make symbolic links from the supervisor 
+# and nginx files which should be in the ~/etc folder into the /etc/nginx/sites-available
+# and /etc/supervisor/conf.d folders, then make symbolic link from /etc/nginx/sites-available
+# into /etc/nginx/sites-enabled
 
 
