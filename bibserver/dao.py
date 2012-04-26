@@ -14,6 +14,7 @@ from flaskext.login import UserMixin
 from bibserver.config import config
 import bibserver.util, bibserver.auth
 
+
 def make_id(data):
     '''Create a new id for data object based on a hash of the data representation
     Ignore the _last_modified, _created fields
@@ -28,11 +29,12 @@ def make_id(data):
     new_id = hashlib.md5(buf).hexdigest()
     return new_id
     
+    
 def init_db():
     conn, db = get_conn()
     try:
         conn.create_index(db)
-    except pyes.exceptions.IndexAlreadyExistsException:
+    except:
         pass
     mappings = config["mappings"]
     for mapping in mappings:
