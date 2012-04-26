@@ -2,6 +2,8 @@
 import csv
 import sys
 import json
+import chardet
+import cStringIO
 
 class CSVParser(object):
 
@@ -28,7 +30,8 @@ class CSVParser(object):
             if "editor" in row:
                 row["editor"] = row["editor"].split(",")
             data.append(row)
-
+        return data, {}
+        
 def parse():
     parser = CSVParser(sys.stdin)
     records, metadata = parser.parse()

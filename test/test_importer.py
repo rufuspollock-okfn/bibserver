@@ -45,19 +45,3 @@ class TestImporter:
         recs_for_collection = dao.Record.query('collection:"' + coll.id + '"')
         assert recs_for_collection['hits']['total'] == 1, recs_for_collection
 
-    def test_bulkupload(self):
-        owner = dao.Account(id='testaccount2')
-        owner.save()
-        i = Importer(owner=owner)
-        colls = open('test/data/bulk_upload.json').read()
-        toupload = json.loads(colls)
-        
-        # fix upload collection relative to test
-        toupload["collections"][0]["source"] = 'file://' + os.path.join(os.path.dirname(__file__), toupload["collections"][0]["source"])
-        toupload["collections"][1]["source"] = 'file://' + os.path.join(os.path.dirname(__file__), toupload["collections"][1]["source"])
-
-        # TODO: a better test
-        # do the bulk upload
-        records = i.bulk_upload(toupload)
-        assert records == True, records
-
