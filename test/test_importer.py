@@ -18,30 +18,29 @@ class TestImporter:
         owner = dao.Account(id='testaccount1')
         owner.save()
         i = Importer(owner=owner)
-        bibtex = open('test/data/sample.bibtex')
-        format_ = 'bibtex'
+        data = open('test/data/sample.bibtex.bibjson')
         collection_in = {
             'label': u'My Test Collection'
             }
-        coll, records = i.upload(bibtex, format_, collection_in)
+        coll, records = i.upload(data, collection_in)
         assert coll.id
         assert owner.collections[0].id == coll.id, owner.collections
 
         assert len(records) == 1, records
-        recid = records[0]['id']
+        recid = records[0]['_id']
         out = bibserver.dao.Record.get(recid)
         assert out["year"] == '2008', out
-        assert out['collection'] == coll['id']
+        assert out['collection'] == coll['collection']
 
         # now try uploading exactly the same data again
-        bibtex = open('test/data/sample.bibtex')
-        newcoll, records = i.upload(bibtex, format_, collection_in)
+        data = open('test/data/sample.bibtex.bibjson')
+        newcoll, records = i.upload(data, collection_in)
         # still should have only one collection
         assert len(owner.collections) == 1
         assert newcoll.id == coll.id
         assert len(records) == 1
-        assert records[0]['collection'] == coll.id
+        assert records[0]['collection'] == coll['collection']
         # still should have only one record in it
-        recs_for_collection = dao.Record.query('collection:"' + coll.id + '"')
+        recs_for_collection = dao.Record.query('collection:"' + coll['collection'] + '"')
         assert recs_for_collection['hits']['total'] == 1, recs_for_collection
 
