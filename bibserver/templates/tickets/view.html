@@ -2,16 +2,8 @@
 
 {% block content %}
 <h1>Upload Tickets</h1>
-{% if False  %}
-    
-<p>{{ticket}} <a class="btn reset_ticket" href="{{ticket.id}}">Reset</a>{% if ticket.description %}
-<span style="font-style: italic">- {{ticket.description}}</span>
-{% endif %} 
-</p>
 
-{% endif %}
-
-{% if ingest_tickets|length > 1 %}
+{% if ingest_tickets|length >= 1 %}
 <div>
     <table class="table table-striped table-condensed">
         <thead><tr>

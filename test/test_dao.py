@@ -37,8 +37,9 @@ class TestDAO:
         assert '_created' in outrecord
         assert '_last_modified' in outrecord
         last_modified_in_record = outrecord['_last_modified']
-        t2 = datetime.strptime(last_modified_in_record[:-7], r'%Y-%m-%dT%H:%M:%S')
+        t2 = datetime.strptime(last_modified_in_record, r"%Y%m%d%H%M%S")
         difference = t2 - t1
+        print last_modified_in_record, t1, t2, difference
         assert difference.seconds < 1
     
     def test_02_collection(self):
@@ -58,7 +59,7 @@ class TestDAO:
         
     def test_making_ids(self):
         recdict1 = fixtures['records'][0].copy()
-        del recdict1['id']
+        del recdict1['_id']
         recdict2 = recdict1.copy()
         recdict3 = recdict1.copy()
         recdict3['foobar'] = 'baz'
@@ -73,8 +74,8 @@ class TestDAO:
         print record1, '*'*5
         print record2, '*'*5
         print record3, '*'*5
-        assert record1['id'] == record2['id']
-        assert record1['id'] != record3['id']
+        assert record1['_id'] == record2['_id']
+        assert record1['_id'] != record3['_id']
 
 class TestDAOQuery:
     @classmethod

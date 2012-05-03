@@ -37,34 +37,6 @@ class Importer(object):
             collection = metadata
         
         return self.index(collection, record_dicts)
-
-    #def bulk_upload(self, colls_list):
-        '''upload a list of collections from provided file locations.
-
-        :param colls_list: a list of dictionaries with 3 keys::
-
-            {
-                # source = url source for data
-                # upfile = local file path for data
-                # data = raw data
-                source | upfile | data: ...,
-                format: {the-format-of-the-data-e.g.-bibtex},
-                collection: {label for the collection}
-            }
-        '''
-        '''for coll in colls_list["collections"]:
-            if "upfile" in coll:
-                fileobj = coll["upfile"]
-            elif "data" in coll:
-                fileobj = StringIO(coll['data'])
-            elif "source" in coll:
-                fileobj = urllib2.urlopen(coll["source"])
-            format_ = coll['format']
-            collection_dict = {
-                'label': coll['collection']
-                }
-            self.upload(fileobj, format_, collection_dict)
-        return True'''
     
     def index(self, collection_dict, record_dicts):
         '''Add this collection and its records to the database index.
