@@ -31,7 +31,9 @@ jQuery(document).ready(function() {
     <div class="hero-unit clearfix">
         <div class="span5">
             {% if current_user.id != account.id %}
-                <h2>Hi {{ current_user.id }}. As a superuser, you are viewing the page of {{ account.id }}. You can edit this too.</h2>
+                <h2 style="color:red;">Hi <span style="color:#333">{{ current_user.id }}</span>, you are the superuser<br /> 
+                Viewing account: <span style="color:#333">{{ account.id }}</span><br />
+                You have full edit permissions</h2>
             {% else %}
                 <h2>Hi {{ current_user.id }}</h2>
                 <p>{{ current_user.description }}</p>
