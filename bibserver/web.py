@@ -108,7 +108,9 @@ def users():
         abort(401)
     users = bibserver.dao.Account.query(sort={'_id':{'order':'asc'}},size=1000000)
     if users['hits']['total'] != 0:
-        users = [{'_id':i['_source']['_id'],'description':i['_source']['description']} for i in users['hits']['hits']]
+        accs = [bibserver.dao.Account.get(i['_source']['_id']) for i in users['hits']['hits']]
+        # explicitly mapped to ensure no leakage of sensitive data. augment as necessary
+        users = [{"collections":len(i.collections),"_id":i["_id"],"_created":i["_created"],"description":i["description"]} for i in accs]
     if util.request_wants_json():
         resp = make_response( json.dumps(users, sort_keys=True, indent=4) )
         resp.mimetype = "application/json"

@@ -4,9 +4,10 @@
 
     {% for user in users %}
 
-    <div style="padding:20px; margin:20px; border:2px solid #ccc; width:300px; height:100px; float:left; overflow:hidden;">
-        <h2><a href="/{{ user.id }}">{{ user.id }}</a></h2>
+    <div style="padding:20px; margin:20px; border:2px solid #ccc; width:300px; height:150px; float:left; overflow:hidden;">
+        <h2><a href="/{{ user._id }}">{{ user._id }}</a></h2>
         <p>{{ user.description}}</p>
+        <p>created : {{ user._created }}<br />collections:{{ user.collections }}</p>
     </div>
 
     {% endfor %}
