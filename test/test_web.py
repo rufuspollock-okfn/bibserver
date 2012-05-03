@@ -1,7 +1,8 @@
 from nose.tools import assert_equal
 import urllib
 from base import *
-from bibserver import web
+from bibserver import web, ingest
+import os
 
 
 class TestWeb(object):
@@ -13,11 +14,16 @@ class TestWeb(object):
         recdict = fixtures['records'][0]
         cls.record = dao.Record.upsert(recdict)
         Fixtures.create_account()
+        config['download_cache_directory'] = 'test/data/downloads'
+        ingest.init()
 
     @classmethod
     def teardown_class(cls):
         conn, db = dao.get_conn()
         conn.delete_index(TESTDB)
+        for x in os.listdir('test/data/downloads'):
+            os.unlink(os.path.join('test/data/downloads', x))
+        os.rmdir('test/data/downloads')
 
     def test_home(self):
         res = self.app.get('/')
@@ -35,6 +41,7 @@ class TestWeb(object):
 
     def test_upload(self):
         res = self.app.get('/upload')
+        print res.status
         assert res.status == '302 FOUND', res.status
         res = self.app.get('/upload',
             headers={'REMOTE_USER': Fixtures.account.id}

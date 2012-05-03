@@ -194,3 +194,7 @@ PG  - 559-68
         data = json.loads(p.communicate(input=inp_data)[0])
         data = data['records']
         assert data[0]['title'] == u'AAAS: Science'
+
+    def test_plugin_dump(self):
+        plugins = ingest.get_plugins()
+        assert len(plugins.keys()) > 0

@@ -127,8 +127,7 @@ class UploadView(MethodView):
         if request.values.get("source") is not None:
             return self.post()        
         return render_template('upload.html',
-                               ingest_tickets = bibserver.ingest.get_tickets(),
-                               parser_plugins=bibserver.ingest.PLUGINS.values())
+                               parser_plugins=bibserver.ingest.get_plugins().values())
 
     def post(self):
         if not auth.collection.create(current_user, None):
