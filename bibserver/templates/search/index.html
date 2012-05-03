@@ -208,12 +208,15 @@
         {% endif %}
         {% if collection._id %}
             <h2><a href="/{{collection.owner}}">{{collection['owner']}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection['label'] }}</a> 
-            <small>{{ collection['description'] }}</small></h2>
+            {% if collection.description %}
+                <small>{{ collection['description'] }}</small>
+            {% endif %}
+            </h2>
         {% endif %}
     </div>
 
-{% if collection.id %}
-<!--
+{% if collection._id %}
+
 <p>
 {% if 'source' in collection %}
 The source of this collection is <a href="{{collection.source}}">{{collection.source}}</a><br />
@@ -222,7 +225,7 @@ The source of this collection is <a href="{{collection.source}}">{{collection.so
 Last updated {{collection._last_modified}}
 {% endif %}
 </p>
--->
+
 {% endif %}
 
 {% endblock %}

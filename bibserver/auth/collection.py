@@ -12,7 +12,7 @@ def update(account, collection):
                 allowed = True
         except:
             pass
-        if account.id == config['super_user']:
+        if account.id in config['super_user']:
             allowed = True
     return allowed
 

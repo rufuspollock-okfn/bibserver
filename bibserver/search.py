@@ -223,8 +223,8 @@ class Search(object):
                 return resp
             else:
                 admin = True if auth.user.update(self.current_user,acc) else False
-                recordcount = bibserver.dao.Record.query(terms={'owner':self.current_user.id})['hits']['total']
-                collcount = bibserver.dao.Collection.query(terms={'owner':self.current_user.id})['hits']['total']
+                recordcount = bibserver.dao.Record.query(terms={'owner':acc.id})['hits']['total']
+                collcount = bibserver.dao.Collection.query(terms={'owner':acc.id})['hits']['total']
                 return render_template('account/view.html', 
                     current_user=self.current_user, 
                     search_options=json.dumps(self.search_options), 
@@ -239,8 +239,8 @@ class Search(object):
 
     def collection(self):
         # show the collection that matches parts[1]
-        self.search_options['predefined_filters']['owner'+config['facet_field']] = self.parts[0]
-        self.search_options['predefined_filters']['collection'+config['facet_field']] = self.parts[1]
+        self.search_options['predefined_filters']['owner'] = self.parts[0]
+        self.search_options['predefined_filters']['collection'] = self.parts[1]
 
         # remove the collection facet
         for count,facet in enumerate(self.search_options['facets']):
@@ -285,7 +285,7 @@ class Search(object):
                 admin = True if metadata != None and auth.collection.update(self.current_user, metadata) else False
                 if metadata and '_display_settings' in metadata:
                     self.search_options.update(metadata['_display_settings'])
-                users = bibserver.dao.Account.query(size=1000000)
+                users = bibserver.dao.Account.query(size=1000000) # pass the userlist for autocomplete admin addition (could be ajax'd)
                 userlist = [i['_source']['_id'] for i in users['hits']['hits']]
                 return render_template('search/index.html', 
                     current_user=self.current_user, 

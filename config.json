@@ -205,8 +205,13 @@
                     {
                         "default" : {
                             "match" : "*",
+                            "match_mapping_type": "string",
                             "mapping" : {
-                                "index" : "not_analyzed"
+                                "type" : "multi_field",
+                                "fields" : {
+                                    "{name}" : {"type" : "{dynamic_type}", "index" : "analyzed", "store" : "no"},
+                                    "exact" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "yes"}
+                                }
                             }
                         }
                     }

@@ -80,7 +80,7 @@ def content():
 def home():
     data = []
     try:
-        colldata = bibserver.dao.Collection.query(sort={"_created":{"order":"desc"}},size=20)
+        colldata = bibserver.dao.Collection.query(sort={"_created.exact":{"order":"desc"}},size=20)
         if colldata['hits']['total'] != 0:
             for coll in colldata['hits']['hits']:
                 colln = bibserver.dao.Collection.get(coll['_id'])

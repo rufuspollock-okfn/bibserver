@@ -27,7 +27,8 @@
             "hide":[],                      // a list of keys that should be hidden from view
             "data":undefined,               // a JSON object to render for editing
             "delete_redirect":"#",          // where to redirect to after deleting
-            "addable":[],                   // things that should be provided as addables to the item
+            "addable":{},                   // things that should be provided as addables to the item
+            "customadd": true,              // whether or not user can specify new item name (entails addition of function to check edited item names)
             "tags": []
         }
 
@@ -79,15 +80,11 @@
                 s += '<ul class="dropdown-menu">'
                 if (editable) {
                     isdict ? addname = key : addname = ""
-                    !partisdict ? s += '<li><a class="jtedit_addanother" href=""><i class="icon-plus"></i> add another ' + addname + '</a></li>' : ""
-                    if (addname.substr(-1) == "y") {
-                        addname = addname.substr(0,-1) + "ies"
+                    !partisdict ? s += '<li><a class="jtedit_addanother" href=""><i class="icon-plus"></i> Add another ' + addname + '</a></li>' : ""
+                    if (addname.length > 0 && !partisdict) {
+                        addname = "all " + addname
                     } else {
-                        if (addname.length > 0 && !partisdict) {
-                            addname = addname + "s"
-                        } else {
-                            addname = "this"
-                        }
+                        addname = "this"
                     }
                     s += '<li><a class="jtedit_remove" href="#"><i class="icon-remove"></i> Remove ' + addname + '</a></li>'
                     partisdict ? s += '<li><a class="jtedit_tolist" href="#"><i class="icon-edit"></i> Make this a list</a></li>' : ""
@@ -127,7 +124,7 @@
             $('.jtedit_showhidedetails').bind('click',jtedit_showhidedetails)
             $('.jtedit_tolist').bind('click',jtedit_tolist)
             $('.jtedit_optionsgroup').bind('mouseenter',jtedit_optionswarn)
-            $('.jtedit_optionsgroup').bind('mouseleave',jtedit_optionswarnout)
+            $('.jtedit_optionsgroup').bind('mouseleave',jtedit_optionswarn)
             $('.jtedit_addanother').bind('click',jtedit_addanother)
         }
 
@@ -253,13 +250,13 @@
         // highlight an object on options hover
         var jtedit_optionswarn = function(event) {
             event.preventDefault()
-            $(this).css({'color':'red'})
-            $(this).parent().addClass('jtedit_optionswarn')
-        }
-        var jtedit_optionswarnout = function(event) {
-            event.preventDefault()
-            $(this).css({'color':'#000'})
-            $(this).parent().removeClass('jtedit_optionswarn')
+            if ( $(this).parent().hasClass('jtedit_optionswarn') ) {
+                $(this).css({'color':'#000'})
+                $(this).parent().removeClass('jtedit_optionswarn')
+            } else {
+                $(this).css({'color':'red'})
+                $(this).parent().addClass('jtedit_optionswarn')
+            }
         }
         
         // add another item to a list
@@ -271,7 +268,26 @@
         // add an item to the object
         var jtedit_additem = function(event) {
             event.preventDefault()
-            alert("add a new item to this object")
+            // get current item name
+            var findval = ""
+            // search options for item children
+            var newitems = []
+            if ( findval ) {
+                for ( var thing in options.addable ) {
+                    if ( thing == findval ) {
+                        for ( var itemname in options.addable[thing] ) {
+                            newitems.push(itemname)
+                        }
+                    }
+                    break
+                }
+            } else {
+                for ( var thing in options.addable ) {
+                    newitems.push(thing)
+                }
+            }
+            // offer children as option, or create new option enabled
+            alert("add an " + newitems)
         }
         
         // convert to a list
