@@ -119,7 +119,22 @@ month = {March}
         data = json.loads(data)
         print repr(data['records'][0])
         assert 'month' not in data['records'][0]
-        
+
+    def test_bibtex_keywords(self):
+        inp_data = '''@misc{Morgan2011,
+            author = {Morgan, J. T. and Geiger, R. S. and Pinchuk, M. and Walker, S.},
+            keywords = {open\_access, wrn2011, wrn201107},
+            title = {{This is a test}},
+            year = {2011}
+        }
+'''
+        p = ingest.PLUGINS.get('bibtex')
+        p = subprocess.Popen(p['_path'], shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        data = p.communicate(input=inp_data)[0]
+        data = json.loads(data)
+        assert 'keyword' in data['records'][0]
+        assert u'open_access' in data['records'][0].get('keyword')
+
     def test_csv(self):
         p = ingest.PLUGINS.get('csv')
         inp_data = open('test/data/sample.csv').read()
