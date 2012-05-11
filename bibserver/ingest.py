@@ -229,6 +229,10 @@ def scan_parserscrapers(directory):
                     sys.stderr.write('Error parsing plugin output:\n')
                     sys.stderr.write(output)
     return found
+
+def get_plugins():
+    filename = os.path.join(config.get('parserscrapers_plugin_directory'), 'plugins.json')
+    return json.loads(open(filename).read())
     
 def init():
     for d in ('download_cache_directory', 'parserscrapers_plugin_directory'):
@@ -244,6 +248,8 @@ def init():
     if plugins:
         for ps in plugins:
             PLUGINS[ps['format']] = ps
+    filename = os.path.join(config.get('parserscrapers_plugin_directory'), 'plugins.json')
+    open(filename, 'w').write(json.dumps(PLUGINS))
 
 def run():
     last_flash = time.time() - 500
