@@ -2,7 +2,7 @@
 Installation
 ============
 
-Stetp by Step Setup
+Step by Step Setup
 ===================
 
 1. Install pre-requisites:

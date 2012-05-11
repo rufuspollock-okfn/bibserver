@@ -17,7 +17,7 @@ Main features:
 * Open-source and free to use
 * Hosted service available at http://bibsoup.net/
 
-.. _BibServer: http://bibserver.okfn.org/
+.. _BibServer: http://bibserver.org/
 
 
 Quick Links
@@ -25,7 +25,7 @@ Quick Links
 
 * Code: http://github.com/okfn/bibserver
 * Mailing list: http://lists.okfn.org/mailman/listinfo/openbiblio-dev
-* Live demo: http://demo.bibserver.org/ (sandbox) or http://bibsoup.net/
+* Live demo: http://dev.bibsoup.net/ (sandbox) or http://bibsoup.net/
 
 
 Installation
@@ -35,6 +35,15 @@ Installation
    :maxdepth: 2
 
    install
+   deploy
+   config
+   frontend
+   api
+   upload
+   parsers
+   auth
+   bibjson
+   licenses
 
 Indices and tables
 ==================
