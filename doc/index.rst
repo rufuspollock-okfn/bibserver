@@ -37,9 +37,9 @@ Installation
    install
    deploy
    config
+   upload
    frontend
    api
-   upload
    parsers
    auth
    bibjson
