@@ -77,7 +77,7 @@ my ($marcFile,$outputFilename,$tmpFilename);
 
 if ($ARGV[1] eq '-bibserver') {
            print STDOUT '{"display_name": "MARC",
-                    "format": "marc",
+                    "format": "marc21",
                     "contact": "Edmund Chamberlain emc59@cam.ac.uk",
                     "bibserver_plugin": true
                    }
@@ -85,6 +85,7 @@ if ($ARGV[1] eq '-bibserver') {
     }
 
 if (STDIN) {
+         
 # Why is this necessary? MARC::File cannot seemingly accept STDIN as either file handle or direct input, needs a file path/name ...
      while (<>) {
      print TMP $_;         
@@ -125,8 +126,8 @@ close TMP;
          $json = $json->utf8([$enable]);
          $json = $json->pretty([$enable]);
          
-#         print STDOUT $json->encode(\%outPut);
-         print STDOUT $json->encode(\@records);
+         print STDOUT $json->encode(\%outPut);
+  #       print STDOUT $json->encode(\@records);
          print LOG "$count records converted \n";
          
          
@@ -162,7 +163,23 @@ sub convertRecord {
                                         case /[e]/     {$format='map';}
                            }
                   $exportRecord{'format'} = $format;
+
                   
+                  #Library of Congress Classification
+                   if ($record->field('050')) {
+                         $exportRecord{"libraryOfCongressCallNo"} = trim($record->field('050')->as_string("a"));
+                  }
+                  
+                   #Dewey
+                   if ($record->field('080')) {
+                         $exportRecord{"universalDecimalClassificationNo"} = trim($record->field('080')->as_string("a"));
+                  }
+                  
+                  
+                  #Dewey
+                   if ($record->field('082')) {
+                         $exportRecord{"deweyDecimalCallNo"} = trim($record->field('082')->as_string("a"));
+                  }
 
                   ############ Identifiers ############
                   
@@ -197,6 +214,8 @@ sub convertRecord {
                     my %lccn = ('id' => $record->field('015')->as_string("a"), 'type' => 'National Bibliography');       
                     push(@identifiers,\%lccn);       
                   }
+                       
+                       
                   
                   if (@identifiers) {
                      $exportRecord{'identifiers'} = \@identifiers;       
@@ -224,46 +243,159 @@ sub convertRecord {
                  ############ Misc. fields based on QDC, attempting to target core Open Bib concept of non copyrightable data elements ########
                   
                   if ($record->field('245')) {
-                         $exportRecord{"dc:title"} = trim($record->field('245')->as_string("abnp"));
+                         $exportRecord{"title"} = trim($record->field('245')->as_string("abnp"));
                   }
                   
                   if ($record->field('240')) {
-                         $exportRecord{"dc:alternative"} = trim($record->field('240')->as_string("adfgklmnoprst"));
+                         $exportRecord{"alternativeTitle"} = trim($record->field('240')->as_string("adfgklmnoprst"));
                   }
                   
                   if ($record->field('260')) {
-                         $exportRecord{"dc:publisher"} = trim($record->field('260')->as_string("b"));
+                         $exportRecord{"publisher"} = trim($record->field('260')->as_string("b"));
+                  }
+                  
+                  
+                   if ($record->field('046')) {
+                         $exportRecord{"dateCreated"} = trim($record->field('046')->as_string("k"));
+                  }
+       
+                   if ($record->field('046')) {
+                         $exportRecord{"dateModified"} = trim($record->field('046')->as_string("k"));
                   }
                   
                   if ($record->field('260')) {
-                         $exportRecord{"dc:created"} = trim($record->field('260')->as_string("c"));
+                         $exportRecord{"dateIssued"} = trim($record->field('260')->as_string("c"));
                   }
                   
                   if ($record->field('300')) {
-                         $exportRecord{"dc:extent"} = trim($record->field('300')->as_string("a"));
+                         $exportRecord{"extent"} = trim($record->field('300')->as_string("a"));
+                  }
+                  
+                  if ($record->field('340')) {
+                         $exportRecord{"medium"} = trim($record->field('340')->as_string("a"));
                   }
                   
                   if ($record->field('500')) {
-                         $exportRecord{"dc:description"} = trim($record->field('500')->as_string());
+                         $exportRecord{"description"} = trim($record->field('500')->as_string());
                   }
                    if ($record->field('505')) {
-                         $exportRecord{"dc:tableOfContents"} = trim($record->field('505')->as_string());
+                         $exportRecord{"tableOfContents"} = trim($record->field('505')->as_string());
                   }
-                  
+                   
+                   if ($record->field('513')) {
+                         $exportRecord{"temporial"} = trim($record->field('513')->as_string("b"));
+                  }
+                   
                    if ($record->field('520')) {
-                         $exportRecord{"dc:Abstract"} = trim($record->field('520')->as_string("a"));
+                         $exportRecord{"abstract"} = trim($record->field('520')->as_string("a"));
+                  }
+                   
+                   if ($record->field('522')) {
+                         $exportRecord{"spatial"} = trim($record->field('522')->as_string("a"));
                   }
                   
                    if ($record->field('540')) {
-                         $exportRecord{"dc:accessRights"} = trim($record->field('540')->as_string());
+                         $exportRecord{"accessRights"} = trim($record->field('540')->as_string());
                   }
+                   
+                    if ($record->field('546')) {
+                         $exportRecord{"languageNote"} = trim($record->field('546')->as_string("a"));
+                  }
+                   
+                   
                     if ($record->field('490')) {
-                         $exportRecord{"dc:isPartOf"} = trim($record->field('490')->as_string());
+                         $exportRecord{"isPartOf"} = trim($record->field('490')->as_string());
                   }
-
-####################                    #################
                     
-################### Author needs to be a loop ... Also corp authors, conferences, notes fields, added entries, subject codes (maybe break up fr faceting as per AB config,), 
+                    if ($record->field('653')) {
+                             my @localSubjects = $record->field('653');
+                             my @exportLocals=();
+                           foreach my $localSubject(@localSubjects) {
+                           my $exportSubject = $localSubject->as_string('a b c d e f h j k l m n o p q r s t');
+                             push(@exportLocals,$exportSubject); 
+                           }
+                   $exportRecord{'subjects'} = \@exportLocals;     
+                  }
+                    
+                   if ($record->field('650')) {
+                         
+                       my @subjects = $record->field('650');
+                       my @exportMESHs=();
+                       my @exportLCSHs=();
+                         
+                         # loop 650's with clause for 
+                           foreach my $subject(@subjects) {
+                                    
+                                my  $subjectField=$subject->as_string('a b c d e f h j k l m n o p q r s t');
+         
+                                    # additional clauses for qualifiers
+                                    if ($subject->subfield('v')) {
+                                       $subjectField .= " -- " . $subject->subfield('v');
+                                    }
+                                    if ($subject->subfield('x')) {
+                                      $subjectField .= " -- " . $subject->subfield('x');
+                                    }
+                                    if ($subject->subfield('y')) {
+                                      $subjectField .= " -- " . $subject->subfield('y');
+                                    }
+                                    if ($subject->subfield('z')) {
+                                      $subjectField .= " -- " . $subject->subfield('z');
+                                    }    
+                                    
+                               if ($subject->indicator(2) eq '0') {    
+                                       # my $exportsubjectLCSH = trim($subject->as_string('a'));
+                                         push(@exportLCSHs,$subjectField);
+                               }
+                                        
+                                elsif ($subject->indicator(2) eq '2') {
+                                      #  my $exportsubjectMESH = trim($subject->as_string('a'));
+                                         push(@exportMESHs,$subjectField);      
+                               }
+                           }
+                   
+                        # Push to records 
+                           if (@exportLCSHs > 0) {
+                                $exportRecord{'subjectsLCSH'}    = \@exportLCSHs;    
+                           }     
+                           
+                           
+                            if (@exportMESHs > 0) {
+                             $exportRecord{'subjectsMESH'}    = \@exportMESHs;    
+                           }
+                   
+                   }
+                  
+                  
+                  if ($record->field('773')) {
+                         $exportRecord{"isPartOf"} = trim($record->field('773')->as_string('n'));
+                  }    
+                  
+                   if ($record->field('774')) {
+                         $exportRecord{"hasPart"} = trim($record->field('774')->as_string('n'));
+                  }
+                   
+                   if ($record->field('510')) {
+                         $exportRecord{"isReferencedBy"} = trim($record->field('510')->as_string('a'));
+                  } 
+                  
+                   if ($record->field('538')) {
+                         $exportRecord{"requires"} = trim($record->field('538')->as_string('a'));
+                  } 
+                  
+         
+                  
+                  # Needs indicator 2
+                  # if ($record->field('650')) {
+                  #       $exportRecord{"subjectMesh"} = trim($record->field('653')->as_string('a'));
+                  #}     
+
+                   if ($record->field('786')) {
+                         $exportRecord{"source"} = trim($record->field('786')->as_string('n'));
+                  }  
+
+##################
+                    
+################## Author needs to be a sub into which we can feed: 720$a (creator) , 110 $a corp author, 700 1$a - added entry - personal name 710 2$a added entry corp name
                   
                    my @exportAuthors=();
                   
@@ -276,16 +408,17 @@ sub convertRecord {
                            @authors = $record->field('100');
                            
                            foreach $eachAuthor(@authors)  {
-                                    my %exportAuthor=();
+                                    my %exportAuthor =();
                                     my $authorFull = trim($eachAuthor->subfield('a'));
                                    
+      
                                     $exportAuthor{'name'} = $authorFull;
                                     
                                      my @parsed_author=split(/,/, $authorFull);
                                     
-                                    $exportAuthor{'surname'}=$parsed_author[0];
+                                    $exportAuthor{'lastname'} = $parsed_author[0];
                                     
-                                    $exportAuthor{'forename'}=$parsed_author[1];
+                                    $exportAuthor{'firstname'} = $parsed_author[1];
                                  
                                     my $dates = $eachAuthor->subfield('d');
                                    
@@ -325,7 +458,7 @@ sub convertRecord {
                                     }
                         
                         # Assemble author object           
-                        push(@exportAuthors,%exportAuthor);
+                        push(@exportAuthors,\%exportAuthor);
                         
                         
                         # End author loop
