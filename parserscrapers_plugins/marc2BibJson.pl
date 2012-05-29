@@ -109,7 +109,7 @@ close TMP;
                   #end record loop        
                   $outPut{"records"} = \@records;
                  
-                  my @metadata =(
+                  my %metadata =(
                       'source' => "$marcFile",
                       'records' => "$count",
                     #  'namespace' => (
@@ -119,7 +119,7 @@ close TMP;
                    );
          
            
-         $outPut{'metadata'}= \@metadata;
+         $outPut{'metadata'}= \%metadata;
         
          # write json output
          my $json = new JSON;
