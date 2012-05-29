@@ -96,7 +96,7 @@ close TMP;
 
          #print LOG "$marcFile";
          my %outPut=();
-         my @records=''; 
+         my @records=(); 
          my $count=0;
          my $inFile=MARC::File::USMARC->in('tmp.txt');
            
@@ -112,10 +112,10 @@ close TMP;
                   my @metadata =(
                       'source' => "$marcFile",
                       'records' => "$count",
-                      'namespace' => (
-                                    'dc' => "http://purl.org/dc/terms"
+                    #  'namespace' => (
+                     #               'dc' => "http://purl.org/dc/terms"
                                     
-                     )             
+                    # )             
                    );
          
            
