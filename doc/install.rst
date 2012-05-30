@@ -2,12 +2,12 @@
 Installation
 ============
 
-Step by Step Setup
-===================
+Simple Setup
+============
 
 1. Install pre-requisites:
    
-   * Python, pip and virtualenv.
+   * Python (>= 2.7), pip and virtualenv.
    * git
    * ElasticSearch_ (> 0.17 series)
 
@@ -42,6 +42,10 @@ Step by Step Setup
 .. _ElasticSearch: http://www.elasticsearch.org/
 
 
+See doc/deploy.rst or http://bibserver.readthedocs.org/en/latest/deploy.html
+for more details on a full installation
+
+
 Install example
 ===============
 
@@ -63,11 +67,6 @@ Install commands on a clean installation of Ubuntu_11.10_::
     python bibserver/web.py
     
 You will now find your bibserver running at localhost:5000.
-
-Note that this gets the service up and running, but you will probably want to 
-ensure it comes up whenever the server starts, and that there is a web server 
-making it available beyond localhost. Also, change the bibserver/web.py script 
-debug option to False (at the bottom of the file).
     
 .. _Ubuntu_11.10: http:ubuntu.com
 
