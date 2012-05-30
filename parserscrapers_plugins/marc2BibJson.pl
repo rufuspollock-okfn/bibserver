@@ -75,7 +75,7 @@ open (TMP, "> tmp.txt") or die "could not open temp file: $!";
 my $enable = 'true';
 my ($marcFile,$outputFilename,$tmpFilename);
 
-if ($ARGV[1] eq '-bibserver') {
+if ($ARGV[0] eq '-bibserver') {
            print STDOUT '{"display_name": "MARC",
                     "format": "marc21",
                     "contact": "Edmund Chamberlain emc59@cam.ac.uk",
@@ -109,7 +109,7 @@ close TMP;
                   #end record loop        
                   $outPut{"records"} = \@records;
                  
-                  my @metadata =(
+                  my %metadata =(
                       'source' => "$marcFile",
                       'records' => "$count",
                     #  'namespace' => (
@@ -119,7 +119,7 @@ close TMP;
                    );
          
            
-         $outPut{'metadata'}= \@metadata;
+         $outPut{'metadata'}= \%metadata;
         
          # write json output
          my $json = new JSON;
