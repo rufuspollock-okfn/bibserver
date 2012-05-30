@@ -81,7 +81,8 @@ if ($ARGV[0] eq '-bibserver') {
                     "contact": "Edmund Chamberlain emc59@cam.ac.uk",
                     "bibserver_plugin": true
                    }
-                   ';      
+                   ';
+           exit;
     }
 
 if (STDIN) {
