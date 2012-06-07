@@ -213,19 +213,25 @@
             {% endif %}
             </h2>
         {% endif %}
+
     </div>
 
 {% if collection._id %}
-
-<p>
-{% if 'source' in collection %}
-The source of this collection is <a href="{{collection.source}}">{{collection.source}}</a><br />
-{% endif %}
-{% if '_last_modified' in collection %}
-Last updated {{collection._last_modified}}
-{% endif %}
-</p>
-
+    <div class="row">
+        <div class="span12">
+            <p>
+            {% if 'source' in collection %}
+            The source of this collection is <a href="{{collection.source}}">{{collection.source}}</a><br />
+            {% endif %}
+            {% if '_last_modified' in collection %}
+            Last updated {{collection._last_modified}}<br />
+            {% endif %}
+            {% if 'license' in collection %}
+            Collection license {{collection.license}}<br />
+            {% endif %}
+            </p>
+        </div>
+    </div>
 {% endif %}
 
 {% endblock %}
