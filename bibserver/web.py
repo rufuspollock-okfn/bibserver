@@ -122,7 +122,7 @@ def users():
 class UploadView(MethodView):
     def get(self):
         if not auth.collection.create(current_user, None):
-            flash('You need to login to create a collection.')
+            flash('You need to login to upload a collection.')
             return redirect('/account/login')
         if request.values.get("source") is not None:
             return self.post()        
@@ -174,22 +174,44 @@ class UploadView(MethodView):
         else:
             return redirect('/ticket/'+ticket.id)
 
-class NoUpload(MethodView):
+# handle or disable uploads
+class CreateView(MethodView):
+    def get(self):
+        if not auth.collection.create(current_user, None):
+            flash('You need to login to create a collection.')
+            return redirect('/account/login')
+        if request.values.get("source") is not None:
+            return self.post()        
+        return render_template('create.html')
+
+    def post(self):
+        if not auth.collection.create(current_user, None):
+            abort(401)
+
+        # create the new collection for current user
+        coll = {
+            'label' : request.values.get('collection'),
+            'license' : request.values.get('license')
+        }
+        i = bibserver.importer.Importer(current_user)
+        collection, records = i.index(coll, {})
+        return redirect(collection['owner'] + '/' + collection['collection'])
+
+# a class for use when upload / create are disabled
+class NoUploadOrCreate(MethodView):
     def get(self):
         return render_template('disabled.html')
 
     def post(self):
-        abort(401)
+        abort(401)    
 
+# set the upload / create views as appropriate
 if config["allow_upload"]:
     app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
+    app.add_url_rule('/create', view_func=CreateView.as_view('create'))
 else:
-    app.add_url_rule('/upload', view_func=NoUpload.as_view('upload'))
-    
-
-@app.route('/create')
-def create():
-    return render_template('record.html', record={}, edit=True)
+    app.add_url_rule('/upload', view_func=NoUploadOrCreate.as_view('upload'))
+    app.add_url_rule('/create', view_func=NoUploadOrCreate.as_view('create'))
 
 
 # this is a catch-all that allows us to present everything as a search
