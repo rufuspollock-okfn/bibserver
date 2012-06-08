@@ -75,6 +75,8 @@ Provides a list of users
 /collections
 ------------
 
+* /collections/<username>/<collection>
+
 methods GET
 
 returns HTML or JSON

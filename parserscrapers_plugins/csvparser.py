@@ -26,9 +26,11 @@ class CSVParser(object):
         # do any required conversions
         for row in d:
             if "author" in row:
-                row["author"] = row["author"].split(",")
+                row["author"] = [{"name":i} for i in row["author"].split(",")]
             if "editor" in row:
-                row["editor"] = row["editor"].split(",")
+                row["editor"] = [{"name":i} for i in row["editor"].split(",")]
+            if "journal" in row:
+                row["journal"] = {"name":row["journal"]}
             data.append(row)
         return data, {}
         

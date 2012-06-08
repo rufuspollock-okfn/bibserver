@@ -40,7 +40,8 @@ jQuery(document).ready(function() {
             {% endif %}
             <p><br />Your api_key is:</p>
             <p><input type="text" value="{{account['api_key']}}" class="span4 selectable" /></p>
-            <p>You need to append this to your API calls if you want to make changes.</p>
+            <p>You need to append this to your API calls if you want to make changes. 
+            <a href="http://bibserver.readthedocs.org/en/latest/api.html">Check out the docs</a> to learn more.</p>
             {% if superuser %}
                 <p>You are the superuser! You can view and edit anything!
                 <br />Be careful...</p>
