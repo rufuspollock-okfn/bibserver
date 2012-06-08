@@ -32,10 +32,13 @@ class Search(object):
             if len(self.parts) == 1:
                 return self.account() # user account
             elif len(self.parts) == 2:
-                return self.collection() # get a collection
+                if self.parts[1] == "collections":
+                    return self.collections()
+                else:
+                    return self.collection() # get a collection
             elif len(self.parts) == 3:
                 return self.record() # get a record in collection
-        elif ( len(self.parts) == 1 or len(self.parts) == 3 ) and self.parts[0] == 'collections':
+        elif self.parts[0] == 'collections':
             return self.collections() # get search list of all collections
         elif len(self.parts) == 1:
             if self.parts[0] != 'search':
@@ -96,6 +99,17 @@ class Search(object):
                 self.search_options['result_display'] = [[{'pre':'<h3>','field':'label','post':'</h3>'}],[{'field':'description'}],[{'pre':'created by ','field':'owner'}]]
                 self.search_options['result_display'] = config['colls_result_display']
                 return render_template('collection/index.html', current_user=self.current_user, search_options=json.dumps(self.search_options), collection=None)
+        elif len(self.parts) == 2:
+            if self.parts[0] == "collections":
+                acc = bibserver.dao.Account.get(self.parts[1])
+            else:
+                acc = bibserver.dao.Account.get(self.parts[0])
+            if acc:
+                resp = make_response( json.dumps([coll.data for coll in acc.collections], sort_keys=True, indent=4) )
+                resp.mimetype = "application/json"
+                return resp
+            else:
+                abort(404)
         elif len(self.parts) == 3:
             coll = bibserver.dao.Collection.get_by_owner_coll(self.parts[1],self.parts[2])
             if coll:

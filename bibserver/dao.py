@@ -222,6 +222,7 @@ class DomainObject(UserDict.IterableUserDict):
         # pass through the result raw
         return result.read()
 
+
 class Record(DomainObject):
     __type__ = 'record'
 
@@ -259,6 +260,7 @@ class Collection(DomainObject):
     def __len__(self):
         res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})
         return res['hits']['total']
+
     
 class Account(DomainObject, UserMixin):
     __type__ = 'account'
