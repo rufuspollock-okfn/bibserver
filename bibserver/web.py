@@ -110,7 +110,15 @@ def users():
     if users['hits']['total'] != 0:
         accs = [bibserver.dao.Account.get(i['_source']['_id']) for i in users['hits']['hits']]
         # explicitly mapped to ensure no leakage of sensitive data. augment as necessary
-        users = [{"collections":len(i.collections),"_id":i["_id"],"_created":i["_created"],"description":i["description"]} for i in accs]
+        users = []
+        for acc in accs:
+            user = {"collections":len(acc.collections),"_id":acc["_id"]}
+            try:
+                user['_created'] = acc['_created']
+                user['description'] = acc['description']
+            except:
+                pass
+            users.append(user)
     if util.request_wants_json():
         resp = make_response( json.dumps(users, sort_keys=True, indent=4) )
         resp.mimetype = "application/json"
