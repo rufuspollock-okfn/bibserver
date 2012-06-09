@@ -133,6 +133,14 @@ class UploadView(MethodView):
         if not auth.collection.create(current_user, None):
             abort(401)
         try:
+            if not request.values.get('collection',None):
+                flash('You need to provide a collection name.')
+                return redirect('/upload')
+            if not request.values.get('source',None):
+                if not request.files.get('upfile',None):
+                    flash('You need to provide a source URL or an upload file.')
+                    return redirect('/upload')
+                
             collection = request.values.get('collection')
             format=request.values.get('format')
             if request.files.get('upfile'):
@@ -162,7 +170,7 @@ class UploadView(MethodView):
             if request.files.get('upfile'):
                 data = fileobj.read()
                 ticket['data_md5'] = bibserver.ingest.store_data_in_cache(data)
-                ticket['source_url'] = config['SITE_URL'] + '/ticket/%s/data' % ticket.id
+                ticket['source_url'] = config.get('SITE_URL','') + '/ticket/%s/data' % ticket.id
                 ticket['state'] = 'downloaded'
             ticket.save()
         except Exception, inst:
