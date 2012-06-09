@@ -3,17 +3,41 @@
 {% block content %}
 {% from "_formhelpers.html" import render_field %}
 
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    //$('#m').hide()
+    $('#m').css({
+        "border":"none",
+        "background":"none",
+        "cursor":"default",
+        "-moz-box-shadow":"none",
+        "-webkit-box-shadow":"none",
+        "box-shadow":"none"
+    })
+    var signup = function(event) {
+        event.preventDefault()
+        if ( $('#m').val() == "" ) {
+            $('#signupform').submit()
+        } else {
+            alert("Are you human? If so, don't put anything in that last box...")
+        }
+    }
+    $('#signup').bind('click',signup)
+});
+</script>
+
 <div class="hero-unit">
     <div class="row">
         <div class="span5">
-            <form method="post" action="{{url_for('account.register')}}">
-                {{ render_field(form.username, placeholder="myusername") }}
-                {{ render_field(form.email, placeholder="hello@mywebsite.org") }}
-                {{ render_field(form.password, placeholder="********") }}
-                {{ render_field(form.confirm, placeholder="********") }}
-                {{ render_field(form.description, placeholder="just a bit") }}
+            <form id="signupform" method="post" action="{{url_for('account.register')}}">
+                {{ render_field(form.w) }}
+                {{ render_field(form.n) }}
+                {{ render_field(form.s, placeholder="********") }}
+                {{ render_field(form.c, placeholder="********") }}
+                {{ render_field(form.d) }}
                 <div class="actions">
-                    <input type="submit" value="Signup" class="btn btn-primary" />
+                    <input id="signup" type="submit" value="Signup" class="btn btn-primary" />
+                    <br /><br /><br /><br /><br /><br /><input id="m" type="text" name="m" />
                 </div>
             </form>
         </div>

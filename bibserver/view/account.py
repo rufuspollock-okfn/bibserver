@@ -46,19 +46,19 @@ def logout():
 
 
 def existscheck(form, field):
-    test = dao.Account.get(form.username.data)
+    test = dao.Account.get(form.w.data)
     if test:
         raise ValidationError('Taken! Please try another.')
 
 class RegisterForm(Form):
-    username = TextField('Username', [validators.Length(min=3, max=25),existscheck])
-    email = TextField('Email Address', [validators.Length(min=3, max=35), validators.Email(message='Must be a valid email address')])
-    password = PasswordField('Password', [
+    w = TextField('Username', [validators.Length(min=3, max=25),existscheck])
+    n = TextField('Email Address', [validators.Length(min=3, max=35), validators.Email(message='Must be a valid email address')])
+    s = PasswordField('Password', [
         validators.Required(),
-        validators.EqualTo('confirm', message='Passwords must match')
+        validators.EqualTo('c', message='Passwords must match')
     ])
-    confirm = PasswordField('Repeat Password')
-    description = TextAreaField('Describe yourself')
+    c = PasswordField('Repeat Password')
+    d = TextAreaField('Describe yourself')
 
 @blueprint.route('/register', methods=['GET', 'POST'])
 def register():
@@ -67,12 +67,12 @@ def register():
     if request.method == 'POST' and form.validate():
         api_key = str(uuid.uuid4())
         account = dao.Account(
-            _id=form.username.data, 
-            email=form.email.data,
-            description = form.description.data,
+            _id=form.w.data, 
+            email=form.n.data,
+            description = form.d.data,
             api_key=api_key
         )
-        account.set_password(form.password.data)
+        account.set_password(form.s.data)
         account.save()
         login_user(account, remember=True)
         flash('Thanks for signing-up', 'success')
