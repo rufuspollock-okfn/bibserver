@@ -188,9 +188,9 @@ class Search(object):
                     c.request('GET', fullpath)
                     resp = c.getresponse()
                     res = json.loads(resp.read())
-                    print fullpath
-                    print res
                     mlt = [i['_source'] for i in res['hits']['hits']]
+                    # get any notes
+                    notes = bibserver.dao.Note.about(rec.id)
                     # render the record with all extras
                     return render_template('record.html', 
                         record=json.dumps(rec.data), 
@@ -198,6 +198,7 @@ class Search(object):
                         objectrecord = rec.data,
                         searchvals=json.dumps(searchvals),
                         admin=admin,
+                        notes=notes,
                         mlt=mlt,
                         searchables=json.dumps(config["searchables"], sort_keys=True)
                     )

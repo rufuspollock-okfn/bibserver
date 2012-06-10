@@ -42,9 +42,6 @@
         var searchvals = {{ searchvals | safe }}
         jQuery('#extsrch_value').autocomplete({source:searchvals})
 
-
-
-
         var dosearch = function(event) {
             var target = jQuery('#extsrch_target').val()
             var value = jQuery('#extsrch_value').val()
@@ -61,6 +58,33 @@
             if (keycode == '13') { dosearch(event) }
         }
         jQuery('#extsrch_value').bind('keyup',checkenter)
+        
+        var notesaved = function() {
+            alert('note saved')
+            window.location = window.location
+        }
+        var addnote = function(event) {
+            event.preventDefault()
+            var note = prompt("new note:")
+            if ( note ) {
+                var newnote = {
+                    "content": note,
+                    "about": "{{ objectrecord['_id'] }}",
+                    "collection": "{{ objectrecord['collection'] }}",
+                    "owner": "{{ objectrecord['owner'] }}"
+                }
+                $.ajax({
+                    type: "POST",
+                    url: '/note',
+                    data: JSON.stringify(newnote),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: 'json',
+                    processData: false,
+                    success: notesaved
+                })
+            }
+        }
+        jQuery('#addnote').bind('click',addnote)
 
     });
     </script>
@@ -91,10 +115,27 @@
         {% endif %}
         </div>
         <div class="span4">
-            <h3>More like this</h3>
-            {% for item in mlt %}
-                <p><a href="/{{ item['owner'] }}/{{ item['collection'] }}/{{ item['_id'] }}">{{ item['title'] }}</a></p>
-            {% endfor %}
+            {% if notes|length != 0 %}
+                {% if admin %}<h3>Notes</h3><table class="table table-striped">{% endif %}
+                {% for item in notes %}
+                    {% if item['public'] %}
+                        <tr><td>{{ item['content'] }}</td></tr>
+                    {% else %}
+                        {% if admin %}
+                            <tr><td>{{ item['content'] }}</tr></td>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% if admin %}</table><p><a id="addnote" class="btn" href="">add a note</a><br /><br /><br /><br /></p>{% endif %}
+
+            {% if mlt|length != 0 %}
+                <h3>More like this</h3><table class="table table-striped">
+                {% for item in mlt %}
+                    <tr><td><a href="/{{ item['owner'] }}/{{ item['collection'] }}/{{ item['_id'] }}">{{ item['title'] }}</a></tr></td>
+                {% endfor %}
+                </table>
+            {% endif %}
         </div>
     </div>
 

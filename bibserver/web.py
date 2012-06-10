@@ -230,6 +230,34 @@ else:
     app.add_url_rule('/create', view_func=NoUploadOrCreate.as_view('create'))
 
 
+# set the route for receiving new notes
+@app.route('/note', methods=['GET','POST'])
+@app.route('/note/<nid>', methods=['GET','POST','DELETE'])
+def note(nid=''):
+    if current_user.is_anonymous():
+        abort(401)
+
+    elif request.method == 'POST':
+        newnote = bibserver.dao.Note()
+        newnote.data = request.json
+        newnote.save()
+        return redirect('/note/' + newnote.id)
+
+    elif request.method == 'DELETE':
+        note = bibserver.dao.Note.get(nid)
+        note.delete()
+        return redirect('/note')
+
+    else:
+        thenote = bibserver.dao.Note.get(nid)
+        if thenote:
+            resp = make_response( json.dumps(thenote.data, sort_keys=True, indent=4) )
+            resp.mimetype = "application/json"
+            return resp
+        else:
+            abort(404)
+
+
 # this is a catch-all that allows us to present everything as a search
 # typical catches are /user, /user/collection, /user/collection/record, 
 # /implicit_facet_key/implicit_facet_value
