@@ -65,6 +65,15 @@
     });
     </script>
 
+    <div class="row-fluid">
+        <div class="span12">
+            <p>
+                <a href="/{{ objectrecord['owner'] }}">{{ objectrecord['owner'] }}</a> / 
+                <a href="/{{ objectrecord['owner'] }}/{{ objectrecord['collection'] }}">{{ objectrecord['collection'] }}</a>
+            </p>
+        </div>
+    </div>
+
     <div class="hero-unit clearfix">
         <div class="span7">
             {% if prettyrecord %}
@@ -77,15 +86,15 @@
 
     <div class="row">
         <div id="panel" class="span8">
+        {% if admin %}
             <h3>Edit this record</h3>
+        {% endif %}
         </div>
         <div class="span4">
-            <!--
             <h3>More like this</h3>
-            {% for item in flt %}
-                <p>{{ item }}</p>
+            {% for item in mlt %}
+                <p><a href="/{{ item['owner'] }}/{{ item['collection'] }}/{{ item['_id'] }}">{{ item['title'] }}</a></p>
             {% endfor %}
-            -->
         </div>
     </div>
 

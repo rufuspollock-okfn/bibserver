@@ -180,7 +180,17 @@ class Search(object):
                             searchvals.append(obj)
                     valloop(rec.data)
                     # get fuzzy like this
-                    flt = ["hello","world"]
+                    import httplib
+                    host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
+                    db_path = config['ELASTIC_SEARCH_DB']
+                    fullpath = '/' + db_path + '/record/' + rec.id + '/_mlt?mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3'                    
+                    c = httplib.HTTPConnection(host)
+                    c.request('GET', fullpath)
+                    resp = c.getresponse()
+                    res = json.loads(resp.read())
+                    print fullpath
+                    print res
+                    mlt = [i['_source'] for i in res['hits']['hits']]
                     # render the record with all extras
                     return render_template('record.html', 
                         record=json.dumps(rec.data), 
@@ -188,7 +198,7 @@ class Search(object):
                         objectrecord = rec.data,
                         searchvals=json.dumps(searchvals),
                         admin=admin,
-                        flt=flt,
+                        mlt=mlt,
                         searchables=json.dumps(config["searchables"], sort_keys=True)
                     )
         else:
