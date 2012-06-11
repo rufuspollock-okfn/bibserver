@@ -1,3 +1,5 @@
+.. _upload:
+
 =====================
 Uploading collections
 =====================
@@ -6,8 +8,8 @@ When a bibserver instance is configured to allow uploads, it is possible to
 upload from a source URL or file from PC into the instance via the /upload page.
 
 A typical bibserver will support upload from the parsers it has available to it 
-- read more about the parsers and running them independently, or writing new 
-ones, on the parsers documentation page.
+- read more about the parsers and running them independently, or writing new ones, 
+on the parsers documentation page - :ref:`parsers`
 
 
 The upload page
@@ -15,6 +17,9 @@ The upload page
 
 To upload, just go to the upload page. Provide a URL or file, a collection name 
 and description, confirm the license and the format type.
+
+The Upload form can either be given a URL from which the Bibserver will retrieve the data to import, or a user can upload a file from her local machine to be imported. Bibserver tries to guess the format of the supplied URL by looking at the filename extension of the supplied URL. (this is unreliable and might be removed in future).
+If the fileformat can not be guessed, a list of supported fileformats for that install of Bibserver is shown.
 
 If a converter of the right format is not available, your source file can be 
 converted elsewhere into JSON following the bibJSON standard, then the JSON 
