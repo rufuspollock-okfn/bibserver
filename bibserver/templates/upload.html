@@ -21,8 +21,7 @@
 
             <br /><br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
             
-            <div>
-            <p>What is the license for this data?</p>
+            <br /><br /><span class="upload_label">collection license:</span>
             <select id="license_choice" name="license">
             </select>
             <script type="text/javascript" charset="utf-8">
@@ -42,12 +41,11 @@
               }
             });
             </script>            
-            </div>
 
             <div id="fileformat">
-                    <p>We could not identify the file format, please specify:</p>
+                    <br /><span class="upload_label">please specify file format:</span><br /><br />
                     {% for p in parser_plugins %}
-                    <input name="format" type="radio" value="{{p.format}}" /> {{p.display_name}} <br />
+                    <span class="upload_label"></span> <input name="format" type="radio" value="{{p.format}}" /> {{p.display_name}} <br />
                     {% endfor %}
             </div>
             
@@ -59,6 +57,7 @@
     
             
     <div class="span4">
+        <p>If you don't want to upload to a collection yet, you can also just <a href="/create">create a new empty collection</a>.</p>
         <p>BibSoup uses bibJSON to represent bibliographic records; so in order to upload a collection,
         it needs to be in bibJSON.</p>
         <p>If your collection is available online, then you can upload directly from the URL of the online file - 
@@ -67,6 +66,8 @@
         <p>Visit <a href="http://bibjson.org">http://bibjson.org</a> to learn more about bibJSON.</p>
         
         <div style="margin-top: 100px">
+            <p>Once you start an upload, a ticket will be created to track your upload request. You can 
+            then track your upload progress via the upload tickets info page.</p>
             <a class="btn btn-large btn-info" href="/ticket/">View Upload Tickets</a>
         </div>
         

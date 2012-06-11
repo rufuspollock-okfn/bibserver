@@ -222,8 +222,22 @@ class DomainObject(UserDict.IterableUserDict):
         # pass through the result raw
         return result.read()
 
+
 class Record(DomainObject):
     __type__ = 'record'
+
+
+class Note(DomainObject):
+    __type__ = 'note'
+
+    @classmethod
+    def about(cls, id_):
+        '''Retrieve notes by id of record they are about'''
+        if id_ is None:
+            return None
+        conn, db = get_conn()
+        res = Note.query(terms={"about":id_})
+        return [i['_source'] for i in res['hits']['hits']]
 
 
 class Collection(DomainObject):
@@ -259,6 +273,7 @@ class Collection(DomainObject):
     def __len__(self):
         res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})
         return res['hits']['total']
+
     
 class Account(DomainObject, UserMixin):
     __type__ = 'account'
@@ -281,6 +296,14 @@ class Account(DomainObject, UserMixin):
         colls = [ Collection(**item['_source']) for item in colls['hits']['hits'] ]
         return colls
         
+    @property
+    def notes(self):
+        res = Note.query(terms={
+            'owner': [self.id]
+        })
+        allnotes = [ Note(**item['_source']) for item in res['hits']['hits'] ]
+        return allnotes
+        
     def delete(self):
         url = str(config['ELASTIC_SEARCH_HOST'])
         loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
@@ -289,4 +312,6 @@ class Account(DomainObject, UserMixin):
         resp = conn.getresponse()
         for coll in self.collections:
             coll.delete()
+        for note in self.notes:
+            note.delete()
 

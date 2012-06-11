@@ -32,10 +32,13 @@ class Search(object):
             if len(self.parts) == 1:
                 return self.account() # user account
             elif len(self.parts) == 2:
-                return self.collection() # get a collection
+                if self.parts[1] == "collections":
+                    return self.collections()
+                else:
+                    return self.collection() # get a collection
             elif len(self.parts) == 3:
                 return self.record() # get a record in collection
-        elif ( len(self.parts) == 1 or len(self.parts) == 3 ) and self.parts[0] == 'collections':
+        elif self.parts[0] == 'collections':
             return self.collections() # get search list of all collections
         elif len(self.parts) == 1:
             if self.parts[0] != 'search':
@@ -96,6 +99,17 @@ class Search(object):
                 self.search_options['result_display'] = [[{'pre':'<h3>','field':'label','post':'</h3>'}],[{'field':'description'}],[{'pre':'created by ','field':'owner'}]]
                 self.search_options['result_display'] = config['colls_result_display']
                 return render_template('collection/index.html', current_user=self.current_user, search_options=json.dumps(self.search_options), collection=None)
+        elif len(self.parts) == 2:
+            if self.parts[0] == "collections":
+                acc = bibserver.dao.Account.get(self.parts[1])
+            else:
+                acc = bibserver.dao.Account.get(self.parts[0])
+            if acc:
+                resp = make_response( json.dumps([coll.data for coll in acc.collections], sort_keys=True, indent=4) )
+                resp.mimetype = "application/json"
+                return resp
+            else:
+                abort(404)
         elif len(self.parts) == 3:
             coll = bibserver.dao.Collection.get_by_owner_coll(self.parts[1],self.parts[2])
             if coll:
@@ -166,7 +180,17 @@ class Search(object):
                             searchvals.append(obj)
                     valloop(rec.data)
                     # get fuzzy like this
-                    flt = ["hello","world"]
+                    import httplib
+                    host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
+                    db_path = config['ELASTIC_SEARCH_DB']
+                    fullpath = '/' + db_path + '/record/' + rec.id + '/_mlt?mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3'                    
+                    c = httplib.HTTPConnection(host)
+                    c.request('GET', fullpath)
+                    resp = c.getresponse()
+                    res = json.loads(resp.read())
+                    mlt = [i['_source'] for i in res['hits']['hits']]
+                    # get any notes
+                    notes = bibserver.dao.Note.about(rec.id)
                     # render the record with all extras
                     return render_template('record.html', 
                         record=json.dumps(rec.data), 
@@ -174,7 +198,8 @@ class Search(object):
                         objectrecord = rec.data,
                         searchvals=json.dumps(searchvals),
                         admin=admin,
-                        flt=flt,
+                        notes=notes,
+                        mlt=mlt,
                         searchables=json.dumps(config["searchables"], sort_keys=True)
                     )
         else:

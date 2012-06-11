@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="span5 hero-unit">
+        <form action="/create" method="POST" enctype="multipart/form-data">
+        
+            <h2>Create a new collection</h2>
+            
+            <p>Create a new collection then <a href="/search">search</a> for records to add to it. Alternatively, <a href="/upload">upload</a> a collection from your own source.</p>
+            
+            <br /><span class="upload_label">name your collection:</span> <input id="collection" type="text" name="collection" />
+
+            <br /><br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
+            
+            <br /><br /><span class="upload_label">collection license:</span> <select id="license_choice" name="license">
+            </select>
+            <script type="text/javascript" charset="utf-8">
+            // Retrieve the available license options from http://licenses.opendefinition.org/
+            jQuery.ajax({
+              url:'http://licenses.opendefinition.org/licenses/jsonp/ckan.js',
+              dataType: 'jsonp',
+              // you *must* set the callback function to be licenses_callback
+              jsonpCallback: 'license_callback',
+              success: function(data) {
+                var options = '';
+                for(var idx=0; idx<data.length; idx++) {
+                    var o = '<option value="' + data[idx].url + '">' + data[idx].title + '</option>';
+                    options += o;
+                }  
+                jQuery('#license_choice').html(options);
+              }
+            });
+            </script>            
+            
+            <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="create collection" />
+            
+        </form>
+    </div>
+    
+    <!--
+    <div class="span4 hero-unit">
+        <form action="/create" method="POST" enctype="multipart/form-data">
+        
+            <h2>Create a new record</h2>
+            
+            <p>Make a new record to add to one of your collections.</p>
+            
+            <span class="upload_label">add to collection:</span> <input class="span2" id="collection" type="text" name="collection" />
+            
+            <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="create record" />
+            
+            <p><br /><br />Check out the <a href="http://bibjson.org">bibjson conventions</a> for hints on how to create a suitable record.</p>
+            
+        </form>
+
+    </div>
+    -->
+    
+</div>
+{% endblock %}
+

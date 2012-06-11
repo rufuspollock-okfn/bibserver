@@ -75,11 +75,15 @@ Provides a list of users
 /collections
 ------------
 
+* /collections/<username>
+* /collections/<username>/<collection>
+
 methods GET
 
 returns HTML or JSON
 
-Provides a list of collections
+Provides a list of all collections, a list of collections for a user, or 
+a particular collection for a user.
 
 /upload
 -------
@@ -102,6 +106,7 @@ For creating new records.
 /<username>
 -----------
 
+* /<username>/collections
 * /<username>/<collection>
 * /<username>/<collection>/<record>
 
@@ -111,8 +116,11 @@ returns HTML or JSON
 
 requires authorisation for retrieval of user data via GET, and for POSTs
 
-Access information about a user, a collection, or a record. Also update the 
-records by POSTing updated versions.
+List as JSON all collections for a given user (same as /collections/<username>).
+
+Access information about a user, a collection, or a record.
+Update the records by POSTing updated versions.
+Delete the users, collections, records by DELETE.
 
 /<implicitfacet>/<implicitvalue>
 --------------------------------
