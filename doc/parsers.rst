@@ -4,24 +4,15 @@
 Parsing sources
 ===============
 
-It is possible to run the ingest tools separately - enabling processing of 
-biblio records from multiple formats into bibJSON.
-
-
-Import via Bibserver
-====================
-
 The most common way of importing bibliographic records into Bibserver is using the Upload form in the web interface.
-See :ref:`upload`.
+See :ref:`upload`. When you run the Bibserver application from the command line, an ingest system is started in a separate process, which handles the processing of uploads asynchronously. This is done to keep the web interface responsive as some data uploads may involved downloading and processing very large data files.
 
-Detail this, including explanation of importer.py
+To run the ingest process manually separate from the Bibserver application, start it up with a -d flag.
+For example:
 
+  python bibserver/ingest.py -d
 
-Stand-alone parsing
-===================
-
-Detail how to run stand-alone, and explain workings of ingest.py
-
+Note that it is normally not required to run the ingest manually, the startup of ingest should be done by the main bibserver command line web script. See: :ref:`deploy`
 
 The parsers
 ===========
@@ -32,7 +23,7 @@ The parsers are stored in a directory called 'parserscrapers_plugins' by default
 
 When the importing subsystem of Bibserver (named 'ingest') is initialised, all the executable files
 found in the parserscrapers_plugins directory are executed with a -bibserver command line parameter.
-A parser _must_ recognise this parameter and output a JSON config section in response, indicating if this is a  valid Bibserver parser and the format that is supported.
+A parser **must** recognise this parameter and output a JSON config section in response, indicating if this is a  valid Bibserver parser and the format that is supported.
 All the parsers found are stored in a json data snippet named 'plugins.json' which can be used to determine what the current list of supported data formats for a given instance are. (this is used for example in the Upload forms)
 
 The download cache
@@ -59,5 +50,4 @@ To make a new parser:
 
 - read data from standard input, parse and convert the data to Bibjson, and print the resulting Bibjson to standard output.
 
-TODO: Explain how to make a new parser, and how to submit a pull request or email to 
-include it in the repo.
+TODO: how to submit a pull request or email to include it in the repo.
