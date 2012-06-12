@@ -20,6 +20,14 @@
     "download_cache_directory" : "download_cache",
     "parserscrapers_plugin_directory" : "parserscrapers_plugins",
     
+    # external API service settings and keys (should overwrite from local_config)
+    "external_apis" : {
+        "servicecore" : {
+            "url" : "http://core.kmi.open.ac.uk/api/search/",
+            "key" : "",
+            "docs" : "http://core-project.kmi.open.ac.uk/api-doc/"
+        }
+    },
 
     # The default fields and settings for which faceting should be made available on
     # these can be nested fields, e.g. links.url

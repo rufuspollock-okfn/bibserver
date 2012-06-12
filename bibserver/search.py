@@ -3,7 +3,7 @@ from flask import Flask, request, redirect, abort, make_response
 from flask import render_template, flash
 import bibserver.dao
 from bibserver import auth
-import json
+import json, httplib
 from bibserver.config import config
 import bibserver.util as util
 
@@ -167,6 +167,7 @@ class Search(object):
                     return resp
                 else:
                     admin = True if auth.collection.update(self.current_user, collection) else False
+                    
                     # make a list of all the values in the record, for autocomplete on the search field
                     searchvals = []
                     def valloop(obj):
@@ -179,8 +180,8 @@ class Search(object):
                         else:
                             searchvals.append(obj)
                     valloop(rec.data)
+                    
                     # get fuzzy like this
-                    import httplib
                     host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
                     db_path = config['ELASTIC_SEARCH_DB']
                     fullpath = '/' + db_path + '/record/' + rec.id + '/_mlt?mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3'                    
@@ -189,8 +190,33 @@ class Search(object):
                     resp = c.getresponse()
                     res = json.loads(resp.read())
                     mlt = [i['_source'] for i in res['hits']['hits']]
+                    
                     # get any notes
                     notes = bibserver.dao.Note.about(rec.id)
+                    
+                    # check service core for more data about the record
+                    # TODO: should maybe move this into the record dao or something
+                    # TODO: also, add in any other calls to external APIs
+                    servicecore = ""
+                    apis = config['external_apis']
+                    if apis['servicecore']['key']:
+                        try:
+                            servicecore = "not found in any UK repository"
+                            addr = apis['servicecore']['url'] + rec.data['title'].replace(' ','%20') + "?format=json&api_key=" + apis['servicecore']['key']
+                            import urllib2
+                            response = urllib2.urlopen( addr )
+                            data = json.loads(response.read())
+
+                            if 'ListRecords' in data and len(data['ListRecords']) != 0:
+                                record = data['ListRecords'][0]['record']['metadata']['oai_dc:dc']
+                                servicecore = "<h3>Availability</h3><p>This article is openly available in an institutional repository:</p>"
+                                servicecore += '<p><a target="_blank" href="' + record["dc:source"] + '">' + record["dc:title"] + '</a><br />'
+                                if "dc:description" in record:
+                                    servicecore += record["dc:description"] + '<br /><br />'
+                                servicecore += '</p>'
+                        except:
+                            pass
+                    
                     # render the record with all extras
                     return render_template('record.html', 
                         record=json.dumps(rec.data), 
@@ -199,6 +225,7 @@ class Search(object):
                         searchvals=json.dumps(searchvals),
                         admin=admin,
                         notes=notes,
+                        servicecore=servicecore,
                         mlt=mlt,
                         searchables=json.dumps(config["searchables"], sort_keys=True)
                     )
