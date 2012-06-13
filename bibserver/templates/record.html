@@ -109,12 +109,15 @@
     </div>
 
     <div class="row">
+    
         <div id="panel" class="span8">
         {% if admin %}
             <h3>Edit this record</h3>
         {% endif %}
         </div>
-        <div class="span4">
+        
+        <div id="moreinfo" class="span4">
+            {{ servicecore | safe }}
             {% if notes|length != 0 %}
                 {% if admin %}<h3>Notes</h3><table class="table table-striped">{% endif %}
                 {% for item in notes %}
@@ -137,6 +140,7 @@
                 </table>
             {% endif %}
         </div>
+        
     </div>
 
 {% endif %}
