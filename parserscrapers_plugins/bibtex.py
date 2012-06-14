@@ -4,7 +4,6 @@
 BibTex parser.
 '''
 
-import chardet
 import sys
 import string
 import cStringIO
@@ -17,7 +16,10 @@ class BibTexParser(object):
     def __init__(self, fileobj):
 
         data = fileobj.read()
-        self.encoding = chardet.detect(data).get('encoding', 'ascii')
+        
+        # On some sample data files, the character encoding detection simply hangs
+        # We are going to default to utf8, and mandate it.
+        self.encoding = 'utf8'
 
         # Some files have Byte-order marks inserted at the start
         if data[:3] == '\xef\xbb\xbf':
@@ -73,6 +75,7 @@ class BibTexParser(object):
         '''given a bibtex record, tidy whitespace and other rubbish; 
         then parse out the bibtype and citekey, then find all the
         key-value pairs it contains'''
+        
         d = {}
         
         if not record.startswith('@'):
@@ -2656,8 +2659,8 @@ class BibTexParser(object):
         u"\uD7FF": "\\mathtt{9}",
     }
 
-def parse():
-    parser = BibTexParser(sys.stdin)
+def parse(filehandle=sys.stdin):
+    parser = BibTexParser(filehandle)
     records, metadata = parser.parse()
     if len(records) > 0:
         sys.stdout.write(json.dumps({'records':records, 'metadata':metadata}))
@@ -2673,6 +2676,9 @@ def main():
     for x in sys.argv[1:]:
         if x == '-bibserver':
             sys.stdout.write(json.dumps(conf))
+            sys.exit()
+        else:
+            parse(open(x))
             sys.exit()
     parse()
             
