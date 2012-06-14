@@ -60,6 +60,9 @@ Install commands on a clean installation of Ubuntu_11.10_::
     tar -xzvf elasticsearch-0.18.2.tar.gz
     ./elasticsearch-0.18.2/bin/elasticsearch start
 
+    virtualenv .
+    . ./bin/activate
+    
     git clone https://github.com/okfn/bibserver
     cd bibserver
     pip install -e .
