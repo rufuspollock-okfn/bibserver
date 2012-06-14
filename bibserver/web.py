@@ -146,8 +146,9 @@ class UploadView(MethodView):
                 return redirect('/upload')
             if not request.values.get('source',None):
                 if not request.files.get('upfile',None):
-                    flash('You need to provide a source URL or an upload file.')
-                    return redirect('/upload')
+                    if not request.json:
+                        flash('You need to provide a source URL or an upload file.')
+                        return redirect('/upload')
                 
             collection = request.values.get('collection')
             format=request.values.get('format')
@@ -180,7 +181,16 @@ class UploadView(MethodView):
                 ticket['data_md5'] = bibserver.ingest.store_data_in_cache(data)
                 ticket['source_url'] = config.get('SITE_URL','') + '/ticket/%s/data' % ticket.id
                 ticket['state'] = 'downloaded'
+            
+            # if user is sending JSON, update the ticket with the received JSON
+            if request.json:
+                data = request.json
+                ticket['data_md5'] = bibserver.ingest.store_data_in_cache(data)
+                ticket['source_url'] = config.get('SITE_URL','') + '/ticket/%s/data' % ticket.id
+                ticket['state'] = 'downloaded'
+
             ticket.save()
+            
         except Exception, inst:
             msg = str(inst)
             if app.debug or app.config['TESTING']:
