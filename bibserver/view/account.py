@@ -2,8 +2,8 @@ import uuid
 
 from flask import Blueprint, request, url_for, flash, redirect
 from flask import render_template
-from flaskext.login import login_user, logout_user
-from flaskext.wtf import Form, TextField, TextAreaField, PasswordField, validators, ValidationError
+from flask.ext.login import login_user, logout_user
+from flask.ext.wtf import Form, TextField, TextAreaField, PasswordField, validators, ValidationError
 
 from bibserver.config import config
 import bibserver.dao as dao
