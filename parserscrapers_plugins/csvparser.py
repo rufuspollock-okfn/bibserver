@@ -25,6 +25,9 @@ class CSVParser(object):
 
         # do any required conversions
         for row in d:
+            for k, v in row.items():
+                del row[k]
+                row[k.lower()] = v
             if "author" in row:
                 row["author"] = [{"name":i} for i in row["author"].split(",")]
             if "editor" in row:
