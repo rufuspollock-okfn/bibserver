@@ -1,10 +1,11 @@
 {
-    # service and super user account
+    # service and super user accounts
     "service_name" : "BibSoup",
-    "super_user" : ["test"],
+    "SITE_URL" : "http://bibsoup.net",
     "host" : "0.0.0.0",
     "debug" : true,
     "port" : 5000,
+    "super_user" : ["test"],
 
     # elasticsearch settings
     "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
