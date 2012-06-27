@@ -65,13 +65,16 @@ class IngestTicket(dict):
         for x in ('_created', '_last_modified'):
             self[x] = datetime.fromtimestamp(self[x])
         
-            
     def fail(self, msg):
         self['state'] = 'failed'
         err = (datetime.now().strftime("%Y%m%d%H%M"), msg)
         self.setdefault('exception', []).append(err)
         self.save()
 
+    def delete(self):
+        filename = os.path.join(config['download_cache_directory'], self['_id'])  + '.ticket'
+        os.remove(filename)
+        
     def __unicode__(self):
         try:
             return u'%s/%s,%s [%s] - %s' % (self['owner'], self['collection'], self['format'], self['state'], self['_last_modified'])
@@ -311,6 +314,9 @@ def ticket_serve(ticket_id, payload):
             if cleanfield in t:
                 del t[cleanfield]
         t.save()
+        return make_response('OK')
+    elif (payload == 'delete') and (request.method == 'POST'):
+        t.delete()
         return make_response('OK')
     return redirect('/data/'+filename)
 

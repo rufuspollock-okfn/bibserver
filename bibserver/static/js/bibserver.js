@@ -205,6 +205,14 @@ jQuery(document).ready(function() {
         });
     });
     
+    // click event for deleting tickets
+    jQuery('.delete_ticket').click(function(event) {
+        event.preventDefault();
+        var ticket_id = jQuery(this).attr('href');        
+        jQuery.post('/ticket/'+ticket_id+'/delete', function(data) {
+            document.location = '/ticket/';
+        });
+    });
 });
 
 

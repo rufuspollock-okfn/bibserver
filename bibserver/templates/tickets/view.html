@@ -18,7 +18,11 @@
     {% for t in ingest_tickets %}
     
     <tbody><tr>
-        <td><a title="Click to view more details" href="/ticket/{{t.id}}">{{t.state}}</a>{% if (t.id == ticket.id) and (t.state != 'new') and ((t.owner == current_user._id) or current_user.is_super) %}<br/><a class="btn reset_ticket" href="{{ticket.id}}">Reset</a>{% endif%}
+        <td><a title="Click to view more details" href="/ticket/{{t.id}}">{{t.state}}</a>
+            {% if (t.id == ticket.id) and (t.state != 'new') and ((t.owner == current_user._id) or current_user.is_super) %}
+            <br/><a class="btn reset_ticket" href="{{ticket.id}}">Reset</a>
+            &nbsp;<a class="btn delete_ticket" href="{{ticket.id}}">Delete</a>
+            {% endif%}
         </td>
         <td>{{t.owner}}</td>
         <td>{{t.collection}}</td>
