@@ -34,7 +34,7 @@ class TestWeb(object):
         assert 'This service is an example' in res.data, res.data
 
     def test_record(self):
-        res = self.app.get('/' + Fixtures.account.id + '/' + self.record["collection"] + '/' + self.record["id"] + '.json')
+        res = self.app.get('/' + Fixtures.account.id + '/' + self.record["collection"] + '/' + self.record["_id"] + '.json')
         assert res.status == '200 OK', res.status
         out = json.loads(res.data)
         assert out["id"] == self.record["id"], out
@@ -50,13 +50,18 @@ class TestWeb(object):
         assert 'upload' in res.data, res.data
 
     def test_upload_post(self):
-        bibtex_data = open('test/data/sample.bibtex').read()
         startnum = dao.Record.query()['hits']['total']
         res = self.app.post('/upload?format=bibtex&collection='+urllib.quote_plus('"My Test Collection"'),
-            data=bibtex_data,
+            data = {'upfile': (open('test/data/sample.bibtex'), 'sample.bibtex')},
             headers={'REMOTE_USER': Fixtures.account.id}
             )
         assert res.status == '302 FOUND', res.status
+        # Now we have to trigger the ingest handling of the ticket
+        # which is normally done asynchronously
+        for state in ('new', 'downloaded', 'parsed'):
+            for t in ingest.get_tickets(state):
+                ingest.determine_action(t)
+        
         endnum = dao.Record.query()['hits']['total']
         assert_equal(endnum, startnum+1)
 
