@@ -123,7 +123,7 @@ month = {March}
     def test_bibtex_keywords(self):
         inp_data = '''@misc{Morgan2011,
             author = {Morgan, J. T. and Geiger, R. S. and Pinchuk, M. and Walker, S.},
-            keywords = {open\_access, wrn2011, wrn201107},
+            keywords = {open\_access, wrn2011, wrn201107, thing\#withhash},
             title = {{This is a test}},
             year = {2011}
         }
@@ -133,7 +133,8 @@ month = {March}
         data = p.communicate(input=inp_data)[0]
         data = json.loads(data)
         assert 'keyword' in data['records'][0]
-        assert u'open_access' in data['records'][0].get('keyword')
+        assert u'open_access' in data['records'][0].get('keyword'), data['records'][0].get('keyword')
+        assert u'thing#withhash' in data['records'][0].get('keyword'), data['records'][0].get('keyword')
 
     def test_csv(self):
         p = ingest.PLUGINS.get('csv')
