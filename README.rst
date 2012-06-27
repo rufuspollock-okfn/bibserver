@@ -61,3 +61,17 @@ Licensed under the `GNU Affero GPL v3`_
 
 .. _GNU Affero GPL v3: http://www.gnu.org/licenses/agpl.html
 
+
+Vendor packages
+===============
+
+This BibServer repository also includes the following vendor packages, all of 
+which are javascript plugins available under open source license:
+
+* http://jquery.com
+* http://jqueryui.com
+* http://twitter.github.com/bootstrap
+* http://github.com/okfn/facetview
+    * http://d3js.org
+    * http://code.google.com/p/jquery-linkify/
+
