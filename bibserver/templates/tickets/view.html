@@ -24,7 +24,7 @@
         <td>{{t.collection}}</td>
         <td>{{t._last_modified}}</td>
         <td>{{t.format}}</td>
-        <td>{% if t.source_url.startswith('http') %}<a href="{{t.source_url}}">Source URL</a>
+        <td>{% if t.source_url and t.source_url.startswith('http') %}<a href="{{t.source_url}}">Source URL</a>
             {% else %}
             '{{t.source_url}}'
             {% endif %}
