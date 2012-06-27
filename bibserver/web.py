@@ -184,7 +184,6 @@ class UploadView(MethodView):
             
             # if user is sending JSON, update the ticket with the received JSON
             if request.json:
-                print "hi"
                 data = request.json
                 ticket['data_md5'] = bibserver.ingest.store_data_in_cache(json.dumps(data))
                 ticket['source_url'] = config.get('SITE_URL','') + '/ticket/%s/data' % ticket.id
