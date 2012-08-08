@@ -3,13 +3,13 @@
     "service_name" : "BibSoup",
     "SITE_URL" : "http://bibsoup.net",
     "host" : "0.0.0.0",
-    "debug" : true,
+    "debug" : false,
     "port" : 5000,
     "super_user" : ["test"],
 
     # elasticsearch settings
-    "ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
-    "ELASTIC_SEARCH_DB" : "bibserver",
+    "ELASTIC_SEARCH_HOST" : "http://index.bonsai.io",
+    "ELASTIC_SEARCH_DB" : "lpi9fu15cw7s81ngc5qg",
 
     # bibserver functionality settings
     # set to false if no frontend upload wanted
@@ -22,13 +22,13 @@
     "parserscrapers_plugin_directory" : "parserscrapers_plugins",
     
     # external API service settings and keys (should overwrite from local_config)
-    "external_apis" : {
-        "servicecore" : {
-            "url" : "http://core.kmi.open.ac.uk/api/search/",
-            "key" : "",
-            "docs" : "http://core-project.kmi.open.ac.uk/api-doc/"
-        }
-    },
+	"external_apis" : {
+		"servicecore" : {
+			"url" : "http://core.kmi.open.ac.uk/api/search/",
+			"key" : "vaBoX29M3vVZs04l2E7cVe1a8mUX1VC7",
+			"docs" : "http://core-project.kmi.open.ac.uk/api-doc/"
+		}
+	},
 
     # The default fields and settings for which faceting should be made available on
     # these can be nested fields, e.g. links.url

@@ -10,3 +10,4 @@ distribute==0.6.24
 pyes==0.16.0
 requests==0.13.6
 wsgiref==0.1.2
+gunicorn==0.14.6
