@@ -282,7 +282,6 @@ def default(path):
 # a way to start the app e.g. via gunicorn but within one process call 
 # but pre-empting with db and ingest init - useful for things like heroku
 def app_with_ingest():
-    bibserver.dao.init_db()
     if config["allow_upload"]:
         bibserver.ingest.init()
         if not os.path.exists('ingest.pid'):
