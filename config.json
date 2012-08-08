@@ -8,8 +8,10 @@
     "super_user" : ["test"],
 
     # elasticsearch settings
-    "ELASTIC_SEARCH_HOST" : "http://index.bonsai.io",
+    "ELASTIC_SEARCH_HOST" : "index.bonsai.io",
     "ELASTIC_SEARCH_DB" : "lpi9fu15cw7s81ngc5qg",
+    #"ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
+    #"ELASTIC_SEARCH_DB" : "herokutest",
 
     # bibserver functionality settings
     # set to false if no frontend upload wanted
