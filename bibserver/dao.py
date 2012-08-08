@@ -135,11 +135,11 @@ class DomainObject(UserDict.IterableUserDict):
                 data['_created'] = datetime.now().strftime("%Y%m%d%H%M%S")
             data['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M%S")
             
-            r = requests.post(self.target() + self.data['id'], data=json.dumps(self.data))
+            r = requests.post(cls.target() + data['_id'], data=json.dumps(data))
     
     @classmethod
     def delete_by_query(cls, query):
-        r = requests.delete(self.target() + "_query?q=" + query)
+        r = requests.delete(cls.target() + "_query?q=" + query)
         return r.json
 
     @classmethod

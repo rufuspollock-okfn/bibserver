@@ -182,7 +182,7 @@ class Search(object):
                     valloop(rec.data)
                     
                     # get more like this
-                    res = bibserver.dao.Record.raw_query(recid=rec.id, endpoint='_mlt', query_string='mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3')
+                    res = bibserver.dao.Record.query(recid=rec.id, endpoint='_mlt', q='mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3')
                     mlt = [i['_source'] for i in res['hits']['hits']]
                     
                     # get any notes

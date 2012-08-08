@@ -1,7 +1,6 @@
 import os
 import urllib2
 import unicodedata
-import httplib
 import json
 import subprocess
 from copy import deepcopy
@@ -61,15 +60,17 @@ def query(path='Record'):
     if subpath.lower() == 'account':
         abort(401)
     klass = getattr(bibserver.dao, subpath[0].capitalize() + subpath[1:] )
-    qs = request.query_string
-    if request.method == "POST":
-        if request.json:
-            qs = request.json
-        else:
-            qs = dict(request.form).keys()[-1]
     if len(pathparts) > 1 and pathparts[1] == '_mapping':
         resp = make_response( json.dumps(klass().query(endpoint='_mapping')) )
     else:
+        qs = request.query_string
+        if request.method == "POST":
+            if request.json:
+                qs = request.json
+            else:
+                qs = dict(request.form).keys()[-1]
+        elif 'source' in request.values:
+            qs = json.loads(urllib2.unquote(request.values['source']))
         resp = make_response( json.dumps(klass().query(q=qs)) )
     resp.mimetype = "application/json"
     return resp
@@ -235,7 +236,12 @@ class NoUploadOrCreate(MethodView):
         abort(401)    
 
 # set the upload / create views as appropriate
-if config["allow_upload"]:
+if config.get("allow_upload",False):
+    if config.get('INGEST_SUBPROCESS',False):
+        bibserver.ingest.init()
+        if not os.path.exists('ingest.pid'):
+            ingest=subprocess.Popen(['python', 'bibserver/ingest.py'])
+            open('ingest.pid', 'w').write('%s' % ingest.pid)
     app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
     app.add_url_rule('/create', view_func=CreateView.as_view('create'))
 else:

@@ -15,8 +15,10 @@
 
     # bibserver functionality settings
     # set to false if no frontend upload wanted
+    # set to true if ingest as a subprocess wanted (otherwise run ingest.py manually)
     # set to false if no frontend edit wanted
     "allow_upload" : true,
+    "INGEST_SUBPROCESS": true,
     "allow_edit" : true,
 
     # ingest settings
