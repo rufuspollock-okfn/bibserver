@@ -3,12 +3,12 @@
     "service_name" : "BibSoup",
     "SITE_URL" : "http://bibsoup.net",
     "host" : "0.0.0.0",
-    "debug" : false,
+    "debug" : true,
     "port" : 5000,
     "super_user" : ["test"],
 
     # elasticsearch settings
-    "ELASTIC_SEARCH_HOST" : "index.bonsai.io",
+    "ELASTIC_SEARCH_HOST" : "index.bonsai.io:80",
     "ELASTIC_SEARCH_DB" : "lpi9fu15cw7s81ngc5qg",
     #"ELASTIC_SEARCH_HOST" : "127.0.0.1:9200",
     #"ELASTIC_SEARCH_DB" : "herokutest",
