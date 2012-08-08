@@ -279,6 +279,19 @@ def default(path):
     return searcher.find()
 
 
+# a way to start the app e.g. via gunicorn but within one process call 
+# but pre-empting with db and ingest init - useful for things like heroku
+def direct_start():
+    bibserver.dao.init_db()
+    if config["allow_upload"]:
+        bibserver.ingest.init()
+        if not os.path.exists('ingest.pid'):
+            ingest=subprocess.Popen(['python', 'bibserver/ingest.py'])
+            open('ingest.pid', 'w').write('%s' % ingest.pid)
+    return app
+app_with_ingest = direct_start()
+
+
 if __name__ == "__main__":
     if config["allow_upload"]:
         bibserver.ingest.init()
