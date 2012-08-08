@@ -1,13 +1,8 @@
 # this is the data access layer
-import json
-import uuid
-import UserDict
-import httplib
-import urllib
+import json, UserDict, requests, uuid
 from datetime import datetime
 import hashlib
 
-import pyes
 from werkzeug import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
 
@@ -31,35 +26,19 @@ def make_id(data):
     
     
 def init_db():
-    conn, db = get_conn()
-    try:
-        conn.create_index(db)
-    except:
-        pass
     mappings = config["mappings"]
     for mapping in mappings:
-        host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
-        db_name = config['ELASTIC_SEARCH_DB']
-        fullpath = '/' + db_name + '/' + mapping + '/_mapping'
-        c =  httplib.HTTPConnection(host)
-        c.request('GET', fullpath)
-        result = c.getresponse()
-        if result.status == 404:
-            print mapping
-            c =  httplib.HTTPConnection(host)
-            c.request('PUT', fullpath, json.dumps(mappings[mapping]))
-            res = c.getresponse()
-            print res.read()
+        t = 'http://' + str(config['ELASTIC_SEARCH_HOST']).lstrip('http://').rstrip('/')
+        t += '/' + config['ELASTIC_SEARCH_DB'] + '/' + mapping + '/_mapping'
+        r = requests.get(t)
+        if r.status_code == 404:
+            r = requests.put(t, data=json.dumps(mappings[mapping]) )
+            print r.text
 
-
-def get_conn():
-    host = str(config["ELASTIC_SEARCH_HOST"])
-    db_name = config["ELASTIC_SEARCH_DB"]
-    conn = pyes.ES([host])
-    return conn, db_name
 
 class InvalidDAOIDException(Exception):
     pass
+
     
 class DomainObject(UserDict.IterableUserDict):
     # set __type__ on inheriting class to determine elasticsearch object
@@ -76,6 +55,12 @@ class DomainObject(UserDict.IterableUserDict):
         else:
             self.data = dict(kwargs)
 
+    @classmethod
+    def target(cls):
+        t = 'http://' + str(config['ELASTIC_SEARCH_HOST']).lstrip('http://').rstrip('/') + '/'
+        t += config['ELASTIC_SEARCH_DB'] + '/' + cls.__type__ + '/'
+        return t
+
     @property
     def id(self):
         '''Get id of this object.'''
@@ -91,38 +76,27 @@ class DomainObject(UserDict.IterableUserDict):
         return self.upsert(self.data)
 
     def delete(self):
-        url = str(config['ELASTIC_SEARCH_HOST'])
-        loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
-        conn = httplib.HTTPConnection(url)
-        conn.request('DELETE', loc)
-        resp = conn.getresponse()
-        return ''
+        r = requests.delete( self.target + self.id )
 
     @classmethod
     def get(cls, id_):
         '''Retrieve object by id.'''
         if id_ is None:
             return None
-        conn, db = get_conn()
         try:
-            out = conn.get(db, cls.__type__, id_)
-            return cls(**out)
-        except pyes.exceptions.ElasticSearchException, inst:
-            if inst.status == 404:
+            out = requests.get(cls.target() + id_)
+            if out.status_code == 404:
                 return None
             else:
-                raise
+                return cls(**out.json)
+        except:
+            return None
 
-    @classmethod
-    def get_mapping(cls):
-        conn, db = get_conn()
-        return conn.get_mapping(cls.__type__, db)
-        
     @classmethod
     def get_facets_from_mapping(cls,mapping=False,prefix=''):
         # return a sorted list of all the keys in the index
         if not mapping:
-            mapping = cls.get_mapping()[cls.__type__]['properties']
+            mapping = cls.query(endpoint='_mapping')[cls.__type__]['properties']
         keys = []
         for item in mapping:
             if mapping[item].has_key('fields'):
@@ -140,9 +114,7 @@ class DomainObject(UserDict.IterableUserDict):
 
         If no id is supplied an uuid id will be created before saving.
         '''
-        conn, db = get_conn()
         cls.bulk_upsert([data], state)
-        conn.flush_bulk()
 
         # TODO: should we really do a cls.get() ?
         return cls(**data)
@@ -151,7 +123,6 @@ class DomainObject(UserDict.IterableUserDict):
     def bulk_upsert(cls, dataset, state=None):
         '''Bulk update backend object with a list of dicts of data.
         If no id is supplied an uuid id will be created before saving.'''
-        conn, db = get_conn()
         for data in dataset:
             if not type(data) is dict: continue
             if '_id' in data:
@@ -164,63 +135,57 @@ class DomainObject(UserDict.IterableUserDict):
                 data['_created'] = datetime.now().strftime("%Y%m%d%H%M%S")
             data['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M%S")
             
-            index_result = conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True)
-        # refresh required after bulk index
-        conn.refresh()
+            r = requests.post(self.target() + self.data['id'], data=json.dumps(self.data))
     
     @classmethod
     def delete_by_query(cls, query):
-        url = str(config['ELASTIC_SEARCH_HOST'])
-        loc = config['ELASTIC_SEARCH_DB'] + "/" + cls.__type__ + "/_query?q=" + urllib.quote_plus(query)
-        conn = httplib.HTTPConnection(url)
-        conn.request('DELETE', loc)
-        resp = conn.getresponse()
-        return resp.read()
+        r = requests.delete(self.target() + "_query?q=" + query)
+        return r.json
 
     @classmethod
-    def query(cls, q='', terms=None, facet_fields=None, flt=False, default_operator='AND', **kwargs):
+    def query(cls, recid='', endpoint='_search', q='', terms=None, facets=None, **kwargs):
         '''Perform a query on backend.
 
-        :param q: maps to query_string parameter.
-        :param terms: dictionary of terms to filter on. values should be lists.
+        :param recid: needed if endpoint is about a record, e.g. mlt
+        :param endpoint: default is _search, but could be _mapping, _mlt, _flt etc.
+        :param q: maps to query_string parameter if string, or query dict if dict.
+        :param terms: dictionary of terms to filter on. values should be lists. 
+        :param facets: dict of facets to return from the query.
         :param kwargs: any keyword args as per
             http://www.elasticsearch.org/guide/reference/api/search/uri-request.html
         '''
-        conn, db = get_conn()
-        if not q:
-            ourq = pyes.query.MatchAllQuery()
-        else:
-            if flt:
-                ourq = pyes.query.FuzzyLikeThisQuery(like_text=q,**kwargs)
-            else:
-                ourq = pyes.query.StringQuery(q, default_operator=default_operator)
-        if terms:
-            for term in terms:
-                if isinstance(terms[term],list):
-                    for val in terms[term]:
-                        termq = pyes.query.TermQuery(term, val)
-                        ourq = pyes.query.BoolQuery(must=[ourq,termq])
-                else:
-                    termq = pyes.query.TermQuery(term, terms[term])
-                    ourq = pyes.query.BoolQuery(must=[ourq,termq])
+        if recid and not recid.endswith('/'): recid += '/'
+        if isinstance(q,dict):
+            query = q
+        elif q:
+            query = {'query': {'query_string': { 'query': q }}}
+        else: 
+            query = {'query': {'match_all': {}}}
 
-        ourq = ourq.search(**kwargs)
-        if facet_fields:
+        if facets:
+            query['facets'] = {}
             for item in facet_fields:
-                ourq.facet.add_term_facet(item['key'], size=item.get('size',100), order=item.get('order',"count"))
-        out = conn.search(ourq, db, cls.__type__)
-        return out
+                query['facets'][item['key']] = {"terms":item}
 
-    @classmethod
-    def raw_query(self, query_string):
-        host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
-        db_path = config['ELASTIC_SEARCH_DB']
-        fullpath = '/' + db_path + '/' + self.__type__ + '/_search' + '?' + query_string
-        c = httplib.HTTPConnection(host)
-        c.request('GET', fullpath)
-        result = c.getresponse()
-        # pass through the result raw
-        return result.read()
+        if terms:
+            boolean = {'must': [] }
+            for term in terms:
+                if not isinstance(terms[term],list): terms[term] = [terms[term]]
+                for val in terms[term]:
+                    obj = {'term': {}}
+                    obj['term'][ term ] = val
+                    boolean['must'].append(obj)
+            if q and not isinstance(q,dict): boolean['must'].append( {'query_string': { 'query': q } } )
+            query['query'] = {'bool': boolean}
+
+        for k,v in kwargs.items():
+            query[k] = v
+
+        if endpoint in ['_mapping']:
+            r = requests.get(cls.target() + recid + endpoint)
+        else:
+            r = requests.post(cls.target() + recid + endpoint, data=json.dumps(query))
+        return r.json
 
 
 class Record(DomainObject):
@@ -235,7 +200,6 @@ class Note(DomainObject):
         '''Retrieve notes by id of record they are about'''
         if id_ is None:
             return None
-        conn, db = get_conn()
         res = Note.query(terms={"about":id_})
         return [i['_source'] for i in res['hits']['hits']]
 
@@ -260,13 +224,7 @@ class Collection(DomainObject):
             return None
             
     def delete(self):
-        url = str(config['ELASTIC_SEARCH_HOST'])
-        loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
-        print loc
-        conn = httplib.HTTPConnection(url)
-        conn.request('DELETE', loc)
-        resp = conn.getresponse()
-        print resp.read()
+        r = requests.delete( self.target + self.id )
         for record in self.records:
             record.delete()
     
@@ -305,11 +263,7 @@ class Account(DomainObject, UserMixin):
         return allnotes
         
     def delete(self):
-        url = str(config['ELASTIC_SEARCH_HOST'])
-        loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
-        conn = httplib.HTTPConnection(url)
-        conn.request('DELETE', loc)
-        resp = conn.getresponse()
+        r = requests.delete( self.target + self.id )
         for coll in self.collections:
             coll.delete()
         for note in self.notes:

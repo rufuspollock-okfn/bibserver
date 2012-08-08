@@ -63,11 +63,14 @@ def query(path='Record'):
     klass = getattr(bibserver.dao, subpath[0].capitalize() + subpath[1:] )
     qs = request.query_string
     if request.method == "POST":
-        qs += "&source=" + json.dumps(dict(request.form).keys()[-1])
+        if request.json:
+            qs = request.json
+        else:
+            qs = dict(request.form).keys()[-1]
     if len(pathparts) > 1 and pathparts[1] == '_mapping':
-        resp = make_response( json.dumps(klass().get_mapping()) )
+        resp = make_response( json.dumps(klass().query(endpoint='_mapping')) )
     else:
-        resp = make_response( klass().raw_query(qs) )
+        resp = make_response( json.dumps(klass().query(q=qs)) )
     resp.mimetype = "application/json"
     return resp
         

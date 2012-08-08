@@ -3,7 +3,7 @@ from flask import Flask, request, redirect, abort, make_response
 from flask import render_template, flash
 import bibserver.dao
 from bibserver import auth
-import json, httplib
+import json
 from bibserver.config import config
 import bibserver.util as util
 
@@ -181,14 +181,8 @@ class Search(object):
                             searchvals.append(obj)
                     valloop(rec.data)
                     
-                    # get fuzzy like this
-                    host = str(config['ELASTIC_SEARCH_HOST']).rstrip('/')
-                    db_path = config['ELASTIC_SEARCH_DB']
-                    fullpath = '/' + db_path + '/record/' + rec.id + '/_mlt?mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3'                    
-                    c = httplib.HTTPConnection(host)
-                    c.request('GET', fullpath)
-                    resp = c.getresponse()
-                    res = json.loads(resp.read())
+                    # get more like this
+                    res = bibserver.dao.Record.raw_query(recid=rec.id, endpoint='_mlt', query_string='mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3')
                     mlt = [i['_source'] for i in res['hits']['hits']]
                     
                     # get any notes
