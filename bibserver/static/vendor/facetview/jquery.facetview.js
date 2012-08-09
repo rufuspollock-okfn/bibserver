@@ -828,7 +828,7 @@ jQuery.extend({
                 url: options.search_url,
                 data: {source: elasticsearchquery()},
                 // processData: false,
-                dataType: "jsonp",
+                dataType: "json",
                 success: showresults
               });
             } else {

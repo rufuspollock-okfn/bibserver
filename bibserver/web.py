@@ -50,7 +50,6 @@ def standard_authentication():
             if user:
                 login_user(user, remember=False)
 
-
 @app.route('/query/<path:path>', methods=['GET','POST'])
 @app.route('/query/', methods=['GET','POST'])
 @app.route('/query', methods=['GET','POST'])
