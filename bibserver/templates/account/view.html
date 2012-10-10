@@ -12,79 +12,78 @@ jQuery(document).ready(function() {
 
     <script type="text/javascript">
     jQuery(document).ready(function() {
-        jQuery('#user').jtedit({
+        /*jQuery('#user').jtedit({
             "data": {{ record | safe }}, 
             "hide": ["api_key","_created","_last_modified","_id"], 
             "target": "#",
             "delete_redirect": "/"
-        })
-
-        // select all in input / textarea
-        var selectall = function(event) {
-            event.preventDefault()
-            $(this).select()
-        }
-        jQuery('.selectable').bind('click',selectall)
+        })*/
     });
     </script>
 
     <div class="hero-unit clearfix">
         <div class="span5">
-            {% if current_user.id != account.id %}
-                <h2 style="color:red;">Hi <span style="color:#333">{{ current_user.id }}</span>, you are the superuser<br /> 
-                Viewing account: <span style="color:#333">{{ account.id }}</span><br />
-                You have full edit permissions</h2>
-            {% else %}
+            {% if current_user.id == account.id %}
                 <h2>Hi {{ current_user.id }}</h2>
                 <p>{{ current_user.description }}</p>
             {% endif %}
-            <p><br />Your api_key is:</p>
-            <p><input type="text" value="{{account['api_key']}}" class="span4 selectable" /></p>
-            <p>You need to append this to your API calls if you want to make changes. 
-            <a href="http://bibserver.readthedocs.org/en/latest/api.html">Check out the docs</a> to learn more.</p>
             {% if superuser %}
                 <p>You are the superuser! You can view and edit anything!
                 <br />Be careful...</p>
             {% endif %}
         </div>
         <div id="user" class="span5">
-            <h2>Edit your details</h2>
-            <p>(Deleting your details irrevocably deletes your account.)</p>
+            <p>Change email address:</p>
+            <p>Change password:</p>
+            <p>Your api_key is {{account['api_key']}}. 
+            <a href="http://bibserver.readthedocs.org/en/latest/api.html">Check out the docs</a> to learn more.</p>
         </div>
     </div>
 
-    <div class="row">
-        <div class="span3">
-            <h3>Your collections</h3>
-            <p>You have {{ recordcount }} records across {{ collcount }} collections. Choose one to view - admin options are available in each collection.</p>
-            {% if account['collections']|length == 0 %}
-            <p>You have no collections yet. <a href="/upload">Create one!</a></p>
-            {% else %}
-            {% for coll in account['collections'] %}
-                <p><a href="/{{account.id}}/{{coll.collection}}">{{coll['label']}}</a> -  
-                {{coll['description']}} ({{coll|length}} records)</p>
-            {% endfor %}
-            {% endif %}
+    <div class="row-fluid">
+        <div class="span4">
+            <div class="well">
+                <h3>View your collections</h3>
+                <p>You have {{ recordcount }} records across {{ collcount }} collections. Choose one to view - admin options are available in each collection.</p>
+                {% if account['collections']|length == 0 %}
+                <p>You have no collections yet. <a href="/upload">Create one!</a></p>
+                {% else %}
+                {% for coll in account['collections'] %}
+                    <p><a href="/{{account.id}}/{{coll.collection}}">{{coll['label']}}</a> -  
+                    {{coll['description']}} ({{coll|length}} records)</p>
+                {% endfor %}
+                {% endif %}
+            </div>
         </div>
-        <div id="panel" class="span9">
-            <h3>All your records</h3>
+        <div id="panel" class="span8">
+            <h3>Search all records in all your collections</h3>
         </div>
     </div>
 
 {% else %}
 
     <div class="hero-unit clearfix">
-        <div class="span6">
+        <div class="span5">
             <h2>{{ account.id }}</h2>
             <p>{{ account.description }}</p>
         </div>
-        <div class="span4">
-            <p>You are not logged in as this user. Use the <a href="/account/login">login page</a> if you want to change this</p>
+        <div class="span5">
+            <p>View all of this users collections <br>and all the records in their collections</p>
         </div>
     </div>
     
-    <div class="row">
-        <div id="panel" class="span12">
+    <div class="row-fluid">
+        {% if account['collections']|length != 0 %}
+        <div class="span4">
+            <div class="well">
+                {% for coll in account['collections'] %}
+                    <p><a href="/{{account.id}}/{{coll.collection}}">{{coll['label']}}</a> -  
+                    {{coll['description']}} ({{coll|length}} records)</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div id="panel" class="{% if account['collections']|length != 0 %}span8{% else %}span12{% endif %}">
         </div>
     </div>
 

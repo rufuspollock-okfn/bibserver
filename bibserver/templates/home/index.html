@@ -96,10 +96,21 @@
             $('#welcome').hide();
             $('.well').show();
             $('#showabout').trigger('click');
+            $('html,body').animate({
+                scrollTop: (window.pageYOffset - 50) + 'px'
+            }, 'fast');
         } else {
             $('#welcome').delay('2400').hide(1000);
             $('.well').delay('2600').show(1200);
         };
+        
+        var goto = function(event) {
+            event.preventDefault();
+            $('html,body').animate({
+                scrollTop: '+=' + ( $( 'a[name=' + $(this).attr('href').replace('#','') + ']' ).offset().top - 50) + 'px'
+            }, 'fast');
+        };
+        $('.goto').bind('click',goto);
         
         var updatebubble = function(data) {
             var indata = data.facets.bubble.terms;

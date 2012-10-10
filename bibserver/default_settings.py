@@ -25,9 +25,21 @@ EXTERNAL_APIS = {
 	}
 }
 
+# default facetview settings
+FACETVIEW = {
+    "search_url": "/query?",
+    "datatype": "json",
+    "search_index": 'elasticsearch',
+    "paging":{
+        "from":0,
+        "size":10
+    },
+    "facets": []
+}
+
 # The default fields and settings for which faceting should be made available on
-# these can be nested fields, e.g. links.url
-SEARCH_FACET_FIELDS = [
+# for when viewing within a particular collection
+INCOLL_SEARCH_FACET_FIELDS = [
     {
         "field":"collection.exact",
         "order":"term",
@@ -56,6 +68,13 @@ SEARCH_FACET_FIELDS = [
         "display":"year"
     }
 ]
+
+# The default fields and settings for which faceting should be made available on
+# for when viewing from the search everything area - if the number of records is 
+# very large, facets should not be displayed on very large unique fields or it will crash
+# so this should be set to an empty list
+# otherwise this could be set as equal to the INCOLL facet fields above
+ALL_SEARCH_FACET_FIELDS = []
 
 # search result display layout
 # a list of lists. each list represents a line on the display.
@@ -113,7 +132,7 @@ SEARCH_RESULT_DISPLAY = [
 ]
 
 # default view for collections page
-COLLS_RESULT_DISPLAY = [
+COLLECTIONS_RESULT_DISPLAY = [
     [
         {
             "pre":'<h3><a href="/',

@@ -58,6 +58,10 @@ class DomainObject(UserDict.IterableUserDict):
     def version(self):
         return self.meta.get('_version', None)
 
+    @property
+    def json(self):
+        return json.dumps(self.data)
+        
     def save(self):
         '''Save to backend storage.'''
         # TODO: refresh object with result of save

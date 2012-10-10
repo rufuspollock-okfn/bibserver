@@ -1,6 +1,6 @@
 import uuid
 
-from flask import Blueprint, request, url_for, flash, redirect
+from flask import Blueprint, request, url_for, flash, redirect, abort
 from flask import render_template
 from flask.ext.login import login_user, logout_user, current_user
 from flask.ext.wtf import Form, TextField, TextAreaField, PasswordField, validators, ValidationError
@@ -62,7 +62,6 @@ def login():
 @blueprint.route('/logout')
 def logout():
     logout_user()
-    flash('You are now logged out', 'success')
     return redirect(url_for('home'))
 
 

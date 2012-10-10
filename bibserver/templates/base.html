@@ -87,7 +87,7 @@
       {% for category, message in messages %}
         <div class="alert alert-{{category}} fade in" data-alert="alert">
           <a class="close" data-dismiss="alert" href="#">&times;</a>
-          {{ message }}
+          {{ message | safe }}
         </div>
       {% endfor %}
     {% endif %}

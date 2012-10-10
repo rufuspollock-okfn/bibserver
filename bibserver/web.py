@@ -49,6 +49,16 @@ def standard_authentication():
             if user:
                 login_user(user, remember=False)
 
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(401)
+def page_not_found(e):
+    return render_template('401.html'), 401
+
+
 @app.route('/query/<path:path>', methods=['GET','POST'])
 @app.route('/query/', methods=['GET','POST'])
 @app.route('/query', methods=['GET','POST'])
@@ -132,7 +142,7 @@ class UploadView(MethodView):
             flash('Sorry, you need to provide a source URL or a source file (or POST some JSON via the API).')        
         else:
             bibserver.importer.Importer.upload()
-            flash('Thanks. Your records are being uploaded. Please check back soon for updates.')
+            flash('Thanks. Your records are being uploaded. Please check back soon for updates.', 'success')
         return render_template('upload.html')
             
 # create new collection / record
@@ -217,10 +227,7 @@ def record(rid=''):
         return resp
     elif rec:        
         # render the record with all extras
-        return render_template('record.html',
-            rec=rec, 
-            objectrecord=json.dumps(rec.data)
-        )
+        return render_template('record.html', rec=rec )
     else:
         abort(404)
 
@@ -237,19 +244,14 @@ def collections():
         resp.mimetype = "application/json"
         return resp
     else:
-        search_options = {
-            'search_url': '/query/collection?',
-            'result_display': app.config['COLLS_RESULT_DISPLAY'],
-            'datatype': 'JSON',
-            "searchwrap_start": '<div id="facetview_results" class="clearfix">',
-            "searchwrap_end":"</div>",
-            "resultwrap_start":'<div class="span3 img thumbnail result_box" style="margin-bottom:10px;height:100px;overflow:hidden;"><div class="result_info">',
-            "resultwrap_end":"</div></div>",
-            "paging":{
-                "from":0,
-                "size":12
-            }
-        }
+        search_options = deepcopy(app.config['FACETVIEW'])
+        search_options['search_url'] = '/query/collection?'
+        search_options['result_display'] = app.config['COLLECTIONS_RESULT_DISPLAY']
+        search_options["searchwrap_start"] = '<div id="facetview_results" class="clearfix">'
+        search_options["searchwrap_end"] = "</div>"
+        search_options["resultwrap_start"] = '<div class="span3 img thumbnail result_box" style="margin-bottom:10px;height:100px;overflow:hidden;"><div class="result_info">'
+        search_options["resultwrap_end"] = "</div></div>"
+        search_options["paging"]["size"] = 12
         return render_template('collection/index.html', current_user=current_user, search_options=json.dumps(search_options), collection=None)
 
 
@@ -260,15 +262,9 @@ def collections():
 @app.route('/<path:path>', methods=['GET','POST','DELETE'])
 @util.jsonp
 def default(path):
-    search_options = {
-        'search_url': '/query?',
-        'search_index': 'elasticsearch',
-        'paging': { 'from': 0, 'size': 10 },
-        'predefined_filters': {},
-        'datatype': 'JSON',
-        'facets': app.config['SEARCH_FACET_FIELDS'],
-        'result_display': app.config['SEARCH_RESULT_DISPLAY']
-    }
+    search_options = deepcopy(app.config['FACETVIEW'])
+    search_options['result_display'] = deepcopy(app.config['SEARCH_RESULT_DISPLAY'])
+
     parts = path.strip('/').replace(".json","").split('/')
 
     implicit = ''
@@ -289,6 +285,7 @@ def default(path):
         resp.mimetype = "application/json"
         return resp
     else:
+        search_options['facets'] = deepcopy(app.config['ALL_SEARCH_FACET_FIELDS'])
         return render_template('search/index.html', current_user=current_user, search_options=json.dumps(search_options), implicit=implicit, collection=None)
 
 
@@ -323,18 +320,22 @@ def account(search_options,parts,path):
             resp.mimetype = "application/json"
             return resp
         else:
+            admin = True if auth.user.update(current_user,acc) else False
+            if not admin:
+                flash('You are not logged in as ' + acc.id + '. Use the <a href="/account/login">login page</a> if you need to change this.')
             return render_template('account/view.html', 
                 current_user=current_user, 
                 search_options=json.dumps(search_options), 
                 record=json.dumps(acc.data), 
                 recordcount = bibserver.dao.Record.query(terms={'owner':acc.id})['hits']['total'],
                 collcount = bibserver.dao.Collection.query(terms={'owner':acc.id})['hits']['total'],
-                admin = True if auth.user.update(current_user,acc) else False,
+                admin = admin,
                 account=acc,
                 superuser=auth.user.is_super(current_user)
             )
     elif len(parts) == 2:
         search_options['predefined_filters'] = {"owner": {"term": {'owner': parts[1]}}}
+        search_options['facets'] = deepcopy(app.config['INCOLL_SEARCH_FACET_FIELDS'])
         coll = bibserver.dao.Collection.get_by_owner_coll(parts[0], parts[1])
         if request.method == 'DELETE' and coll and auth.user.update(current_user,coll):
             coll.delete()
