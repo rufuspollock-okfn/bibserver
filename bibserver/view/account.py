@@ -2,18 +2,39 @@ import uuid
 
 from flask import Blueprint, request, url_for, flash, redirect
 from flask import render_template
-from flask.ext.login import login_user, logout_user
+from flask.ext.login import login_user, logout_user, current_user
 from flask.ext.wtf import Form, TextField, TextAreaField, PasswordField, validators, ValidationError
 
-from bibserver.config import config
+from bibserver.core import app, login_manager
 import bibserver.dao as dao
+import bibserver.util as util
 
 blueprint = Blueprint('account', __name__)
 
 
 @blueprint.route('/')
 def index():
-    return 'Accounts'
+    if current_user.is_anonymous():
+        abort(401)
+    users = dao.Account.query(sort={'_id':{'order':'asc'}},size=1000000)
+    if users['hits']['total'] != 0:
+        accs = [dao.Account.get(i['_source']['_id']) for i in users['hits']['hits']]
+        # explicitly mapped to ensure no leakage of sensitive data. augment as necessary
+        users = []
+        for acc in accs:
+            user = {"collections":len(acc.collections),"_id":acc["_id"]}
+            try:
+                user['_created'] = acc['_created']
+                user['description'] = acc['description']
+            except:
+                pass
+            users.append(user)
+    if util.request_wants_json():
+        resp = make_response( json.dumps(users, sort_keys=True, indent=4) )
+        resp.mimetype = "application/json"
+        return resp
+    else:
+        return render_template('account/users.html',users=users)
 
 
 class LoginForm(Form):
@@ -29,13 +50,13 @@ def login():
         user = dao.Account.get(username)
         if user and user.check_password(password):
             login_user(user, remember=True)
-            flash('Welcome back', 'success')
+            flash('Welcome back ' + user.id, 'success')
             return redirect('/'+user.id)
         else:
             flash('Incorrect username/password', 'error')
     if request.method == 'POST' and not form.validate():
         flash('Invalid form', 'error')
-    return render_template('account/login.html', form=form, upload=config['allow_upload'])
+    return render_template('account/login.html', form=form, upload=app.config['ALLOW_UPLOAD'])
 
 
 @blueprint.route('/logout')

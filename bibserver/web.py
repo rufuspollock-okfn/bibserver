@@ -14,14 +14,13 @@ from flask.ext.login import login_user, current_user
 import bibserver.dao
 import bibserver.util as util
 import bibserver.importer
-import bibserver.ingest
-from bibserver.config import config
 from bibserver.core import app, login_manager
 from bibserver.view.account import blueprint as account
 from bibserver import auth
 
 
 app.register_blueprint(account, url_prefix='/account')
+
 
 # NB: the decorator appears to kill the function for normal usage
 @login_manager.user_loader
@@ -53,6 +52,7 @@ def standard_authentication():
 @app.route('/query/<path:path>', methods=['GET','POST'])
 @app.route('/query/', methods=['GET','POST'])
 @app.route('/query', methods=['GET','POST'])
+@util.jsonp
 def query(path='Record'):
     pathparts = path.split('/')
     subpath = pathparts[0]
@@ -61,29 +61,43 @@ def query(path='Record'):
     klass = getattr(bibserver.dao, subpath[0].capitalize() + subpath[1:] )
     if len(pathparts) > 1 and pathparts[1] == '_mapping':
         resp = make_response( json.dumps(klass().query(endpoint='_mapping')) )
+    elif len(pathparts) == 2 and pathparts[1] not in ['_mapping','_search']:
+        if request.method == 'POST':
+            abort(401)
+        else:
+            rec = klass().get(pathparts[1])
+            if rec:
+                resp = make_response( rec.json )
+            else:
+                abort(404)
     else:
-        qs = request.query_string
         if request.method == "POST":
             if request.json:
                 qs = request.json
             else:
-                qs = dict(request.form).keys()[-1]
+                try:
+                    qs = dict(request.form).keys()[-1]
+                except:
+                    abort(411)
+        elif 'q' in request.values:
+            qs = {'query': {'query_string': { 'query': request.values['q'] }}}
         elif 'source' in request.values:
             qs = json.loads(urllib2.unquote(request.values['source']))
-        resp = make_response( json.dumps(klass().query(q=qs)) )
+        else: 
+            qs = request.query_string
+        for item in request.values:
+            if item not in ['q','source']:
+                qs[item] = request.values[item]
+        resp = make_response( json.dumps(klass().query(q=qs, terms='')) )
     resp.mimetype = "application/json"
     return resp
         
-@app.route('/faq')
-def content():
-    return render_template('home/faq.html')
-
 
 @app.route('/')
 def home():
     data = []
     try:
-        colldata = bibserver.dao.Collection.query(sort={"_created.exact":{"order":"desc"}},size=20)
+        colldata = bibserver.dao.Collection.query(sort={"_created.exact":{"order":"desc"}},size=1000)
         if colldata['hits']['total'] != 0:
             for coll in colldata['hits']['hits']:
                 colln = bibserver.dao.Collection.get(coll['_id'])
@@ -100,147 +114,66 @@ def home():
     colls = bibserver.dao.Collection.query()['hits']['total']
     records = bibserver.dao.Record.query()['hits']['total']
     users = bibserver.dao.Account.query()['hits']['total']
-    print data
     return render_template('home/index.html', colldata=json.dumps(data), colls=colls, records=records, users=users)
 
 
-@app.route('/users')
-@app.route('/users.json')
-def users():
-    if current_user.is_anonymous():
-        abort(401)
-    users = bibserver.dao.Account.query(sort={'_id':{'order':'asc'}},size=1000000)
-    if users['hits']['total'] != 0:
-        accs = [bibserver.dao.Account.get(i['_source']['_id']) for i in users['hits']['hits']]
-        # explicitly mapped to ensure no leakage of sensitive data. augment as necessary
-        users = []
-        for acc in accs:
-            user = {"collections":len(acc.collections),"_id":acc["_id"]}
-            try:
-                user['_created'] = acc['_created']
-                user['description'] = acc['description']
-            except:
-                pass
-            users.append(user)
-    if util.request_wants_json():
-        resp = make_response( json.dumps(users, sort_keys=True, indent=4) )
-        resp.mimetype = "application/json"
-        return resp
-    else:
-        return render_template('account/users.html',users=users)
-    
-# handle or disable uploads
+# upload from a bibjson file
 class UploadView(MethodView):
     def get(self):
         if not auth.collection.create(current_user, None):
             flash('You need to login to upload a collection.')
             return redirect('/account/login')
-        if request.values.get("source") is not None:
-            return self.post()        
-        return render_template('upload.html',
-                               parser_plugins=bibserver.ingest.get_plugins().values())
+        return render_template('upload.html')
 
     def post(self):
         if not auth.collection.create(current_user, None):
-            abort(401)
-        try:
-            if not request.values.get('collection',None):
-                flash('You need to provide a collection name.')
-                return redirect('/upload')
-            if not request.values.get('source',None):
-                if not request.files.get('upfile',None):
-                    if not request.json:
-                        flash('You need to provide a source URL or an upload file.')
-                        return redirect('/upload')
-                
-            collection = request.values.get('collection')
-            format=request.values.get('format')
-            if request.files.get('upfile'):
-                fileobj = request.files.get('upfile')
-                if not format:
-                    format = bibserver.importer.findformat(fileobj.filename)
-            else:
-                if not format:
-                    format = bibserver.importer.findformat( request.values.get("source").strip('"') )
-            
-            ticket = bibserver.ingest.IngestTicket(owner=current_user.id, 
-                                       source_url=request.values.get("source"),
-                                       format=format,
-                                       collection=request.values.get('collection'),
-                                       description=request.values.get('description'),
-                                       )
-            # Allow only parsing
-            only_parse = request.values.get('only_parse')
-            if only_parse:
-               ticket['only_parse'] = True
-            
-            license = request.values.get('license')
-            if license: ticket['license'] = license
-            
-            # If the user is uploading a file, update the ticket with the 'downloaded' file
-            # And correct source
-            if request.files.get('upfile'):
-                data = fileobj.read()
-                ticket['data_md5'] = bibserver.ingest.store_data_in_cache(data)
-                ticket['source_url'] = config.get('SITE_URL','') + '/ticket/%s/data' % ticket.id
-                ticket['state'] = 'downloaded'
-            
-            # if user is sending JSON, update the ticket with the received JSON
-            if request.json:
-                data = request.json
-                ticket['data_md5'] = bibserver.ingest.store_data_in_cache(json.dumps(data))
-                ticket['source_url'] = config.get('SITE_URL','') + '/ticket/%s/data' % ticket.id
-                ticket['state'] = 'downloaded'
-
-            ticket.save()
-            
-        except Exception, inst:
-            msg = str(inst)
-            if app.debug or app.config['TESTING']:
-                raise
-            flash('error: ' + msg)
-            return render_template('upload.html')
+            abort(403)
+        elif not request.values.get('source',False) and not request.files.get('upfile',False) and not request.json:
+            flash('Sorry, you need to provide a source URL or a source file (or POST some JSON via the API).')        
         else:
-            return redirect('/ticket/'+ticket.id)
-
-# handle or disable uploads
+            bibserver.importer.Importer.upload()
+            flash('Thanks. Your records are being uploaded. Please check back soon for updates.')
+        return render_template('upload.html')
+            
+# create new collection / record
 class CreateView(MethodView):
     def get(self):
         if not auth.collection.create(current_user, None):
             flash('You need to login to create a collection.')
             return redirect('/account/login')
-        if request.values.get("source") is not None:
-            return self.post()        
-        return render_template('create.html')
+        else:
+            return render_template('create.html')
 
     def post(self):
         if not auth.collection.create(current_user, None):
             abort(401)
-
-        # create the new collection for current user
-        coll = {
-            'label' : request.values.get('collection'),
-            'license' : request.values.get('license')
-        }
-        i = bibserver.importer.Importer(current_user)
-        collection, records = i.index(coll, {})
-        return redirect(collection['owner'] + '/' + collection['collection'])
+        elif request.values.get('collection',False):
+            # create a new collection
+            # new records are POSTed directly to /record
+            coll = bibserver.dao.Collection.get(current_user.id + '_' + request.values.get('collection'))
+            if coll:
+                flash('Sorry! You already have a collection named ' + request.values.get('collection'))
+                return
+            else:
+                collection = bibserver.dao.Collection(
+                    collection = request.values.get('collection'),
+                    label = request.values.get('collection'),
+                    description = request.values.get('description',''),
+                    license = request.values.get('license',''),
+                    owner = current_user.id
+                )
+                collection.save()
+                return redirect(collection.data['owner'] + '/' + collection.data['collection'])
 
 # a class for use when upload / create are disabled
 class NoUploadOrCreate(MethodView):
     def get(self):
         return render_template('disabled.html')
-
     def post(self):
-        abort(401)    
+        abort(403)
 
 # set the upload / create views as appropriate
-if config.get("allow_upload",False):
-    if config.get('INGEST_SUBPROCESS',False):
-        bibserver.ingest.init()
-        if not os.path.exists('ingest.pid'):
-            ingest=subprocess.Popen(['python', 'bibserver/ingest.py'])
-            open('ingest.pid', 'w').write('%s' % ingest.pid)
+if app.config.get("ALLOW_UPLOAD",False):
     app.add_url_rule('/upload', view_func=UploadView.as_view('upload'))
     app.add_url_rule('/create', view_func=CreateView.as_view('create'))
 else:
@@ -248,32 +181,76 @@ else:
     app.add_url_rule('/create', view_func=NoUploadOrCreate.as_view('create'))
 
 
-# set the route for receiving new notes
-@app.route('/note', methods=['GET','POST'])
-@app.route('/note/<nid>', methods=['GET','POST','DELETE'])
-def note(nid=''):
-    if current_user.is_anonymous():
-        abort(401)
-
-    elif request.method == 'POST':
-        newnote = bibserver.dao.Note()
-        newnote.data = request.json
-        newnote.save()
-        return redirect('/note/' + newnote.id)
-
-    elif request.method == 'DELETE':
-        note = bibserver.dao.Note.get(nid)
-        note.delete()
-        return redirect('/note')
-
-    else:
-        thenote = bibserver.dao.Note.get(nid)
-        if thenote:
-            resp = make_response( json.dumps(thenote.data, sort_keys=True, indent=4) )
-            resp.mimetype = "application/json"
-            return resp
+# set the route for viewing records
+@app.route('/record', methods=['GET','POST'])
+@app.route('/record/<rid>', methods=['GET','POST','DELETE'])
+@util.jsonp
+def record(rid=''):
+    rec = bibserver.dao.Record.get(rid.replace(".json",""))
+    if request.method == 'DELETE':
+        if rec:
+            if not current_user.is_super():
+                abort(403)
+            else:
+                rec.delete()
         else:
             abort(404)
+    elif request.method == 'POST':
+        if current_user.is_anonymous() or not app.config.get("ALLOW_UPLOAD",False):
+            abort(403)
+        try:
+            if not rec:
+                rec = bibserver.dao.Record()
+            if len(request.json):
+                rec.data = request.json
+                rec.save()
+                resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
+                resp.mimetype = "application/json"
+                return resp
+            else:
+                abort(400)
+        except:
+            abort(400)
+    elif rec and util.request_wants_json():
+        resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
+        resp.mimetype = "application/json"
+        return resp
+    elif rec:        
+        # render the record with all extras
+        return render_template('record.html',
+            rec=rec, 
+            objectrecord=json.dumps(rec.data)
+        )
+    else:
+        abort(404)
+
+
+# show all the collections
+@app.route('/collections')
+@app.route('/collections.json')
+@util.jsonp
+def collections():
+    if util.request_wants_json():
+        res = bibserver.dao.Collection.query(size=1000000)
+        colls = [i['_source'] for i in res['hits']['hits']]
+        resp = make_response( json.dumps(colls, sort_keys=True, indent=4) )
+        resp.mimetype = "application/json"
+        return resp
+    else:
+        search_options = {
+            'search_url': '/query/collection?',
+            'result_display': app.config['COLLS_RESULT_DISPLAY'],
+            'datatype': 'JSON',
+            "searchwrap_start": '<div id="facetview_results" class="clearfix">',
+            "searchwrap_end":"</div>",
+            "resultwrap_start":'<div class="span3 img thumbnail result_box" style="margin-bottom:10px;height:100px;overflow:hidden;"><div class="result_info">',
+            "resultwrap_end":"</div></div>",
+            "paging":{
+                "from":0,
+                "size":12
+            }
+        }
+        return render_template('collection/index.html', current_user=current_user, search_options=json.dumps(search_options), collection=None)
 
 
 # this is a catch-all that allows us to present everything as a search
@@ -281,21 +258,133 @@ def note(nid=''):
 # /implicit_facet_key/implicit_facet_value
 # and any thing else passed as a search
 @app.route('/<path:path>', methods=['GET','POST','DELETE'])
+@util.jsonp
 def default(path):
-    import bibserver.search
-    searcher = bibserver.search.Search(path=path,current_user=current_user)
-    return searcher.find()
+    search_options = {
+        'search_url': '/query?',
+        'search_index': 'elasticsearch',
+        'paging': { 'from': 0, 'size': 10 },
+        'predefined_filters': {},
+        'datatype': 'JSON',
+        'facets': app.config['SEARCH_FACET_FIELDS'],
+        'result_display': app.config['SEARCH_RESULT_DISPLAY']
+    }
+    parts = path.strip('/').replace(".json","").split('/')
+
+    implicit = ''
+    if bibserver.dao.Account.get(parts[0]):
+        return account(search_options,parts,path)
+    elif len(parts) == 1 and parts[0] != 'search':
+        search_options['q'] = parts[0]
+    elif len(parts) == 2:
+        search_options['predefined_filters'] = {"implicit": {"term": {parts[0]+app.config['FACET_FIELD']: parts[1]}}}
+        for count,facet in enumerate(search_options['facets']):
+            if facet['field'] == parts[0]+app.config['FACET_FIELD']:
+                del search_options['facets'][count]
+        implicit = parts[0]+': ' + parts[1]
+
+    if util.request_wants_json():
+        res = bibserver.dao.Record.query()
+        resp = make_response( json.dumps([i['_source'] for i in res['hits']['hits']], sort_keys=True, indent=4) )
+        resp.mimetype = "application/json"
+        return resp
+    else:
+        return render_template('search/index.html', current_user=current_user, search_options=json.dumps(search_options), implicit=implicit, collection=None)
+
+
+# present info about a given user and their collections
+# called from within the above default search, when the path is an account path
+# done this way to enable flexible search paths first
+def account(search_options,parts,path):
+    acc = bibserver.dao.Account.get(parts[0])
+    if len(parts) == 1:
+        if request.method == 'DELETE' and acc and auth.user.update(current_user,acc):
+            acc.delete()
+            abort(404)
+        elif request.method == 'POST' and auth.user.update(current_user,acc):
+            info = request.json
+            if info.get('_id',False):
+                if info['_id'] != parts[0]:
+                    acc = bibserver.dao.Account.get(info['_id'])
+                else:
+                    info['api_key'] = acc.data['api_key']
+                    info['_created'] = acc.data['_created']
+                    info['collection'] = acc.data['collection']
+                    info['owner'] = acc.data['collection']
+            acc.data = info
+            if 'password' in info and not info['password'].startswith('sha1'):
+                acc.set_password(info['password'])
+            acc.save()
+            resp = make_response( json.dumps(acc.data, sort_keys=True, indent=4) )
+            resp.mimetype = "application/json"
+            return resp
+        elif util.request_wants_json() and auth.user.update(current_user,acc):
+            resp = make_response( json.dumps(acc.data, sort_keys=True, indent=4) )
+            resp.mimetype = "application/json"
+            return resp
+        else:
+            return render_template('account/view.html', 
+                current_user=current_user, 
+                search_options=json.dumps(search_options), 
+                record=json.dumps(acc.data), 
+                recordcount = bibserver.dao.Record.query(terms={'owner':acc.id})['hits']['total'],
+                collcount = bibserver.dao.Collection.query(terms={'owner':acc.id})['hits']['total'],
+                admin = True if auth.user.update(current_user,acc) else False,
+                account=acc,
+                superuser=auth.user.is_super(current_user)
+            )
+    elif len(parts) == 2:
+        search_options['predefined_filters'] = {"owner": {"term": {'owner': parts[1]}}}
+        coll = bibserver.dao.Collection.get_by_owner_coll(parts[0], parts[1])
+        if request.method == 'DELETE' and coll and auth.user.update(current_user,coll):
+            coll.delete()
+            abort(404)
+        elif request.method == 'POST':
+            if not coll:
+                coll = bibserver.dao.Collection()
+            elif not auth.user.update(current_user,coll):
+                abort(401)
+            if 'collection' in request.json:
+                if isinstance('list',request.json['collection']):
+                    request.json['collection'] = coll.data['collection'].update(request.json['collection'])
+                else:
+                    request.json['collection'] = coll.data['collection'].append(request.json['collection'])
+            coll.data = request.json
+            coll.save()
+            resp = make_response( json.dumps(coll.data, sort_keys=True, indent=4) )
+            resp.mimetype = "application/json"
+            return resp
+        elif util.request_wants_json() and coll is not None:
+            resp = make_response( json.dumps(coll.data, sort_keys=True, indent=4) )
+            resp.mimetype = "application/json"
+            return resp
+        elif coll is not None:
+            search_options['predefined_filters'] = {"coll": {"term": {'collection': parts[1]}}}
+            for count,facet in enumerate(search_options['facets']):
+                if facet['field'] == 'collection'+app.config['FACET_FIELD']:
+                    del search_options['facets'][count]
+            if not len(coll):
+                flash('Your collection appears to be empty. Go and search for some records to add to it, or create or upload some new ones.')
+            owner = True if coll.owner == current_user.id else False
+            return render_template('search/index.html', current_user=current_user, search_options=json.dumps(search_options), implicit=None, collection=coll, owner=owner)
+        else:
+            abort(404)
+    elif len(parts) == 3:
+        coll = bibserver.dao.Collection.get_by_owner_coll(parts[0],parts[1])
+        rec = bibserver.dao.Record.get(parts[2])
+        if request.method == 'DELETE' and coll and auth.user.update(current_user,coll):
+            rec.data['collection'].remove(parts[1])
+            rec.save()
+            return ''
+        elif request.method == 'POST' and auth.user.update(current_user,coll):
+            rec.data['collection'].append(parts[1])
+            rec.save()
+            return ''
+        else:
+            return redirect('/record/' + path.split('/')[-1] + '?' + request.query_string)
 
 
 if __name__ == "__main__":
-    if config["allow_upload"]:
-        bibserver.ingest.init()
-        if not os.path.exists('ingest.pid'):
-            ingest=subprocess.Popen(['python', 'bibserver/ingest.py'])
-            open('ingest.pid', 'w').write('%s' % ingest.pid)
-    try:
-        bibserver.dao.init_db()
-        app.run(host='0.0.0.0', debug=config['debug'], port=config['port'])
-    finally:
-        if os.path.exists('ingest.pid'):
-            os.remove('ingest.pid')
+    app.run(host=app.config['HOST'], debug=app.config['DEBUG'], port=app.config['PORT'])
+
+

@@ -2,148 +2,57 @@
 
 {% block content %}
 
-{% if multiple %}
-    <div class="row">
-        <div class="span12">
-            <p>You have requested a record based on the identifier it has in its' collection.
-            Unfortunately, there are multiple records in the collection with the same identifier.
-            If you are the collection owner, you should fix this (every record should have a 
-            unique identifier within your collection).</p>
-            <p>However, we allocate unique identifiers to each record ourselves, too. So, you 
-            can choose which record you would like to view and access it via the unique 
-            identifier we assigned it:</p>
-            <ul>
-            {% for item in multiple %}
-                <li><a href="/{{item['owner']}}/{{item['collection']}}/{{item['_id']}}">{{item['_id']}}</a></li>
-            {% endfor %}
-            </ul>
-        </div>
-    </div>
 
-{% else %}
-
-    <script type="text/javascript">
-    jQuery(document).ready(function() {
-        jQuery('#panel').jtedit({
-            "data": {{ record | safe }},
-            "hide": ["_id","_created","_last_modified","owner","collection"],
-            "target": "#",
-            {% if not admin %}"editable": false,{% endif %}
-            "delete_redirect": "./"
-        });
-        
-        var searcher = '<p style="text-align:right">search <select class="span2" id="extsrch_target">'
-        searcher += '<option value="/search?q=">This site</option>'
-        searcher += '<option value="/{{ objectrecord.owner }}/{{ objectrecord.collection }}?q=">The {{ objectrecord.collection }} collection</option>'
-        var searchables = {{ searchables | safe }}
-        for ( var item in searchables ) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; }
-        searcher += '</select><br />for <input class="span2" id="extsrch_value" />'
-        jQuery('#searcher').append(searcher)
-        var searchvals = {{ searchvals | safe }}
-        jQuery('#extsrch_value').autocomplete({source:searchvals})
-
-        var dosearch = function(event) {
-            var target = jQuery('#extsrch_target').val()
-            var value = jQuery('#extsrch_value').val()
-            if ( target.match("XXXX") ) {
-                var href = target.replace("XXXX",value)
-            } else {
-                var href = target + value
-            }
-            //window.open(href)
-            window.location = href
-        }
-        var checkenter = function(event) {
-            var keycode = (event.keyCode ? event.keyCode : event.which)
-            if (keycode == '13') { dosearch(event) }
-        }
-        jQuery('#extsrch_value').bind('keyup',checkenter)
-        
-        var notesaved = function() {
-            alert('note saved')
-            window.location = window.location
-        }
-        var addnote = function(event) {
-            event.preventDefault()
-            var note = prompt("new note:")
-            if ( note ) {
-                var newnote = {
-                    "content": note,
-                    "about": "{{ objectrecord['_id'] }}",
-                    "collection": "{{ objectrecord['collection'] }}",
-                    "owner": "{{ objectrecord['owner'] }}"
-                }
-                $.ajax({
-                    type: "POST",
-                    url: '/note',
-                    data: JSON.stringify(newnote),
-                    contentType: "application/json; charset=utf-8",
-                    dataType: 'json',
-                    processData: false,
-                    success: notesaved
-                })
-            }
-        }
-        jQuery('#addnote').bind('click',addnote)
-
-    });
-    </script>
-
-    <div class="row-fluid">
-        <div class="span12">
-            <p>
-                <a href="/{{ objectrecord['owner'] }}">{{ objectrecord['owner'] }}</a> / 
-                <a href="/{{ objectrecord['owner'] }}/{{ objectrecord['collection'] }}">{{ objectrecord['collection'] }}</a>
-            </p>
-        </div>
-    </div>
-
-    <div class="hero-unit clearfix">
-        <div class="span7">
-            {% if prettyrecord %}
-                {{ prettyrecord | safe }}
-            {% endif %}
-        </div>
-        <div style="border-left:1px solid #666" class="span3" id="searcher">
-        </div>
-    </div>
-
-    <div class="row">
+<script type="text/javascript">
+jQuery(document).ready(function() {
     
-        <div id="panel" class="span8">
-        {% if admin %}
-            <h3>Edit this record</h3>
-        {% endif %}
-        </div>
-        
-        <div id="moreinfo" class="span4">
-            {{ servicecore | safe }}
-            {% if notes|length != 0 %}
-                {% if admin %}<h3>Notes</h3><table class="table table-striped">{% endif %}
-                {% for item in notes %}
-                    {% if item['public'] %}
-                        <tr><td>{{ item['content'] }}</td></tr>
-                    {% else %}
-                        {% if admin %}
-                            <tr><td>{{ item['content'] }}</tr></td>
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-            {% if admin %}</table><p><a id="addnote" class="btn" href="">add a note</a><br /><br /><br /><br /></p>{% endif %}
+    var searcher = '<p style="text-align:right">search <select class="span2" id="extsrch_target">'
+    searcher += '<option value="/search?q=">This site</option>'
+    searcher += '<option value="/{{ objectrecord.owner }}/{{ objectrecord.collection }}?q=">The {{ objectrecord.collection }} collection</option>'
+    var searchables = {{ searchables | safe }}
+    for ( var item in searchables ) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; }
+    searcher += '</select><br>for <input class="span2" id="extsrch_value" />'
+    jQuery('#searcher').append(searcher)
+    var searchvals = {{ searchvals | safe }}
+    jQuery('#extsrch_value').autocomplete({source:searchvals})
 
-            {% if mlt|length != 0 %}
-                <h3>More like this</h3><table class="table table-striped">
-                {% for item in mlt %}
-                    <tr><td><a href="/{{ item['owner'] }}/{{ item['collection'] }}/{{ item['_id'] }}">{{ item['title'] }}</a></tr></td>
-                {% endfor %}
-                </table>
-            {% endif %}
-        </div>
-        
+    var dosearch = function(event) {
+        var target = jQuery('#extsrch_target').val()
+        var value = jQuery('#extsrch_value').val()
+        if ( target.match("XXXX") ) {
+            var href = target.replace("XXXX",value)
+        } else {
+            var href = target + value
+        }
+        window.open(href)
+        //window.location = href
+    }
+    var checkenter = function(event) {
+        var keycode = (event.keyCode ? event.keyCode : event.which)
+        if (keycode == '13') { dosearch(event) }
+    }
+    jQuery('#extsrch_value').bind('keyup',checkenter)
+    
+});
+</script>
+
+<div class="hero-unit clearfix">
+    <div class="span7">
+        {{ rec.pretty | safe }}
     </div>
+    <div style="border-left:1px solid #666" class="span3" id="searcher">
+    </div>
+</div>
 
-{% endif %}
+<div class="row">
+
+    <div id="panel" class="span8">
+    {% if not current_user.is_anonymous() %}
+        <h3>Edit this record</h3>
+    {% endif %}
+    </div>
+        
+</div>
 
 {% endblock %}
 

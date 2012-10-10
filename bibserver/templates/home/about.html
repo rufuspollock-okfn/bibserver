@@ -1,0 +1,162 @@
+    <script type="text/javascript">
+    jQuery(document).ready(function() {
+
+        // storing the vids here for later addition so they do not cause unnecessary page load
+        var vids = '<div class="span6">';
+        vids += '<div style="border:1px solid #ccc; padding:5px; -webkit-border-radius: 5px; -moz-border-radius:5px; border-radius:5px;">';
+        vids += '<iframe src="http://player.vimeo.com/video/35458484?title=0&amp;byline=0&amp;portrait=0" width="400" height="225" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>';
+        vids += '<p><a href="http://vimeo.com/35458484">BibSoup explained by Owl and Penguin</a> from <a href="http://vimeo.com/bibsoup">Bibsoup Project</a> on <a href="http://vimeo.com">Vimeo</a>.</p>'
+        vids += '<iframe src="http://player.vimeo.com/video/35440937?title=0&amp;byline=0&amp;portrait=0" width="400" height="225" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>';
+        vids += '<p><a href="http://vimeo.com/35440937">Setting up a Bibserver and Faceted Browsing (Mark MacGillivray)</a> from <a href="http://vimeo.com/bibsoup">Bibsoup Project</a> on <a href="http://vimeo.com">Vimeo</a>.</p>';
+        vids += '<iframe src="http://player.vimeo.com/video/35440831?title=0&amp;byline=0&amp;portrait=0" width="400" height="233" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>';
+        vids += '<p><a href="http://vimeo.com/35440831">Ingesting a personal collection of references into Bibserver (Mark Williamson)</a> from <a href="http://vimeo.com/bibsoup">Bibsoup Project</a> on <a href="http://vimeo.com">Vimeo</a>.</p>';
+        vids += '<iframe src="http://player.vimeo.com/video/35440770?title=0&amp;byline=0&amp;portrait=0" width="400" height="225" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>';
+        vids += '<p><a href="http://vimeo.com/35440770">Peter Murray-Rust Co-I Openbiblio project talks</a> from <a href="http://vimeo.com/bibsoup">Bibsoup Project</a> on <a href="http://vimeo.com">Vimeo</a>.</p>';
+        vids += '</div>';
+        vids += '</div>';
+        vids += '<div class="span6">';
+        vids += '<div style="border:1px solid #ccc; padding:5px; -webkit-border-radius: 5px; -moz-border-radius:5px; border-radius:5px;">';
+        vids += '<iframe src="http://player.vimeo.com/video/35440733?title=0&amp;byline=0&amp;portrait=0" width="400" height="225" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>';
+        vids += '<p><a href="http://vimeo.com/35440733">Interview with Mark MacGillivray, Openbiblio 2 project</a> from <a href="http://vimeo.com/bibsoup">Bibsoup Project</a> on <a href="http://vimeo.com">Vimeo</a>.</p>';
+        vids += '<iframe src="http://player.vimeo.com/video/35440644?title=0&amp;byline=0&amp;portrait=0" width="400" height="225" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>';
+        vids += '<p><a href="http://vimeo.com/35440644">Bibsoup: Interview with Etienne Posthumus (developer)</a> from <a href="http://vimeo.com/bibsoup">Bibsoup Project</a> on <a href="http://vimeo.com">Vimeo</a>.</p>';
+        vids += '<iframe src="http://player.vimeo.com/video/35440597?title=0&amp;byline=0&amp;portrait=0" width="400" height="225" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>';
+        vids += '<p><a href="http://vimeo.com/35440597">Interview with Ed Chamberlain, Openbiblio2 project</a> from <a href="http://vimeo.com/bibsoup">Bibsoup Project</a> on <a href="http://vimeo.com">Vimeo</a>.</p>';
+        vids += '<h3><br><br>More resources</h3>';
+        vids += '<ul>';
+        vids += '<li><a href="http://bibjson.org">BibJSON - the raw data you can get out of BibSoup</a></li>';
+        vids += '<li><a href="http://bibserver.readthedocs.org">The software documentation</a></li>';
+        vids += '<li><a href="http://github.com/okfn/bibserver">The software repository</a></li>';
+        vids += '<li><a href="http://github.com/okfn/bibserver/issues">Submit errors, issues, feature requests</a></li>';
+        vids += '<li><a href="http://openbiblio.net">The working group blog</a></li>';
+        vids += '<li><a href="http://openbiblio.net/p/jiscopenbib2">Related project information</a></li>';
+        vids += '</ul>';
+        vids += '</div>';
+        vids += '</div>';
+
+        var showvids = function(event) {
+            event.preventDefault();
+            $('#vids').html().length == 0 ? $('#vids').html(vids) : "";
+            $('#vids').toggle('slow');
+            $('html,body').animate({
+                scrollTop: '+=' + $('#vids').offset().top + 'px'
+            }, 'fast');
+        };
+        $('#showvids').bind('click',showvids);
+
+    });
+    
+    
+    </script>
+
+
+      <div class="row-fluid" id="about" style="display:none;">
+        <div class="span4">
+          <div class="hero-unit">
+            <h3>We have <a class="label label-info" style="font-size:20px;" href="/search">{{records}}</a> records 
+            <br /><br />and <a class="label label-info" style="font-size:20px;" href="/collections">{{colls}}</a> collections
+            <br /><br />shared by <span class="label label-info" style="font-size:20px;">{{users}}</span> users</h3>
+          </div>
+          <table class="table table-striped table-bordered">
+            <tr><td><a href="#browse">Browse records and collections</a></td></tr>
+            <tr><td><a href="#edit">Edit and deduplicate records</a></td></tr>
+            <tr><td><a href="#link">Link to new sources</a></td></tr>
+            <tr><td><a href="#discuss">Join discussions</a></td></tr>
+            <tr><td><a href="#create">Create new records and collections</a></td></tr>
+            <tr><td><a href="#collect">Add records to your collections</a></td></tr>
+            <tr><td><a href="#upload">Upload records and collections</a></td></tr>
+            <tr><td><a href="#share">Share and embed your collections and favourite searches</a></td></tr>
+            <tr><td><a href="#api">Use the API</a></td></tr>
+            <tr><td><a id="showvids" href="#vids">Check out our videos and community contact info</a></td></tr>
+          </table>  
+          <div class="hero-unit">
+            <p class="clearfix"><a href="/search" class="span2 btn btn-info" style="margin-bottom:5px;">Search all our records &raquo;</a><br>
+            <a href="/collections" class="span2 btn btn-info">Browse all our collections &raquo;</a></p>
+          </div>
+        </div>
+        
+        <div class="span6">
+            <div style="border:1px solid #ccc; padding:5px; -webkit-border-radius:5px; -moz-border-radius:5px; border-radius:5px;">
+     
+                <a name="browse"> </a>
+                <h3>Browse records and collections</h3>
+                <p>BibSoup uses FacetView to provide a full search and faceted browse interface to your records and collections.</p>
+                <p>This means you can quickly and easily perform full text searches across groups of records, or filter records by 
+                particular values, or do complex combined search queries.</p>
+                <p>BibSoup makes it easy to find and share your favourite bibliographic records.</p>
+                <hr></hr>
+
+                <a name="edit"> </a>
+                <h3>Edit and deduplicate records</h3>
+                <p>Every record in BibSoup is shared with everyone else; fix a record and it gets fixed for everyone. 
+                Work together to make our records as comprehensive as possible.</p>
+                <p>We deduplicate records based on a simple match of title-plus-author-strings with all symbols and 
+                whitespace removed; we also hope to integrate with other services like PyBossa to crowd source deduplication.</p>
+                <hr></hr>
+
+                <a name="link"> </a>
+                <h3>Link to new sources</h3>
+                <p>Help others to get access to your content, to all the useful content on the web.</p>
+                <p>Got a new source for a particular record? Just add a link or an identifier to the record we have!</p>
+                <hr></hr>
+
+                <a name="discuss"> </a>
+                <h3>Join discussions</h3>
+                <p>Ever record has a web page just for it, with a unique ID to find it by, and a discussion section for 
+                each one.</p>
+                <p>You can use this to discuss changes to records or even to have a full-blown argument over the merits or 
+                otherwise of the item the record pertains to.</p>
+                <hr></hr>
+
+                <a name="create"> </a>
+                <h3>Create new records and collections</h3>
+                <p>You can easily create new collections at any time, and add various records to them - they work like tags on 
+                other sites like <a href="http://del.icio.us">Delicious</a>.</p>
+                <p>New records can be created either via our simple record creator, or directly as BibJSON.</p>
+                <hr></hr>
+
+                <a name="collect"> </a>
+                <h3>Add records to your collections</h3>
+                <p>Found a record you like? Just view the full record page and select to add it to 
+                one of your collections. Alternatively, add every result from a particular search direct to one 
+                of your collections - or, make a new empty collection, save the search results into that, and you 
+                have them as a useful re-usable set for the future.</p>
+                <hr></hr>
+
+                <a name="upload"> </a>
+                <h3>Upload records and collections</h3>
+                <p>So, you have a large bibliographic collection – it’s really useful to you, and perhaps your colleagues, 
+                and you have some tools for managing it (like Zotero, Bibsonomy, Mendeley - or just Bibtex files). But what then?
+                Share with the world!</p>
+                <p>BibSoup can accept uploads of large files full of <a href="http://bibjson.org">BibJSON</a> records, so you can 
+                upload all of your favourite records. If you use one of the aforementioned online tools, you can probably get a 
+                dump of all your records in bibtex or some other format - and although BibSoup only accepts BibJSON, we have 
+                already provided some online tools that will convert your legacy formats for you. Just use one to convert your 
+                records, and get them uploaded now!</p>
+                <hr></hr>
+
+                <a name="share"> </a>
+                <h3>Share and embed your collections and favourite searches</h3>
+                <p>Once your collection is up in BibSoup (or any other BibServer instance), you have a powerful search page for 
+                every one of your collections - you can search across some or all of your records, filter by any value in your 
+                collection, and share those collections and searches with other people either via web links or by embedding 
+                them on your own web pages (just like you might do with a youtube video).</p>
+                <hr></hr>
+
+                <a name="api"> </a>
+                <h3>Use the API</h3>
+                <p>There is a full RESTful API for querying your collections and every page returns JSON (just add .json or 
+                &format=json if have URL parameters, or set the content-type accordingly).</p>
+                <p>The query endpoint is at <a href="/query">/query</a>, and it accepts <a href="http://www.elasticsearch.org">elasticsearch</a> queries.</p>
+                <p>You can also upload records via the API - you get an API key when you sign up, just check out your account page to find it.</p>
+                <p><a href="http://bibserver.readthedocs.org">Read the docs</a> to learn more.</p>
+                <p>You can do some sweet things with the API, like use a collection as references directly in another web page.</p>
+
+            </div>
+        </div>
+
+      </div>
+
+    <a name="vids"> </a>
+    <div class="row-fluid" id="vids" style="display:none; margin-top:50px;"></div>
+

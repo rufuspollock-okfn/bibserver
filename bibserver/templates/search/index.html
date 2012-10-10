@@ -16,193 +16,12 @@
     </script>
     
     <div id="panel">
-        <div class="row" style="margin-bottom:10px;">
+        <div class="row-fluid" style="margin-bottom:10px;">
         <a style="float:right;margin-right:10px;" class="btn btn-primary" href="?format=json">
             <i class="icon-list-alt icon-white"></i> Download as BibJSON</a>
-        <a style="float:right;margin-right:10px;" class="btn btn-primary" id="shareembed" href="">
-            <i class="icon-list-alt icon-white"></i> share / embed</a>
+        </div>
         
-        {% if admin %}
-        <a id="showadmin" class="btn btn-primary" style="float:right;margin-right:10px;" href="#"><i class="icon-cog icon-white"></i> collection admin</a>
-        </div>
-
-        <script type="text/javascript">
-        jQuery(document).ready(function() {
-            var showadmin = function(event) {
-                event.preventDefault()
-                jQuery('#adminarea').toggle()
-            }
-            jQuery('#showadmin').bind('click',showadmin)
-
-            jQuery('#user').jtedit({
-                "data": {{ record | safe }}, 
-                "hide": ["_created","_last_modified","_id","owner","collection","source"], 
-                "target": "#",
-                "delete_redirect": "/"
-            })
-                        
-            var savedisplay = function(event) {
-                event.preventDefault()
-                var metadata = JSON.parse(jQuery('#jtedit_json').val())
-                if ( !('_display_settings' in metadata) ) {
-                    metadata['_display_settings'] = {}
-                }
-                var newsettings = jQuery.fn.facetview.options
-                delete newsettings['data']
-                delete newsettings['query_parameter']
-                delete newsettings['visualise_filters']
-                delete newsettings['description']
-                delete newsettings['search_index']
-                delete newsettings['config_file']
-                delete newsettings['q']
-                delete newsettings['display_images']
-                delete newsettings['default_url_params']
-                delete newsettings['search_url']
-                delete newsettings['freetext_submit_delay']
-                delete newsettings['predefined_filters']
-                delete newsettings['addremovefacets']
-                metadata['_display_settings'] = newsettings
-                jQuery('#jtedit_json').val(JSON.stringify(metadata,"","    "))
-                jQuery('.jtedit_saveit').trigger('click')
-            }
-            jQuery('#savedisplay').bind('click',savedisplay)
-            
-            var removeadmin = function(event) {
-                event.preventDefault()
-                var admin = jQuery(this).text().replace(/^\s+|\s+$/g,'')
-                var metadata = JSON.parse(jQuery('#jtedit_json').val())
-                var idx = metadata['_admins'].indexOf(admin)
-                if ( idx != -1 ) metadata['_admins'].splice(idx, 1)
-                if ( metadata['_admins'].length == 0 ) delete metadata['_admins']
-                jQuery('#jtedit_json').val(JSON.stringify(metadata,"","    "))
-                jQuery('.jtedit_saveit').trigger('click')
-            }
-            jQuery('.removeadmin').bind('click',removeadmin)
-            
-            var addadmin = function(event) {
-                var newadmin = jQuery('#newadmin').val()
-                var metadata = JSON.parse(jQuery('#jtedit_json').val())            
-                if ( !('_admins' in metadata) ) metadata['_admins'] = []
-                var idx = metadata['_admins'].indexOf(newadmin)
-                if ( idx == -1 ) metadata['_admins'].push(newadmin)
-                jQuery('#jtedit_json').val(JSON.stringify(metadata,"","    "))
-                jQuery('.jtedit_saveit').trigger('click')
-            }
-            jQuery('#addadmin').bind('click',addadmin)
-
-            // this should probably change to remotely call the /users route
-		    jQuery('#newadmin').autocomplete({ source: {{ userlist | safe }} })
-
-            // select all in input / textarea
-            var selectall = function(event) {
-                event.preventDefault()
-                $(this).select()
-            }
-            jQuery('.selectable').bind('click',selectall)
-        });
-        </script>
-
-        <div id="adminarea" class="hero-unit clearfix">
-            <div class="row well">
-                <div class="span7">
-                    <h3>Save your display preferences</h3>
-                    <p>If you edit the settings of your search display, such as the 
-                    number of filter values to show, the number of results to show, 
-                    the order of things and so on, you can save all those settings as 
-                    the default view for your collection.</p>
-                </div>
-                <div class="span3">
-                    <p><br /><a id="savedisplay" class="btn btn-primary" href="">
-                        <i class="icon-check icon-white"></i>
-                        set current display settings as
-                        <br />default display for this collection
-                    </a></p>
-                </div>
-            </div>
-            <div class="row well">
-                {% if '_admins' in collection %}
-                <div class="span4">
-                {% else %}
-                <div class="span7">
-                {% endif %}
-                    <h3>Share admin permissions</h3>
-                    <p>You can let other users have adminstrative control of this collection
-                     - they will be able to do every thing you can do, including delete things.</p>
-                </div>
-                {% if '_admins' in collection %}
-                <div class="span3">
-                    <h3>Remove an admin</h3><p> 
-                    {% for admin in collection['_admins'] %}
-                    <a class="btn btn-danger removeadmin" style="margin-bottom:3px;" href=""><i class="icon-remove icon-white"></i> {{ admin }}</a>
-                    {% endfor %}
-                    </p>
-                </div>
-                {% endif %}
-                <div class="span3">
-                    <h3>Add new admin</h3>
-                    <p><input type="text" id="newadmin" placeholder="search users" />
-                    <input type="submit" id="addadmin" class="btn btn-primary" value="add" /></p>
-                </div>
-            </div>
-            <div class="row well">
-                <div id="user" class="span10">
-                    <h3>Edit metadata / DELETE collection</h3>
-                    <p>You can directly edit the metadata of your collection, or delete it altogether.<br />
-                    You can also directly edit specific aspects of your results and search displays too.<br />
-                    DELETION CANNOT BE UNDONE, AND INCLUDES DELETION OF ALL RECORDS AND ASSOCIATED METADATA.</p>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <div id="shareembeddets" class="hero-unit clearfix">
-            <h3>Share this</h3>
-            {% if request %}
-            <p><span class="span3">Share this collection:</span> <input class="span6 selectable" type="text" value="{{ request.base_url }}" /></p>
-            {% endif %}
-            <p><span class="span3">Share this search:</span> <input id="shareresults" class="span6 selectable" type="text" value="{{ request.url }}" /></p>
-            
-            <h3>Embed this</h3>            
-            <p>You can embed the facet view directly in any web page you choose; this just requires a wee bit of technical know-how - 
-            adding the following code snippets to your web page. These snippets pull the supporting files direct from our software repository, 
-            but you should save these somewhere else for yourself, and edit appropriately.</p>
-            <ol>
-            <li>First you will need to include some pre-requisites, if your website does not already include them: 
-            <a href="http://jquery.org">jquery</a>, <a href="http://jquery-ui.com">jquery-ui</a>, 
-            <a href="http://twitter.github.com/bootstrap">bootstrap</a>, <a href="https://github.com/maranomynet/linkify">linkify</a>, 
-            and <a href="http://mbostock.github.com/d3/">d3</a>.</li>
-            <li>Then include the facetview javascript plugin and CSS.</li>
-            <li>Finally, include a call to add facetview to your web page; the example below appends facetview to the 
-            <strong>body</strong> of your page, but you can append it to any document object, as per the usual JQuery rules.</li>
-            </ol>
-            
-                <textarea class="span11 selectable" style="height:420px;">
-<!-- pre-requisities -->
-<script type="text/javascript" src="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/jquery-1.7.1.min.js"></script>
-<link rel="stylesheet" href="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/facetview/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
-<script type="text/javascript" src="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/facetview/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
-<link rel="stylesheet" href="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/bootstrap/css/bootstrap.min.css">
-<script type="text/javascript" src="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/bootstrap/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/facetview/vendor/linkify/1.0/jquery.linkify-1.0-min.js"></script>  
-<script type="text/javascript" src="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/facetview/vendor/d3/d3.min.js"></script>
-<script type="text/javascript" src="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/facetview/vendor/d3/d3.geom.min.js?2.1.3"></script>
-<script type="text/javascript" src="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/facetview/vendor/d3/d3.layout.min.js?2.1.3"></script>
-
-<!-- facetview -->
-<script type="text/javascript" src="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/facetview/jquery.facetview.js"></script>
-<link rel="stylesheet" href="https://raw.github.com/okfn/bibserver/master/bibserver/static/vendor/facetview/css/facetview.css">
-
-<!-- setup -->
-<script type="text/javascript">
-    jQuery(document).ready(function($) {
-        $('body').facetview()
-    })
-</script>
-                </textarea>
-
-            </p>
-        </div>
-
+        <div class="row-fluid">
         {% if implicit %}
             <h2>{{ implicit }}</h2>
         {% endif %}
@@ -211,28 +30,16 @@
             {% if collection.description %}
                 <small>{{ collection['description'] }}</small>
             {% endif %}
+            {% if 'license' in collection %}
+            {% if collection.license not in ['','Not specified'] %}
+                <small><br>License {{collection.license.lower()}}</small>
+            {% endif %}
+            {% endif %}
             </h2>
         {% endif %}
-
-    </div>
-
-{% if collection._id %}
-    <div class="row">
-        <div class="span12">
-            <p>
-            {% if 'source' in collection %}
-            The source of this collection is <a href="{{collection.source}}">{{collection.source}}</a><br />
-            {% endif %}
-            {% if '_last_modified' in collection %}
-            Last updated {{collection._last_modified}}<br />
-            {% endif %}
-            {% if 'license' in collection %}
-            Collection license {{collection.license}}<br />
-            {% endif %}
-            </p>
         </div>
+
     </div>
-{% endif %}
 
 {% endblock %}
 

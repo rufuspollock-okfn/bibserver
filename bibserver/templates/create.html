@@ -1,61 +1,147 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="span5 hero-unit">
-        <form action="/create" method="POST" enctype="multipart/form-data">
-        
-            <h2>Create a new collection</h2>
-            
-            <p>Create a new collection then <a href="/search">search</a> for records to add to it. Alternatively, <a href="/upload">upload</a> a collection from your own source.</p>
-            
-            <br /><span class="upload_label">name your collection:</span> <input id="collection" type="text" name="collection" />
+<script type="text/javascript" charset="utf-8">
+jQuery(document).ready(function() {
+    var newcoll = function(event) {
+        event.preventDefault();
+        $('.newrecord').hide();
+        $('.newcollection').show('fast');
+    };
+    var newrec = function(event) {
+        event.preventDefault();
+        $('.newcollection').hide();
+        $('.newrecord').show('fast');
+    };
+    $('.newcollection').hide();
+    $('.newrecord').hide();
+    $('#newcoll').bind('click',newcoll).show();
+    $('#newrec').bind('click',newrec).show();
+    $('.newcollback').bind('click',newcoll);
+    $('.newrecback').bind('click',newrec);
 
-            <br /><br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
-            
-            <br /><br /><span class="upload_label">collection license:</span> <select id="license_choice" name="license">
-            </select>
-            <script type="text/javascript" charset="utf-8">
-            // Retrieve the available license options from http://licenses.opendefinition.org/
-            jQuery.ajax({
-              url:'http://licenses.opendefinition.org/licenses/jsonp/ckan.js',
-              dataType: 'jsonp',
-              // you *must* set the callback function to be licenses_callback
-              jsonpCallback: 'license_callback',
-              success: function(data) {
-                var options = '';
-                for(var idx=0; idx<data.length; idx++) {
-                    var o = '<option value="' + data[idx].url + '">' + data[idx].title + '</option>';
-                    options += o;
-                }  
-                jQuery('#license_choice').html(options);
-              }
-            });
-            </script>            
-            
-            <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="create collection" />
-            
-        </form>
+    $('#creator').jtedit({
+        'data':{}, 
+        'makeform': false, 
+        'actionbuttons': false,
+        'target': '/record',
+        'delmsg':"", 
+        'savemsg':"", 
+        "saveonupdate":false, 
+        "reloadonsave":""
+    });
+    var submitrecord = function(event) {
+        event.preventDefault();
+        $.fn.jtedit.saveit();
+    };
+    $('.submitrecord').bind('click',submitrecord);
+    $('.jtedit_title').focus().blur();
+    
+    var addauthor = function(event) {
+        event.preventDefault();
+        var current = parseInt($(this).attr('href')) + 1;
+        $(this).attr('href',current.toString());
+        var newauthor = '<br><span class="upload_label">author ' + (current + 1).toString() + ':</span> <input type="text" class="jtedit_value jtedit_author_' + current.toString() + '_name" />';
+        $(this).parent().before(newauthor);
+    };
+    $('#addauthor').bind('click',addauthor);
+    var addlink = function(event) {
+        event.preventDefault();
+        var current = parseInt($(this).attr('href')) + 1;
+        $(this).attr('href',current.toString());
+        var newlink = '<br><span class="upload_label">link ' + (current + 1).toString() + ':</span> <input type="text" class="jtedit_value jtedit_link_' + current.toString() + '_url" />';
+        $(this).parent().before(newlink);
+    };
+    $('#addlink').bind('click',addlink);
+});
+
+// Retrieve the available license options from http://licenses.opendefinition.org/
+jQuery.ajax({
+  url:'http://licenses.opendefinition.org/licenses/jsonp/ckan.js',
+  dataType: 'jsonp',
+  // you *must* set the callback function to be licenses_callback
+  jsonpCallback: 'license_callback',
+  success: function(data) {
+    var options = '';
+    for(var idx=0; idx<data.length; idx++) {
+        var o = '<option value="' + data[idx].url + '">' + data[idx].title + '</option>';
+        options += o;
+    }  
+    jQuery('.license_choice').html(options);
+  }
+});
+</script>            
+
+<div class="row">
+    <div class="span6">
+    <div class="hero-unit">
+        
+            <h2><a href="#" class="newcollection" id="newcoll">Create a new collection</a></h2>
+            <h2><a href="#" class="newrecord" id="newrec">Create a new record</a></h2>
+
+            <div class="newcollection">
+                <form action="/create" method="POST" enctype="multipart/form-data">
+                    <p>Create a new collection then <a href="/search">search</a> for records to add to it. Alternatively, <a href="/upload">upload</a> a collection from your own source.</p>
+                    <small><br><a href="#" class="newrecback">(or go back to creating a record)</a><br></small>
+
+                    <br /><span class="upload_label">name your collection:</span> <input id="collection" type="text" name="collection" />
+
+                    <br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
+                    
+                    <br /><span class="upload_label">collection license:</span> <select class="license_choice" name="license"></select>
+                                
+                    <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="create collection" />            
+                </form>
+            </div>
+
+            <div class="newrecord">
+                <form action="/create" method="POST" enctype="multipart/form-data">
+                            
+                    <p>Make a new record, add it to one of your collections.</p>
+                    <small><br><a href="#" class="newcollback">(or go back to creating a collection)</a><br></small>
+                    
+                    <br /><span class="upload_label">title:</span> <input type="text" name="title" class="jtedit_value jtedit_title" />
+                    <br /><span class="upload_label"><a title="add another" id="addauthor" style="font-size:140%;font-weight:bold;" href="0"> + </a> author:</span> <input type="text" name="author_0_name" class="jtedit_value jtedit_author_0_name" />
+                    <br /><span class="upload_label">year:</span> <input type="text" name="year" class="jtedit_value jtedit_year" />
+                    <br /><span class="upload_label">type:</span> <input type="text" name="type" class="jtedit_value jtedit_type" />
+                    <br /><span class="upload_label">abstract:</span> <textarea type="text" name="abstract" class="jtedit_value jtedit_abstract"></textarea>
+                    <br /><span class="upload_label">license:</span> <select class="license_choice jtedit_value jtedit_license_0_type" name="license"></select>
+
+
+                    <br /><span class="upload_label"><a title="add another" id="addlink" style="font-size:140%;font-weight:bold;" href="0"> + </a> link:</span> <input type="text" name="link_0_url" class="jtedit_value jtedit_link_0_url" />
+                    <br /><span class="upload_label">DOI:</span> <input type="hidden" class="jtedit_value jtedit_identifier_0_type" value="DOI" /><input type="text" name="identifier_0_id" class="jtedit_value jtedit_identifier_0_id" />
+                    <br /><span class="upload_label">journal name:</span> <input type="text" name="journal_name" class="jtedit_value jtedit_journal_name" />
+                    
+                    <hr></hr>
+                    
+                    <br /><span class="upload_label">add to collection:</span> <select name="collection" id="collection" class="jtedit_value jtedit_collection_0">
+                    <option value="">No thanks, just create the record</option>
+                    <!--<option value="NEW">Hmm, make me a new collection to upload them to</option>
+                    <option value="">------------------------------</option>-->
+                    {% for coll in current_user.collections%}
+                        <option>{{coll.label}}</option>
+                    {% endfor %}
+                    </select>
+                    <small><br>If you don't see the collection you want, <a href="#" class="newcollback">go and create one first</a>.<br>Then come back and make your new record.<br></small>
+
+                    <hr></hr>
+                    
+                    <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large submitrecord" type="submit" name="submit" value="create record" />
+                                        
+                </form>
+            </div>
+
+    </div>
     </div>
     
-    <!--
-    <div class="span4 hero-unit">
-        <form action="/create" method="POST" enctype="multipart/form-data">
-        
-            <h2>Create a new record</h2>
-            
-            <p>Make a new record to add to one of your collections.</p>
-            
-            <span class="upload_label">add to collection:</span> <input class="span2" id="collection" type="text" name="collection" />
-            
-            <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="create record" />
-            
-            <p><br /><br />Check out the <a href="http://bibjson.org">bibjson conventions</a> for hints on how to create a suitable record.</p>
-            
-        </form>
-
+    <div class="span6 newrecord">
+    <div class="hero-unit">
+        <p>You can view and edit the JSON record directly if you prefer.</p>
+        <div id="creator" class="clearfix"></div>
+        <p><input class="btn btn-primary large submitrecord" style="margin-left:20px;" type="submit" name="submit" value="create record" /></p>
+        <small><br /><br />Check out the <a href="http://bibjson.org">bibjson conventions</a> for hints on how to create a suitable record.</small>
     </div>
-    -->
+    </div>
     
 </div>
 {% endblock %}

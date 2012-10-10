@@ -5,20 +5,8 @@
     <script type="text/javascript">
     jQuery(document).ready(function() {
 
-        var bubble = function() {
-            indata = {{ colldata | safe }};
-            data = {"children":[]};
-            for (var item in indata) {
-                var arr = {
-                    "className": indata[item]['name'],
-                    "packageName": item,
-                    "value": indata[item]['records'],
-                    "owner": indata[item]['owner'],
-                    "slug": indata[item]['slug'],
-                    "description": indata[item]['description']
-                }
-                data["children"].push(arr);
-            }
+        var bubble = function(data) {
+            $('#collections').html('');
             var r = jQuery('#collections').width(),
                 format = d3.format(",d"),
                 fill = d3.scale.category20c();
@@ -35,65 +23,160 @@
                 .enter().append("svg:g")
                 .attr("class", "node")
                 .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-            node.append("svg:title")
-                .text(function(d) { return d.data.className + " : " + format(d.value) + " records : " + d.data.description; })
             node.append("svg:circle")
-                .attr("r", function(d) { return d.r; })
-                .style("fill", function(d) { return fill(d.data.packageName); })
-            node.append("svg:text")
-                .attr("text-anchor", "middle")
-                .attr("dy", ".3em")
-                .text(function(d) { return d.data.className.substr(0,12); })
+                .attr("r", 0)
+                .attr("fill", function(d) { return fill(d.data.packageName); })
+                .attr("stroke-width", 2)
+                .attr("stroke", function(d) { d3.rgb(fill(d.data.packageName)).darker()})
+                .transition().duration(2300).attr("r", function(d) { return d.r; })
             node.on('click',function(d) {
-                clickbubble(d.data.owner,d.data.slug)
+                clickbubble(d)
+            })
+            node.on('mouseover',function(d) {
+                showtitle(d)
+            })
+            node.on('mouseout', function(d) {
+                $('#header').html("");
             })
         };
-        bubble()
-
-        var clickbubble = function(owner,coll) {
-            window.location = '/' + owner + '/' + coll
+        var indata = {{ colldata | safe }};
+        var sdata = {"children":[]};
+        for (var item in indata) {
+            var arr = {
+                "className": indata[item]['name'],
+                "packageName": item,
+                "value": indata[item]['records'],
+                "owner": indata[item]['owner'],
+                "slug": indata[item]['slug'],
+                "description": indata[item]['description']
+            }
+            sdata["children"].push(arr);
         }
+        bubble(sdata);
+
+        var showtitle = function(data) {
+            var title = '<h1><small>' + $('#bubbletype').val() + '</small> ' + data.data.className + ' <small> has ' + data.value;
+            data.value == 1 ? title += ' record' : title += ' records';
+            title += '</small></h1>';
+            data.data.description ? title += '<p>' + data.data.description + '</p>' : "";
+            if ( $('#bubbletype').val() == 'collection' ) {
+                title += '<p>Created by ' + data.data.owner + '. Click the bubble to browse the records in this collection.</p>';
+            } else {
+                title += 'Click the bubble to show results in ' + data.data.className + ' ' + data.value; 
+            }
+            $('#header').show();
+            $('#header').html(title);
+        };
+
+        var clickbubble = function(data) {
+            var url = '/' + data.data.owner + '/' + data.data.slug;
+            var newtype = $('#bubbletype').val();
+            newtype != 'collection' ? url = '/' + newtype + '/' + data.data.className : "";
+            $('body').fadeOut(600, function() {
+                window.location = url;
+            });
+        };
+        
+        var showabout = function(event) {
+            event.preventDefault();
+            $('#about').toggle('slow');
+            $('#vids').hide();
+            $('#header').toggle('fast');
+            // add a slide to the about location
+            if ( $('#showabout').html() == 'WHAT IS BibSoup?' ) {
+                $('#showabout').html('SHOW ME THE BUBBLES!');
+            } else {
+                $('#showabout').html('WHAT IS BibSoup?');
+            }
+        };
+        $('#showabout').bind('click',showabout);
+        $('#about').hide();
+        
+        if ( window.location.href.indexOf('#') != -1 ) {
+            $('#welcome').hide();
+            $('.well').show();
+            $('#showabout').trigger('click');
+        } else {
+            $('#welcome').delay('2400').hide(1000);
+            $('.well').delay('2600').show(1200);
+        };
+        
+        var updatebubble = function(data) {
+            var indata = data.facets.bubble.terms;
+            var sdata = {"children":[]};
+            for (var item in indata) {
+                var arr = {
+                    "className": indata[item].term,
+                    "packageName": indata[item].term.substring(0,1).toLowerCase(),
+                    "value": indata[item].count,
+                    "owner": "",
+                    "slug": "",
+                    "description": ""
+                }
+                sdata["children"].push(arr);
+            }
+            bubble(sdata);
+        };
+        var newbubble = function(event) {
+            var newtype = $(this).val();
+            $('#header').html('<p>Point to a bubble to learn more about ' + newtype + 's</p><p>Bubbles are grouped alphabetically.</p>');
+            newtype != 'collection' ? event.preventDefault() : window.location = window.location;
+            var query = {
+                "query": {
+                    "match_all": {}
+                },
+                "facets": {
+                    "bubble": {
+                        "terms": {
+                            "field": newtype + '.exact',
+                            "sort": "term",
+                            "size": 100000
+                        }
+                    }
+                }
+            };
+            $.ajax({
+                type: "POST",
+                url: '/query',
+                contentType: "application/json; charset=utf-8",
+                processData: false,
+                data: JSON.stringify(query),
+                dataType: 'JSON',
+                success: updatebubble
+              });
+        };
+        $('#bubbletype').bind('change',newbubble);
 
     });
     </script>
 
 
+    <div class="well" style="display:none; position:fixed; top:45px; right:5px;">
+      <p style="text-align:right;">
+        <a class="btn btn-info" id="showabout" style="width:190px; margin-bottom:5px;margin-left:0;" href="#">WHAT IS BibSoup?</a> <br>
+        <select id="bubbletype" style="width:212px; margin-bottom:4px;">
+            <option value="collection">choose your bubble type</option>
+            <option value="author.name">authors</option>
+            <option value="journal.name">journals</option>
+            <option value="year">publication years</option>
+        </select><br>
+        <a class="btn" href="/search" style="width:190px; margin-bottom:5px;margin-left:0;">search all records</a> <br>
+        <a class="btn" href="/collections" style="width:190px; margin-bottom:5px;margin-left:0;">list all collections</a>
+      </p>
+    </div>
 
-      <div class="hero-unit clearfix">
-        <div class="span7">
-            <h1>Welcome to BibSoup!</h1>
-        </div>
-        <div class="span3">
-            <p>BibSoup makes it easy to find, manage and share bibliography.</p>
-            <a class="btn" href="/faq">Learn more &raquo;</a>
-        </div>
-      </div>
+    <div id="header" class="well" style="display:none; position:fixed; top:45px; left:5%; max-width:600px;">
+        <p>Point at a bubble to learn more about the collections in BibSoup.</p>
+    </div>
 
-      <div class="row">
-        <div class="span4">
-          <div class="hero-unit">
-            <h3>We have <a class="label label-info" style="font-size:20px;" href="/search">{{records}}</a> records 
-            <br /><br />across <a class="label label-info" style="font-size:20px;" href="/collections">{{colls}}</a> collections
-            <br /><br />shared by <span class="label label-info" style="font-size:20px;">{{users}}</span> users</h3>
-          </div>
-          <div class="hero-unit">
-            <h2>Search all records</h3>
-            <p>Search shared collections and records, find material relevant to your interests, make new collections.</p>
-            <p><a href="/search" class="btn">Search everything &raquo;</a></p>
-          </div>
-          <div class="hero-unit">
-            <h2>Create collections</h3>
-            <p><a href="/upload">upload</a> from your own source, or <a href="/create">create</a> a new collection.</p>
-          </div>
-        </div>
+    <div class="hero-unit" id="welcome" style="position:fixed; top:45px; left:10%;">
+        <h1>This is BibSoup!</h1>
+    </div>
 
-        <div class="span8">
-          <div class="hero-unit">
-              <h2>Browse recent Collections</h2>
-              <div id="collections"></div>
-              <p><a href="/collections" class="btn">Browse all collections &raquo;</a></p>
-          </div>
-        </div>
+    {% include "home/about.html" %}
 
-      </div>
+    <div class="row-fluid">
+      <div id="collections" style="margin-top:-40px;"></div>
+    </div>
+
 {% endblock %}

@@ -3,39 +3,27 @@ import json, UserDict, requests, uuid
 from datetime import datetime
 import hashlib
 
+from bibserver.core import app, current_user
+
 from werkzeug import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
 
-from bibserver.config import config
 import bibserver.util, bibserver.auth
 
 
-def make_id(data):
-    '''Create a new id for data object based on a hash of the data representation
-    Ignore the _last_modified, _created fields
-    ##TODO Ignore ALL fields that startswith _
-    '''
-    if '_id' in data: return data['_id']
-    new_data = {}
-    for k,v in data.items():
-        if k in ('_last_modified', '_created'): continue
-        new_data[k] = v
-    buf = json.dumps(new_data, sort_keys=True)
-    new_id = hashlib.md5(buf).hexdigest()
-    return new_id
+def make_id(data, objtype='record'):
+    if objtype == 'collection':
+        return util.slugify(current_user.id + data['collection'].lower())
+    else:
+        id_data = {
+            'author': [i.get('name','') for i in data.get('author',[])].sort(),
+            'title': data.get('title','')
+        }
+        buf = util.slugify(json.dumps(id_data, sort_keys=True),delim=u'')
+        new_id = hashlib.md5(buf).hexdigest()
+        return new_id
     
     
-def init_db():
-    mappings = config["mappings"]
-    for mapping in mappings:
-        t = 'http://' + str(config['ELASTIC_SEARCH_HOST']).lstrip('http://').rstrip('/')
-        t += '/' + config['ELASTIC_SEARCH_DB'] + '/' + mapping + '/_mapping'
-        r = requests.get(t)
-        if r.status_code == 404:
-            r = requests.put(t, data=json.dumps(mappings[mapping]) )
-            print r.text
-
-
 class InvalidDAOIDException(Exception):
     pass
 
@@ -57,8 +45,8 @@ class DomainObject(UserDict.IterableUserDict):
 
     @classmethod
     def target(cls):
-        t = 'http://' + str(config['ELASTIC_SEARCH_HOST']).lstrip('http://').rstrip('/') + '/'
-        t += config['ELASTIC_SEARCH_DB'] + '/' + cls.__type__ + '/'
+        t = 'http://' + str(app.config['ELASTIC_SEARCH_HOST']).lstrip('http://').rstrip('/') + '/'
+        t += app.config['ELASTIC_SEARCH_DB'] + '/' + cls.__type__ + '/'
         return t
 
     @property
@@ -76,6 +64,8 @@ class DomainObject(UserDict.IterableUserDict):
         return self.upsert(self.data)
 
     def delete(self):
+        archive = Archive.get(self.id)
+        archive.store(False)
         r = requests.delete( self.target + self.id )
 
     @classmethod
@@ -102,46 +92,34 @@ class DomainObject(UserDict.IterableUserDict):
             if mapping[item].has_key('fields'):
                 for item in mapping[item]['fields'].keys():
                     if item != 'exact' and not item.startswith('_'):
-                        keys.append(prefix + item + config['facet_field'])
+                        keys.append(prefix + item + app.config['facet_field'])
             else:
                 keys = keys + cls.get_facets_from_mapping(mapping=mapping[item]['properties'],prefix=prefix+item+'.')
         keys.sort()
         return keys
         
-    @classmethod
-    def upsert(cls, data, state=None):
-        '''Update backend object with a dictionary of data.
-
-        If no id is supplied an uuid id will be created before saving.
-        '''
-        cls.bulk_upsert([data], state)
-
-        # TODO: should we really do a cls.get() ?
-        return cls(**data)
-
-    @classmethod
-    def bulk_upsert(cls, dataset, state=None):
-        '''Bulk update backend object with a list of dicts of data.
-        If no id is supplied an uuid id will be created before saving.'''
-        for data in dataset:
-            if not type(data) is dict: continue
-            if '_id' in data:
-                id_ = data['_id'].strip()
-            else:
-                id_ = make_id(data)
-                data['_id'] = id_
+    def save(self):
+        if not self.id:
+            self.data['_id'] = make_id(self.data, self.__type__)
+        else:
+            pass
+            # add a check - see if the make_id of the current data is different from the provided ID
+            # if so, change the ID.
+        
+        # check for hits with the current ID. If found, deep merge the data.
+        
+        self.data['_last_modified'] = datetime.now().strftime("%Y-%m-%d %H%M")
+        if '_created' not in self.data:
+            self.data['_created'] = datetime.now().strftime("%Y-%m-%d %H%M")
             
-            if '_created' not in data:
-                data['_created'] = datetime.now().strftime("%Y%m%d%H%M%S")
-            data['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M%S")
-            
-            r = requests.post(cls.target() + data['_id'], data=json.dumps(data))
+        r = requests.post(self.target() + self.id, data=json.dumps(self.data))
+
+        Archive.store(self.data)
+                        
+    @classmethod
+    def bulk(cls, records):
+        pass # make a bulk upload 
     
-    @classmethod
-    def delete_by_query(cls, query):
-        r = requests.delete(cls.target() + "_query?q=" + query)
-        return r.json
-
     @classmethod
     def query(cls, recid='', endpoint='_search', q='', terms=None, facets=None, **kwargs):
         '''Perform a query on backend.
@@ -159,11 +137,12 @@ class DomainObject(UserDict.IterableUserDict):
             query = q
         elif q:
             query = {'query': {'query_string': { 'query': q }}}
-        else: 
+        else:
             query = {'query': {'match_all': {}}}
 
         if facets:
-            query['facets'] = {}
+            if 'facets' not in query:
+                query['facets'] = {}
             for item in facet_fields:
                 query['facets'][item['key']] = {"terms":item}
 
@@ -175,7 +154,10 @@ class DomainObject(UserDict.IterableUserDict):
                     obj = {'term': {}}
                     obj['term'][ term ] = val
                     boolean['must'].append(obj)
-            if q and not isinstance(q,dict): boolean['must'].append( {'query_string': { 'query': q } } )
+            if q and not isinstance(q,dict):
+                boolean['must'].append( {'query_string': { 'query': q } } )
+            elif q and 'query' in q:
+                boolean['must'].append( query['query'] )
             query['query'] = {'bool': boolean}
 
         for k,v in kwargs.items():
@@ -191,17 +173,97 @@ class DomainObject(UserDict.IterableUserDict):
 class Record(DomainObject):
     __type__ = 'record'
 
+    @property
+    def valuelist(self):
+        # a list of all the values in the record
+        vals = []
+        def valloop(obj):
+            if isinstance(obj,dict):
+                for item in obj:
+                    valloop(obj[item])
+            elif isinstance(obj,list):
+                for thing in obj:
+                    valloop(thing)
+            else:
+                searchvals.append(obj)
+        valloop(rec.data)
+        return vals
 
-class Note(DomainObject):
-    __type__ = 'note'
-
-    @classmethod
-    def about(cls, id_):
-        '''Retrieve notes by id of record they are about'''
-        if id_ is None:
-            return None
-        res = Note.query(terms={"about":id_})
+    @property
+    def similar(self):    
+        res = Record.query(recid=self.id, endpoint='_mlt', q='mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3')
         return [i['_source'] for i in res['hits']['hits']]
+    
+    @property
+    def notes(self):
+        return Note.about(rec.id)
+    
+    @property
+    def remote(self):
+        # check any listed external APIs for relevant data to return
+        # TODO: just does service core for now - implement for others
+        info = {}
+        apis = app.config['EXTERNAL_APIS']
+        if apis['servicecore']['key']:
+            try:
+                servicecore = "not found in any UK repository"
+                addr = apis['servicecore']['url'] + self.data['title'].replace(' ','%20') + "?format=json&api_key=" + apis['servicecore']['key']
+                r = requests.get(addr)
+                data = r.json
+                if 'ListRecords' in data and len(data['ListRecords']) != 0:
+                    info['servicecore'] = data['ListRecords'][0]['record']['metadata']['oai_dc:dc']
+            except:
+                pass
+        return info
+
+    # build how it should look on the page
+    @property
+    def pretty(self):
+        result = '<p>'
+        img = False
+        if img:
+            result += '<img class="thumbnail" style="float:left; width:100px; margin:0 5px 10px 0; max-height:150px;" src="' + img[0] + '" />'
+
+        # add the record based on display template if available
+        record = self.data
+        display = app.config['SEARCH_RESULT_DISPLAY']
+        lines = ''
+        for lineitem in display:
+            line = ''
+            for obj in lineitem:
+                thekey = obj['field']
+                parts = thekey.split('.')
+                if len(parts) == 1:
+                    res = record
+                elif len(parts) == 2:
+                    res = record.get(parts[0],'')
+                elif len(parts) == 3:
+                    res = record[parts[0]][parts[1]]
+                counter = len(parts) - 1
+                if res and isinstance(res, dict):
+                    thevalue = res.get(parts[counter],'')  # this is a dict
+                else:
+                    thevalue = []
+                    for row in res:
+                        thevalue.append(row[parts[counter]])
+
+                if thevalue and len(thevalue):
+                    line += obj.get('pre','')
+                    if isinstance(thevalue, list):
+                        for index,val in enumerate(thevalue):
+                            if index != 0 and index != len(thevalue)-1: line += ', '
+                            line += val
+                    else:
+                        line += thevalue
+                    line += obj.get('post','')
+            if line:
+                lines += line + "<br />"
+        if lines:
+            result += lines
+        else:
+            result += json.dumps(record,sort_keys=True,indent=4)
+        result += '</p>'
+        return result
 
 
 class Collection(DomainObject):
@@ -209,7 +271,7 @@ class Collection(DomainObject):
 
     @property
     def records(self):
-        size = Record.query(terms={'owner':self['owner'],'collection':self['collection']})['hits']['total']
+        size = Record.query(terms={'collection':self['collection']})['hits']['total']
         if size != 0:
             res = [Record.get(i['_source']['_id']) for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
         else: res = []
@@ -222,16 +284,35 @@ class Collection(DomainObject):
             return cls(**res['hits']['hits'][0]['_source'])
         else:
             return None
-            
+
     def delete(self):
         r = requests.delete( self.target + self.id )
         for record in self.records:
-            record.delete()
+            #record.delete()- change to remove collection name from collection list
+            pass
     
     def __len__(self):
         res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})
         return res['hits']['total']
 
+    @property
+    def owner(self):
+        '''Get id of this object.'''
+        return self.data.get('owner', None)
+
+    
+class Archive(DomainObject, UserMixin):
+    __type__ = 'archive'
+    
+    @classmethod
+    def store(cls, data):
+        archive = Archive.get(data.get('_id',None))
+        if not archive:
+            return None
+        if not archive.data['store']: archive.data['store'] = {}
+        archive.data['store'][make_id(data)] = {'user': current_user.id, 'state': data}
+        archive.save()
+    
     
 class Account(DomainObject, UserMixin):
     __type__ = 'account'
@@ -248,9 +329,7 @@ class Account(DomainObject, UserMixin):
     
     @property
     def collections(self):
-        colls = Collection.query(terms={
-            'owner': [self.id]
-            })
+        colls = Collection.query(terms={'owner': [self.id]}, size=100000)
         colls = [ Collection(**item['_source']) for item in colls['hits']['hits'] ]
         return colls
         

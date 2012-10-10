@@ -1,5 +1,4 @@
-from bibserver.core import current_user
-from bibserver.config import config
+from bibserver.core import app, login_manager, current_user
 
 def read(account, collection):
     return True
@@ -12,7 +11,7 @@ def update(account, collection):
                 allowed = True
         except:
             pass
-        if account.id in config['super_user']:
+        if account.id in app.config['SUPER_USER']:
             allowed = True
     return allowed
 
