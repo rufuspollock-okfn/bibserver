@@ -26,7 +26,7 @@
             <h2>{{ implicit }}</h2>
         {% endif %}
         {% if collection._id %}
-            <h2><a href="/{{collection.owner}}">{{collection['owner']}}</a> / <a href="/{{collection.owner}}/{{collection.collection}}">{{ collection['label'] }}</a> 
+            <h2>{% if collection.owner %}<a href="/{{collection.owner}}">{{collection.owner}}</a> / {% endif %}<a href="{{collection.url}}">{{ collection['name'] }}</a> 
             {% if collection.description %}
                 <small>{{ collection['description'] }}</small>
             {% endif %}

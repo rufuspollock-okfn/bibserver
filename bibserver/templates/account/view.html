@@ -25,38 +25,18 @@ jQuery(document).ready(function() {
         <div class="span5">
             {% if current_user.id == account.id %}
                 <h2>Hi {{ current_user.id }}</h2>
-                <p>{{ current_user.description }}</p>
+                <p>About you:<br><textarea>{{ current_user.description }}</textarea></p>
             {% endif %}
             {% if superuser %}
-                <p>You are the superuser! You can view and edit anything!
-                <br />Be careful...</p>
+                <p>You are the superuser! You can view and edit anything!</p>
             {% endif %}
         </div>
         <div id="user" class="span5">
-            <p>Change email address:</p>
-            <p>Change password:</p>
-            <p>Your api_key is {{account['api_key']}}. 
-            <a href="http://bibserver.readthedocs.org/en/latest/api.html">Check out the docs</a> to learn more.</p>
-        </div>
-    </div>
-
-    <div class="row-fluid">
-        <div class="span4">
-            <div class="well">
-                <h3>View your collections</h3>
-                <p>You have {{ recordcount }} records across {{ collcount }} collections. Choose one to view - admin options are available in each collection.</p>
-                {% if account['collections']|length == 0 %}
-                <p>You have no collections yet. <a href="/upload">Create one!</a></p>
-                {% else %}
-                {% for coll in account['collections'] %}
-                    <p><a href="/{{account.id}}/{{coll.collection}}">{{coll['label']}}</a> -  
-                    {{coll['description']}} ({{coll|length}} records)</p>
-                {% endfor %}
-                {% endif %}
-            </div>
-        </div>
-        <div id="panel" class="span8">
-            <h3>Search all records in all your collections</h3>
+            <p>Change your email address: <input type="text" /></p>
+            <p>Change your password: <input type="text" /></p>
+            <p><a class="btn" href="#">Save changes</a> <a class="btn btn-danger" href="#">Delete account</a></p>
+            <small>Your api_key is {{account['api_key']}} 
+            <a href="http://bibserver.readthedocs.org/en/latest/api.html"><br>Check out the docs</a> to learn more.</small>
         </div>
     </div>
 
@@ -72,21 +52,6 @@ jQuery(document).ready(function() {
         </div>
     </div>
     
-    <div class="row-fluid">
-        {% if account['collections']|length != 0 %}
-        <div class="span4">
-            <div class="well">
-                {% for coll in account['collections'] %}
-                    <p><a href="/{{account.id}}/{{coll.collection}}">{{coll['label']}}</a> -  
-                    {{coll['description']}} ({{coll|length}} records)</p>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        <div id="panel" class="{% if account['collections']|length != 0 %}span8{% else %}span12{% endif %}">
-        </div>
-    </div>
-
 {% endif %}
 
 {% endblock %}

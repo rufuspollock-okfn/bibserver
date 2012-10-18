@@ -22,7 +22,7 @@ def index():
         # explicitly mapped to ensure no leakage of sensitive data. augment as necessary
         users = []
         for acc in accs:
-            user = {"collections":len(acc.collections),"_id":acc["_id"]}
+            user = {"collections":len(acc),"_id":acc["_id"]}
             try:
                 user['_created'] = acc['_created']
                 user['description'] = acc['description']
@@ -48,6 +48,8 @@ def login():
         password = form.password.data
         username = form.username.data
         user = dao.Account.get(username)
+        if not user:
+            dao.Account.get_by_email(username)
         if user and user.check_password(password):
             login_user(user, remember=True)
             flash('Welcome back ' + user.id, 'success')
@@ -70,9 +72,14 @@ def existscheck(form, field):
     if test:
         raise ValidationError('Taken! Please try another.')
 
+def emailexistscheck(form, field):
+    test = dao.Account.get_by_email(form.n.data)
+    if test:
+        raise ValidationError('Sorry! There is already a user named ' + test.id + ' registered with that email address.')
+
 class RegisterForm(Form):
     w = TextField('Username', [validators.Length(min=3, max=25),existscheck])
-    n = TextField('Email Address', [validators.Length(min=3, max=35), validators.Email(message='Must be a valid email address')])
+    n = TextField('Email Address', [validators.Length(min=3, max=35), validators.Email(message='Must be a valid email address'), emailexistscheck])
     s = PasswordField('Password', [
         validators.Required(),
         validators.EqualTo('c', message='Passwords must match')

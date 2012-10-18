@@ -4,13 +4,8 @@ def read(account, collection):
     return True
 
 def update(account, collection):
-    allowed = not account.is_anonymous() and collection["owner"] == account.id
+    allowed = not account.is_anonymous() and ( collection.owner == account.id or not collection.owner )
     if not account.is_anonymous():
-        try:
-            if account.id in collection['_admins']:
-                allowed = True
-        except:
-            pass
         if account.id in app.config['SUPER_USER']:
             allowed = True
     return allowed

@@ -53,6 +53,8 @@ jQuery(document).ready(function() {
         $(this).parent().before(newlink);
     };
     $('#addlink').bind('click',addlink);
+    
+    $('.newcollection').show();
 });
 
 // Retrieve the available license options from http://licenses.opendefinition.org/
@@ -77,24 +79,29 @@ jQuery.ajax({
     <div class="hero-unit">
         
             <h2><a href="#" class="newcollection" id="newcoll">Create a new collection</a></h2>
-            <h2><a href="#" class="newrecord" id="newrec">Create a new record</a></h2>
+            <!--<h2><a href="#" class="newrecord" id="newrec">Create a new record</a></h2>-->
+            <h3>CREATE NEW RECORD COMING SOON</h3>
 
-            <div class="newcollection">
+            <div class="newcollection" style="display:none;">
                 <form action="/create" method="POST" enctype="multipart/form-data">
                     <p>Create a new collection then <a href="/search">search</a> for records to add to it. Alternatively, <a href="/upload">upload</a> a collection from your own source.</p>
-                    <small><br><a href="#" class="newrecback">(or go back to creating a record)</a><br></small>
+                    <!--<small><br><a href="#" class="newrecback">(or go back to creating a record)</a><br></small>-->
 
                     <br /><span class="upload_label">name your collection:</span> <input id="collection" type="text" name="collection" />
 
                     <br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
                     
                     <br /><span class="upload_label">collection license:</span> <select class="license_choice" name="license"></select>
+                    
+                    <br /><span class="upload_label">make it public:</span> <input type="checkbox" name="public" /> 
+                    
+                    <br /><br /><small>(all collections are publicly viewable, but explicitly making it public means that anyone can add or remove records to the collection, or delete it. It's like a shared tag, instead of a collection you personally manage.)</small>
                                 
                     <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="create collection" />            
                 </form>
             </div>
 
-            <div class="newrecord">
+            <div class="newrecord" style="display:none">
                 <form action="/create" method="POST" enctype="multipart/form-data">
                             
                     <p>Make a new record, add it to one of your collections.</p>
@@ -118,8 +125,8 @@ jQuery.ajax({
                     <option value="">No thanks, just create the record</option>
                     <!--<option value="NEW">Hmm, make me a new collection to upload them to</option>
                     <option value="">------------------------------</option>-->
-                    {% for coll in current_user.collections%}
-                        <option>{{coll.label}}</option>
+                    {% for coll in current_user.collections(size=10000) %}
+                        <option value="{{coll.id}}">{{coll.name}}</option>
                     {% endfor %}
                     </select>
                     <small><br>If you don't see the collection you want, <a href="#" class="newcollback">go and create one first</a>.<br>Then come back and make your new record.<br></small>
@@ -134,7 +141,7 @@ jQuery.ajax({
     </div>
     </div>
     
-    <div class="span6 newrecord">
+    <div class="span6 newrecord" style="display:none;">
     <div class="hero-unit">
         <p>You can view and edit the JSON record directly if you prefer.</p>
         <div id="creator" class="clearfix"></div>

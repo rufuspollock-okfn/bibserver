@@ -30,13 +30,14 @@
                 .attr("stroke", function(d) { d3.rgb(fill(d.data.packageName)).darker()})
                 .transition().duration(2300).attr("r", function(d) { return d.r; })
             node.on('click',function(d) {
-                clickbubble(d)
-            })
-            node.on('mouseover',function(d) {
+                //clickbubble(d)
                 showtitle(d)
             })
+            node.on('mouseover',function(d) {
+                //showtitle(d)
+            })
             node.on('mouseout', function(d) {
-                $('#header').html("");
+                //$('#header').html("");
             })
         };
         var indata = {{ colldata | safe }};
@@ -59,11 +60,11 @@
             data.value == 1 ? title += ' record' : title += ' records';
             title += '</small></h1>';
             data.data.description ? title += '<p>' + data.data.description + '</p>' : "";
-            if ( $('#bubbletype').val() == 'collection' ) {
+            /*if ( $('#bubbletype').val() == 'collection' ) {
                 title += '<p>Created by ' + data.data.owner + '. Click the bubble to browse the records in this collection.</p>';
             } else {
-                title += 'Click the bubble to show results in ' + data.data.className + ' ' + data.value; 
-            }
+                title += 'Click the bubble to show results in ' + data.data.className; 
+            }*/
             $('#header').show();
             $('#header').html(title);
         };
@@ -141,7 +142,7 @@
                         "terms": {
                             "field": newtype + '.exact',
                             "sort": "term",
-                            "size": 100000
+                            "size": 1000
                         }
                     }
                 }
@@ -167,6 +168,9 @@
         <a class="btn btn-info" id="showabout" style="width:190px; margin-bottom:5px;margin-left:0;" href="#">WHAT IS BibSoup?</a> <br>
         <select id="bubbletype" style="width:212px; margin-bottom:4px;">
             <option value="collection">choose your bubble type</option>
+            <option value="license.url">license</option>
+            <option value="keyword">keyword</option>
+            <option value="cites.id">cites</option>
             <option value="author.name">authors</option>
             <option value="journal.name">journals</option>
             <option value="year">publication years</option>

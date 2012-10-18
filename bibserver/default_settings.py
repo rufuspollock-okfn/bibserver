@@ -3,6 +3,7 @@ SECRET_KEY = 'default-key'
 # service and super user accounts
 SERVICE_NAME = "BibSoup"
 SITE_URL = "http://bibsoup.net"
+EMAIL_FROM = "nobody@bibsoup.net"
 HOST = "0.0.0.0"
 DEBUG = True
 PORT = 5000
@@ -135,16 +136,12 @@ SEARCH_RESULT_DISPLAY = [
 COLLECTIONS_RESULT_DISPLAY = [
     [
         {
-            "pre":'<h3><a href="/',
-            "field":"owner",
-            "post":"/"
-        },
-        {
-            "field":"collection",
+            "pre":'<h3><a href="',
+            "field":"url",
             "post":'">'
         },
         {
-            "field":"label",
+            "field":"name",
             "post":"</a></h3>"
         }
     ],
@@ -170,7 +167,7 @@ FACET_FIELD = ".exact"
 MAPPINGS = {
     "record" : {
         "record" : {
-            "date_detection" : False,
+            "date_detection" : "false",
             "dynamic_templates" : [
                 {
                     "default" : {
@@ -190,7 +187,7 @@ MAPPINGS = {
     },
     "collection" : {
         "collection" : {
-            "date_detection" : False,
+            "date_detection" : "false",
             "dynamic_templates" : [
                 {
                     "default" : {

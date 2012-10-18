@@ -8,20 +8,8 @@ from bibserver.core import app, current_user
 from werkzeug import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
 
-import bibserver.util, bibserver.auth
-
-
-def make_id(data, objtype='record'):
-    if objtype == 'collection':
-        return util.slugify(current_user.id + data['collection'].lower())
-    else:
-        id_data = {
-            'author': [i.get('name','') for i in data.get('author',[])].sort(),
-            'title': data.get('title','')
-        }
-        buf = util.slugify(json.dumps(id_data, sort_keys=True),delim=u'')
-        new_id = hashlib.md5(buf).hexdigest()
-        return new_id
+import bibserver.util as util
+import bibserver.auth
     
     
 class InvalidDAOIDException(Exception):
@@ -41,6 +29,7 @@ class DomainObject(UserDict.IterableUserDict):
             self.meta = dict(kwargs)
             del self.meta['_source']
         else:
+            self.meta = {}
             self.data = dict(kwargs)
 
     @classmethod
@@ -63,14 +52,14 @@ class DomainObject(UserDict.IterableUserDict):
         return json.dumps(self.data)
         
     def save(self):
-        '''Save to backend storage.'''
-        # TODO: refresh object with result of save
-        return self.upsert(self.data)
+        if not self.id: self.data['_id'] = uuid.uuid4().hex
+        if '_created' not in self.data:
+            self.data['_created'] = datetime.now().strftime("%Y-%m-%d %H%M")
+        self.data['_last_modified'] = datetime.now().strftime("%Y-%m-%d %H%M")
+        r = requests.post(self.target() + self.id, data=json.dumps(self.data))
 
     def delete(self):
-        archive = Archive.get(self.id)
-        archive.store(False)
-        r = requests.delete( self.target + self.id )
+        r = requests.delete( self.target() + self.id )
 
     @classmethod
     def get(cls, id_):
@@ -101,29 +90,7 @@ class DomainObject(UserDict.IterableUserDict):
                 keys = keys + cls.get_facets_from_mapping(mapping=mapping[item]['properties'],prefix=prefix+item+'.')
         keys.sort()
         return keys
-        
-    def save(self):
-        if not self.id:
-            self.data['_id'] = make_id(self.data, self.__type__)
-        else:
-            pass
-            # add a check - see if the make_id of the current data is different from the provided ID
-            # if so, change the ID.
-        
-        # check for hits with the current ID. If found, deep merge the data.
-        
-        self.data['_last_modified'] = datetime.now().strftime("%Y-%m-%d %H%M")
-        if '_created' not in self.data:
-            self.data['_created'] = datetime.now().strftime("%Y-%m-%d %H%M")
             
-        r = requests.post(self.target() + self.id, data=json.dumps(self.data))
-
-        Archive.store(self.data)
-                        
-    @classmethod
-    def bulk(cls, records):
-        pass # make a bulk upload 
-    
     @classmethod
     def query(cls, recid='', endpoint='_search', q='', terms=None, facets=None, **kwargs):
         '''Perform a query on backend.
@@ -165,7 +132,10 @@ class DomainObject(UserDict.IterableUserDict):
             query['query'] = {'bool': boolean}
 
         for k,v in kwargs.items():
-            query[k] = v
+            if k == '_from':
+                query['from'] = v
+            else:
+                query[k] = v
 
         if endpoint in ['_mapping']:
             r = requests.get(cls.target() + recid + endpoint)
@@ -176,6 +146,105 @@ class DomainObject(UserDict.IterableUserDict):
 
 class Record(DomainObject):
     __type__ = 'record'
+
+    @classmethod
+    def make_rid(cls,data):
+        id_data = {
+            'author': [i.get('name','') for i in data.get('author',[])].sort(),
+            'title': data.get('title','')
+        }
+        buf = util.slugify(json.dumps(id_data, sort_keys=True).decode('unicode-escape'),delim=u'')
+        new_id = hashlib.md5(buf).hexdigest()
+        return new_id
+
+    @classmethod
+    def sameas(cls,rid):
+        res = cls.query(terms={'_sameas':rid})
+        if res['hits']['total'] == 1:
+            return cls(**res['hits']['hits'][0]['_source'])
+        else:
+            return None
+
+    @classmethod
+    def merge(cls, a, b) :
+        for k, v in a.items():
+            if k.startswith('_') and k not in ['_collection']:
+                del a[k]
+            elif isinstance(v, dict) and k in b:
+                cls.merge(v, b[k])
+            elif isinstance(v, list) and k in b:
+                if not isinstance(b[k], list):
+                    b[k] = [b[k]]
+                for idx, item in enumerate(v):
+                    if isinstance(item,dict) and idx < len(b[k]):
+                        cls.merge(v[idx],b[k][idx])
+                    elif k in ['_collection'] and item not in b[k]:
+                        b[k].append(item)
+        a.update(b)
+        return a
+
+    # remove a record from a collection - bypasses the main save which always tries to greedily retain info    
+    def removefromcollection(self,collid):
+        if collid in self.data.get('_collection',[]):
+            self.data.get('_collection',[].remove(collid))
+        r = requests.post(self.target() + self.id, data=json.dumps(self.data))
+        Archive.store(self.data)
+
+    # returns the collections of this record, split into two - yours, and not yours
+    @property
+    def isin(self):
+        colls = {'yours':[],'other':[]}
+        for item in self.data['_collection']:
+            if item.startswith(current_user.id):
+                colls['yours'].append(item.replace(current_user.id,''))
+            else:
+                colls['other'].append(item)
+        return colls
+            
+    def save(self):
+        # make an ID based on current content - builds from authors and title
+        currid = self.make_rid(self.data)
+        
+        # get record with the current ID, if it already exists, and if so merge it
+        exists = Record.get(currid)
+        if exists:
+            self.data = self.merge(self.data, exists.data)
+
+        # if this record has a mismatched ID, check if it already exists
+        # if so dedupe by merge then delete the old one
+        if self.id and self.id != currid:
+            old = Record.get(self.id)
+            if old:
+                self.data = cls.merge(self.data, old.data)
+                if '_sameas' not in self.data: self.data['_sameas'] = []
+                self.data['_sameas'].append(self.id)
+                old.delete()
+                
+        self.data['_id'] = currid
+        
+        if 'SITE_URL' in app.config:
+            self.data['url'] = app.config['SITE_URL'].rstrip('/') + '/record/' +  self.id
+            if 'identifier' not in self.data: self.data['identifier'] = []
+            if 'bibsoup' not in [i['type'] for i in self.data['identifier']]:
+                self.data['identifier'].append({'type':'bibsoup','url':self.data['url'],'id':self.id})
+        if '_created' not in self.data:
+            self.data['_created'] = datetime.now().strftime("%Y-%m-%d %H%M")
+        self.data['_last_modified'] = datetime.now().strftime("%Y-%m-%d %H%M")
+            
+        r = requests.post(self.target() + self.id, data=json.dumps(self.data))
+
+        Archive.store(self.data)
+
+    @classmethod
+    def bulk(cls, records):
+        for item in records:
+            new = Record(**item)
+            new.save()
+
+
+    def delete(self):
+        Archive.store(self.data, action='delete')
+        r = requests.delete( self.target() + self.id )
 
     @property
     def valuelist(self):
@@ -189,18 +258,18 @@ class Record(DomainObject):
                 for thing in obj:
                     valloop(thing)
             else:
-                searchvals.append(obj)
-        valloop(rec.data)
+                vals.append(obj)
+        valloop(self.data)
         return vals
+        
+    @property
+    def valuelist_string(self):
+        return json.dumps(self.valuelist)
 
     @property
-    def similar(self):    
+    def similar(self):
         res = Record.query(recid=self.id, endpoint='_mlt', q='mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3')
         return [i['_source'] for i in res['hits']['hits']]
-    
-    @property
-    def notes(self):
-        return Note.about(rec.id)
     
     @property
     def remote(self):
@@ -242,7 +311,7 @@ class Record(DomainObject):
                 elif len(parts) == 2:
                     res = record.get(parts[0],'')
                 elif len(parts) == 3:
-                    res = record[parts[0]][parts[1]]
+                    res = record.get(parts[0],{}).get(parts[1],'')
                 counter = len(parts) - 1
                 if res and isinstance(res, dict):
                     thevalue = res.get(parts[counter],'')  # this is a dict
@@ -273,53 +342,63 @@ class Record(DomainObject):
 class Collection(DomainObject):
     __type__ = 'collection'
 
-    @property
-    def records(self):
-        size = Record.query(terms={'collection':self['collection']})['hits']['total']
-        if size != 0:
-            res = [Record.get(i['_source']['_id']) for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
-        else: res = []
-        return res
+    def records(self, **kwargs):
+        return [Record.get(**i['_source']['_id']) for i in Record.query(terms={'_collection':self.id}, **kwargs).get('hits',{}).get('hits',[])]
 
-    @classmethod
-    def get_by_owner_coll(cls,owner,coll):
-        res = cls.query(terms={'owner':owner,'collection':coll})
-        if res['hits']['total'] == 1:
-            return cls(**res['hits']['hits'][0]['_source'])
-        else:
-            return None
+    def save(self):
+        if not self.id:
+            url = app.config.get('SITE_URL','').rstrip('/') + '/'
+            if self.owner:
+                url += self.owner + '/'
+            slug = util.slugify(self.data.get('name',uuid.uuid4().hex))
+            self.data['_id'] = self.owner + slug
+            self.data['url'] = url + slug
+        if '_created' not in self.data:
+            self.data['_created'] = datetime.now().strftime("%Y-%m-%d %H%M")
+        self.data['_last_modified'] = datetime.now().strftime("%Y-%m-%d %H%M")
+        r = requests.post(self.target() + self.id, data=json.dumps(self.data))
 
     def delete(self):
-        r = requests.delete( self.target + self.id )
-        for record in self.records:
-            #record.delete()- change to remove collection name from collection list
-            pass
+        r = requests.delete( self.target() + self.id )
+        count = 0
+        while count < len(self):
+            for record in self.records(_from=count,size=100):
+                record.data['_collection'].remove(self.id)
+                record.save()
+            count += 100
     
     def __len__(self):
-        res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})
-        return res['hits']['total']
+        return Record.query(terms={'_collection':self.id}).get('hits',{}).get('total',0)
 
     @property
     def owner(self):
         '''Get id of this object.'''
-        return self.data.get('owner', None)
+        return self.data.get('owner', '')
 
     
 class Archive(DomainObject, UserMixin):
     __type__ = 'archive'
     
     @classmethod
-    def store(cls, data):
+    def store(cls, data, action='update'):
         archive = Archive.get(data.get('_id',None))
         if not archive:
             return None
-        if not archive.data['store']: archive.data['store'] = {}
-        archive.data['store'][make_id(data)] = {'user': current_user.id, 'state': data}
+        if not archive.data['store']: archive.data['store'] = []
+        archive.data['store'].append({'user': current_user.id, 'state': data, 'action':action})
         archive.save()
     
     
 class Account(DomainObject, UserMixin):
     __type__ = 'account'
+
+    @classmethod
+    def get_by_email(cls,email):
+        res = cls.query(terms={'email':email})
+        if res.get('hits',{}).get('total',0) == 1:
+            return cls(**res['hits']['hits'][0]['_source'])
+        else:
+            return None
 
     def set_password(self, password):
         self.data['password'] = generate_password_hash(password)
@@ -330,25 +409,23 @@ class Account(DomainObject, UserMixin):
     @property
     def is_super(self):
         return bibserver.auth.user.is_super(self)
+
+    @property
+    def email(self):
+        return self.data['email']
+
+    def collections(self, **kwargs):
+        return [Collection.get(i['_source']['_id']) for i in Collection.query(terms={'owner':self.id},**kwargs).get('hits',{}).get('hits',[])]
     
-    @property
-    def collections(self):
-        colls = Collection.query(terms={'owner': [self.id]}, size=100000)
-        colls = [ Collection(**item['_source']) for item in colls['hits']['hits'] ]
-        return colls
-        
-    @property
-    def notes(self):
-        res = Note.query(terms={
-            'owner': [self.id]
-        })
-        allnotes = [ Note(**item['_source']) for item in res['hits']['hits'] ]
-        return allnotes
-        
+    def __len__(self):
+        return Collection.query(terms={'owner':self.id}).get('hits',{}).get('total',0)
+
     def delete(self):
-        r = requests.delete( self.target + self.id )
-        for coll in self.collections:
-            coll.delete()
-        for note in self.notes:
-            note.delete()
+        r = requests.delete( self.target() + self.id )
+        count = 0
+        while count < len(self):
+            for coll in self.collections(_from=count,size=100):
+                coll.delete()
+            count += 100
+
 

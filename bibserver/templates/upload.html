@@ -15,8 +15,8 @@
             <option value="">No thanks, just upload the records</option>
             <!--<option value="NEW">Hmm, make me a new collection to upload them to</option>
             <option value="">------------------------------</option>-->
-            {% for coll in current_user.collections%}
-                <option>{{coll.label}}</option>
+            {% for coll in current_user.collections(size=10000) %}
+                <option value="{{coll.id}}">{{coll.name}}</option>
             {% endfor %}
             </select>
 
@@ -34,8 +34,11 @@
         <p>We use the <a href="http://bibjson.org">BibJSON</a> conventions for storing and sharing bibliographic references, 
         so in order to upload records, you need a JSON file containing records that meet those conventions.</p>
         
+        <p>ONLINE CONVERSION SERVICES FROM POPULAR BIBLIOGRAPHIC FORMATS ARE COMING SOON.</p>
+        <!--
         <p>If you do not want to manually create such a file, you can use an 
         <a href="#">online conversion service</a> to do it for you.</p>
+        -->
         
         <p>Once you have a suitable file, either place it online somewhere and note 
         down the URL address, or store it on your own PC; then you can use it as your source file.</p>

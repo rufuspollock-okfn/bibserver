@@ -6,32 +6,35 @@
 <script type="text/javascript">
 jQuery(document).ready(function() {
     
-    var searcher = '<p style="text-align:right">search <select class="span2" id="extsrch_target">'
-    searcher += '<option value="/search?q=">This site</option>'
-    searcher += '<option value="/{{ rec.data.owner }}/{{ rec.data.collection }}?q=">The {{ rec.data.collection }} collection</option>'
-    var searchables = {{ searchables | safe }}
-    for ( var item in searchables ) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; }
-    searcher += '</select><br>for <input class="span2" id="extsrch_value" />'
-    jQuery('#searcher').append(searcher)
-    var searchvals = {{ searchvals | safe }}
-    jQuery('#extsrch_value').autocomplete({source:searchvals})
+    var searcher = '<p style="text-align:right">search <select class="span2" id="extsrch_target">';
+    searcher += '<option value="/search?q=">This site</option>';
+    var colls = {{ rec.data.collection }};
+    for (coll in colls) {
+        searcher += '<option value="/' + coll + '?q=">The ' + coll + ' collection</option>';
+    };
+    var searchables = {{ searchables | safe }};
+    for ( var item in searchables ) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; };
+    searcher += '</select><br>for <input class="span2" id="extsrch_value" />';
+    jQuery('#searcher').append(searcher);
+    var searchvals = {{ rec.valuelist_string | safe }};
+    jQuery('#extsrch_value').autocomplete({source:searchvals});
 
     var dosearch = function(event) {
-        var target = jQuery('#extsrch_target').val()
-        var value = jQuery('#extsrch_value').val()
+        var target = jQuery('#extsrch_target').val();
+        var value = jQuery('#extsrch_value').val();
         if ( target.match("XXXX") ) {
-            var href = target.replace("XXXX",value)
+            var href = target.replace("XXXX",value);
         } else {
-            var href = target + value
-        }
-        window.open(href)
-        //window.location = href
-    }
+            var href = target + value;
+        };
+        window.open(href);
+        //window.location = href;
+    };
     var checkenter = function(event) {
-        var keycode = (event.keyCode ? event.keyCode : event.which)
-        if (keycode == '13') { dosearch(event) }
-    }
-    jQuery('#extsrch_value').bind('keyup',checkenter)
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if (keycode == '13') { dosearch(event) };
+    };
+    jQuery('#extsrch_value').bind('keyup',checkenter);
     
 });
 </script>
@@ -46,10 +49,40 @@ jQuery(document).ready(function() {
 
 <div class="row">
 
-    <div id="panel" class="span8">
+    <div id="panel" class="span7">
     {% if not current_user.is_anonymous() %}
         <h3>Edit this record</h3>
+        <p>COMING SOON</p>
     {% endif %}
+    </div>
+    <div class="span5">
+        <div class="alert alert-success">
+        {% if rec.isin['yours']|length %}
+            <br>in your collections: 
+            <select>
+            {% for item in rec.isin['yours'] %}
+                <option value="{{item}}">{{item}}</option>
+            {% endfor %}
+            </select>
+        {% endif %}
+        {% if current_user|length %}
+            <br>add to your: <select>
+            {% for coll in current_user.collections(size=10000) %}
+                {% if coll.name not in rec.isin['yours'] %}
+                    <option value="{{coll.id}}">{{coll.name.replace(current_user.id,'')}}</option>
+                {% endif %}
+            {% endfor %}
+            </select>
+        {% endif %}    
+        {% if rec.isin['other']|length %}
+            <br>also in: <select>
+            {% for item in rec.isin['other'] %}
+                <option value="{{item}}">{{item}}</option>
+            {% endfor %}
+            </select>
+        {% endif %}
+        <br>add public tag: <input type="text" />
+        </div>
     </div>
         
 </div>
