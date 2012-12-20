@@ -90,7 +90,7 @@
             }
             if ( first ) {
                 $('.jtedit_value').bind('blur',updates);
-                $('.jtedit_value').bindWithDelay('keyup',updates,5000);
+                $('.jtedit_value').bindWithDelay('keyup',updates,1000);
                 $('#jtedit_json').val(JSON.stringify(options.data,"","    "));
             } else {
                 updates();
@@ -101,23 +101,27 @@
         // parse visualised values from the page
         var parsevis = function() {
             function parser(scope, path, value) {
-                var path = path.split('_'), i = 1, lim = path.length;
+                var i = 0, lim = path.length;
                 for (; i < lim; i += 1) {
                     if (typeof scope[path[i]] === 'undefined') {
-                        parseInt(path[i+1]) == 0 ? scope[path[i]] = [] : scope[path[i]] = {};
+                        !isNaN(parseInt(path[i+1])) ? scope[path[i]] = [] : scope[path[i]] = {};
                     };
                     i === lim - 1 ? scope[path[i]] = value : scope = scope[path[i]];
                 };
             };
             var scope = {};
             $('.jtedit_value').each(function() {
-                var classes = $(this).attr('class').split(/\s+/);
-                for ( var cls in classes ) {
-                    if ( classes[cls].indexOf('jtedit_') == 0 && classes[cls] != 'jtedit_value' ) {
-                        var path = classes[cls];
-                        break;
+                if ( $(this).attr('data-path') !== undefined ) {
+                    var path = $(this).attr('data-path').split(/\./);
+                } else {
+                    var classes = $(this).attr('class').split(/\s+/);
+                    for ( var cls in classes ) {
+                        if ( classes[cls].indexOf('jtedit_') == 0 && classes[cls] != 'jtedit_value' ) {
+                            var path = classes[cls].split('_').slice(1);
+                            break;
+                        };
                     };
-                };           
+                };
                 parser(scope, path, $(this).val());
             });
             options.data = $.extend(true,options.data,scope);
@@ -231,7 +235,7 @@
         if (!options.target) {
             alert('There is no available source URL to delete from');
         } else {
-            var confirmed = confirm("You are about to irrevocably delete this. Are you sure you want to do so?");
+            var confirmed = confirm("You are about to delete this record. Are you sure you want to do so?");
             if (confirmed) {
                 $.ajax({
                     url: options.target

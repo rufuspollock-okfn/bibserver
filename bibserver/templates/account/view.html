@@ -2,41 +2,23 @@
 
 {% block content %}
 
-<script type="text/javascript">
-jQuery(document).ready(function() {
-    jQuery('#panel').facetview( {{ search_options | safe }} )
-});
-</script>
-
 {% if admin %}
-
-    <script type="text/javascript">
-    jQuery(document).ready(function() {
-        /*jQuery('#user').jtedit({
-            "data": {{ record | safe }}, 
-            "hide": ["api_key","_created","_last_modified","_id"], 
-            "target": "#",
-            "delete_redirect": "/"
-        })*/
-    });
-    </script>
 
     <div class="hero-unit clearfix">
         <div class="span5">
-            {% if current_user.id == account.id %}
-                <h2>Hi {{ current_user.id }}</h2>
-                <p>About you:<br><textarea>{{ current_user.description }}</textarea></p>
-            {% endif %}
-            {% if superuser %}
+            <h2>Hi {{ current_user.id }}</h2>
+            <p>{{ current_user.description }}</p>
+            {% if current_user.is_super %}
                 <p>You are the superuser! You can view and edit anything!</p>
             {% endif %}
         </div>
         <div id="user" class="span5">
-            <p>Change your email address: <input type="text" /></p>
-            <p>Change your password: <input type="text" /></p>
-            <p><a class="btn" href="#">Save changes</a> <a class="btn btn-danger" href="#">Delete account</a></p>
-            <small>Your api_key is {{account['api_key']}} 
-            <a href="http://bibserver.readthedocs.org/en/latest/api.html"><br>Check out the docs</a> to learn more.</small>
+            <div class="btn-group" style="margin-bottom:20px;">
+                <a class="btn btn-large" href="/{{ account.id }}/collections">View all your collections</a>
+                <a class="btn btn-large btn-danger" href="{{ url_for('account.logout') }}">Logout</a>
+            </div>
+            <small>Your api_key is {{account['api_key']}} <br>
+            <a href="http://bibserver.readthedocs.org/en/latest/api.html">Check out the docs</a> to learn more.</small>
         </div>
     </div>
 
@@ -48,7 +30,7 @@ jQuery(document).ready(function() {
             <p>{{ account.description }}</p>
         </div>
         <div class="span5">
-            <p>View all of this users collections <br>and all the records in their collections</p>
+            <p><a class="btn" href="/{{ account.id }}/collections">View collections</a></p>
         </div>
     </div>
     

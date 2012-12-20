@@ -1,0 +1,20 @@
+WTForms is written and maintained by the WTForms Team and various contributors.
+
+Lead Developers:
+
+- Thomas Johansson <prencher@prencher.dk>
+- James Crasta <james@crasta.com>
+
+Contributors:
+
+- Adam Lowry
+- Ali Aafshar
+- Andreas Madsack
+- Christopher Grebs
+- Eduardo Schettino
+- Emil Vladev
+- Jean-Philippe Serafin
+- Rodrigo Moraes
+- Sebastian Wiesner
+- Vinay Sajip
+

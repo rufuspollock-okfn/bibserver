@@ -1,7 +1,7 @@
 # this is the data access layer
 import json, UserDict, requests, uuid
 from datetime import datetime
-import hashlib
+import hashlib, re, time
 
 from bibserver.core import app, current_user
 
@@ -14,7 +14,6 @@ import bibserver.auth
     
 class InvalidDAOIDException(Exception):
     pass
-
     
 class DomainObject(UserDict.IterableUserDict):
     # set __type__ on inheriting class to determine elasticsearch object
@@ -114,8 +113,8 @@ class DomainObject(UserDict.IterableUserDict):
         if facets:
             if 'facets' not in query:
                 query['facets'] = {}
-            for item in facet_fields:
-                query['facets'][item['key']] = {"terms":item}
+            for k, v in facets.items():
+                query['facets'][k] = {"terms":v}
 
         if terms:
             boolean = {'must': [] }
@@ -146,6 +145,28 @@ class DomainObject(UserDict.IterableUserDict):
 
 class Record(DomainObject):
     __type__ = 'record'
+
+    @classmethod
+    def get(cls, id_):
+        '''Retrieve object by id.'''
+        if id_ is None:
+            return None
+        try:
+            out = requests.get(cls.target() + id_)
+            if out.status_code == 404:
+                return None
+            else:
+                rec = cls(**out.json)
+                rec.data['_views'] = int(rec.data.get('_views',0)) + 1
+                rec.data['_last_viewed'] = datetime.now().strftime("%Y-%m-%d %H%M")
+                r = requests.post(rec.target() + rec.id, data=json.dumps(rec.data))
+                return rec
+        except:
+            return None
+
+    @property
+    def views(self):
+        return self.data.get('_views',0)
 
     @classmethod
     def make_rid(cls,data):
@@ -183,45 +204,87 @@ class Record(DomainObject):
         a.update(b)
         return a
 
+    @property
+    def history(self):
+        archive = Archive.get(self.data.get('_id',None))
+        if archive:
+            return archive.data.get('store',[])
+        else:
+            return []
+    
     # remove a record from a collection - bypasses the main save which always tries to greedily retain info    
     def removefromcollection(self,collid):
+        collid = collid.replace('/','_____')
         if collid in self.data.get('_collection',[]):
-            self.data.get('_collection',[].remove(collid))
+            self.data['_collection'].remove(collid)
         r = requests.post(self.target() + self.id, data=json.dumps(self.data))
         Archive.store(self.data)
 
-    # returns the collections of this record, split into two - yours, and not yours
+    def addtocollection(self,collid):
+        collid = collid.replace('/','_____')
+        if '_collection' not in self.data:
+            self.data['_collection'] = []
+        if collid not in self.data['_collection']:
+            self.data['_collection'].append(collid)
+        r = requests.post(self.target() + self.id, data=json.dumps(self.data))
+        Archive.store(self.data)
+
+    # add or remove a tag to a record
+    def removetag(self,tagid):
+        if tagid in self.data.get('_tag',[]):
+            self.data['_tag'].remove(tagid)
+        r = requests.post(self.target() + self.id, data=json.dumps(self.data))
+        Archive.store(self.data)
+
+    def addtag(self,tagid):
+        if '_tag' not in self.data:
+            self.data['_tag'] = []
+        if tagid not in self.data['_tag']:
+            self.data['_tag'].append(tagid)
+        r = requests.post(self.target() + self.id, data=json.dumps(self.data))
+        Archive.store(self.data)
+
+    # returns a list of current users collections that this record is in
     @property
-    def isin(self):
-        colls = {'yours':[],'other':[]}
-        for item in self.data['_collection']:
-            if item.startswith(current_user.id):
-                colls['yours'].append(item.replace(current_user.id,''))
-            else:
-                colls['other'].append(item)
+    def isinmy(self):
+        colls = []
+        if current_user is not None and not current_user.is_anonymous():
+            for item in self.data['_collection']:
+                if item.startswith(current_user.id):
+                    colls.append(item)
         return colls
             
     def save(self):
-        # make an ID based on current content - builds from authors and title
-        currid = self.make_rid(self.data)
-        
-        # get record with the current ID, if it already exists, and if so merge it
-        exists = Record.get(currid)
-        if exists:
-            self.data = self.merge(self.data, exists.data)
+        # archive the old version
+        if app.config['ARCHIVING']:
+            Archive.store(self.data)
 
-        # if this record has a mismatched ID, check if it already exists
-        # if so dedupe by merge then delete the old one
-        if self.id and self.id != currid:
-            old = Record.get(self.id)
-            if old:
-                self.data = cls.merge(self.data, old.data)
+        # make an ID based on current content - builds from authors and title
+        derivedID = self.make_rid(self.data)
+
+        # look for any stored record with the derived ID
+        exists = requests.get(self.target() + derivedID)
+        if exists.status_code == 200:
+            # where found, merge with current data and this record will be overwritten on save
+            self.data = self.merge(self.data, exists.json)
+
+        # if this record has a new ID, need to merge the old record and delete it
+        if self.id != derivedID:
+            old = requests.get(self.target() + self.id)
+            if old.status_code == 200:
+                self.data = self.merge(self.data, old.json)
                 if '_sameas' not in self.data: self.data['_sameas'] = []
                 self.data['_sameas'].append(self.id)
-                old.delete()
-                
-        self.data['_id'] = currid
+                Archive.store(self.data, action='delete')
+                r = requests.delete( self.target() + self.id )
+
+        # ensure the latest ID is used by this record now                
+        self.data['_id'] = derivedID
         
+        # make sure all collection refs are lower-cased
+        self.data['_collection'] = [i.lower() for i in self.data.get('_collection',[])]
+        
+        # update site url, created date, last modified date
         if 'SITE_URL' in app.config:
             self.data['url'] = app.config['SITE_URL'].rstrip('/') + '/record/' +  self.id
             if 'identifier' not in self.data: self.data['identifier'] = []
@@ -232,20 +295,29 @@ class Record(DomainObject):
         self.data['_last_modified'] = datetime.now().strftime("%Y-%m-%d %H%M")
             
         r = requests.post(self.target() + self.id, data=json.dumps(self.data))
+        return r.status_code
 
-        Archive.store(self.data)
 
     @classmethod
     def bulk(cls, records):
+        # TODO: change this to a bulk es save
         for item in records:
             new = Record(**item)
-            new.save()
-
+            success = 0
+            attempts = 0
+            while success != 200 and attempts < 10:
+                time.sleep(attempts * 0.1)
+                success = new.save()
+                attempts += 1
 
     def delete(self):
         Archive.store(self.data, action='delete')
         r = requests.delete( self.target() + self.id )
 
+    def similar(self,field="title"):
+        res = Record.query(recid=self.id, endpoint='_mlt', q='mlt_fields=' + field + '&min_term_freq=1&percent_terms_to_match=1&min_word_len=3')
+        return [Record(**i['_source']) for i in res['hits']['hits']]
+    
     @property
     def valuelist(self):
         # a list of all the values in the record
@@ -266,11 +338,6 @@ class Record(DomainObject):
     def valuelist_string(self):
         return json.dumps(self.valuelist)
 
-    @property
-    def similar(self):
-        res = Record.query(recid=self.id, endpoint='_mlt', q='mlt_fields=title&min_term_freq=1&percent_terms_to_match=1&min_word_len=3')
-        return [i['_source'] for i in res['hits']['hits']]
-    
     @property
     def remote(self):
         # check any listed external APIs for relevant data to return
@@ -297,8 +364,36 @@ class Record(DomainObject):
         if img:
             result += '<img class="thumbnail" style="float:left; width:100px; margin:0 5px 10px 0; max-height:150px;" src="' + img[0] + '" />'
 
-        # add the record based on display template if available
         record = self.data
+        lines = ''
+        if 'title' in record:
+            lines += '<h2>' + record['title'] + '</h2>'
+        if 'author' in record:
+            lines += '<p>'
+            authors = False
+            for obj in record.get('author',[]):
+                if authors: lines += ', '
+                lines += obj.get('name','')
+                authors = True
+            lines += '</p>'
+        if 'journal' in record:
+            lines += '<p><i>' + record['journal'].get('name','') + '</i>'
+            if 'year' in record:
+                lines += ' (' + record['year'] + ')'
+            lines += '</p>'
+        elif 'year' in record:
+            lines += '<p>(' + record['year'] + ')</p>'
+        if 'link' in record:
+            for obj in record['link']:
+                lines += '<small><a target="_blank" href="' + obj['url'] + '">'
+                if 'anchor' in obj:
+                    lines += obj['anchor']
+                else:
+                    lines += obj['url']
+                lines += '</a></small>'    
+        
+        # add the record based on display template if available
+        '''record = self.data
         display = app.config['SEARCH_RESULT_DISPLAY']
         lines = ''
         for lineitem in display:
@@ -331,7 +426,10 @@ class Record(DomainObject):
                     line += obj.get('post','')
             if line:
                 lines += line + "<br />"
+        '''
         if lines:
+            #URL_REGEX = re.compile(r'''((?:ftp://|http://|https://)[^ <>'"{}|\\^`[\]]*)''')
+            #lines = URL_REGEX.sub(r'<a target="_blank" href="\1">\1</a>', lines)
             result += lines
         else:
             result += json.dumps(record,sort_keys=True,indent=4)
@@ -342,29 +440,56 @@ class Record(DomainObject):
 class Collection(DomainObject):
     __type__ = 'collection'
 
+    @classmethod
+    def get(cls, id_):
+        '''Retrieve object by id.'''
+        if id_ is None:
+            return None
+        try:
+            id_ = id_.replace('/','_____')
+            out = requests.get(cls.target() + id_)
+            if out.status_code == 404:
+                return None
+            else:
+                rec = cls(**out.json)
+                rec.data['_views'] = int(rec.data.get('_views',0)) + 1
+                rec.data['_last_viewed'] = datetime.now().strftime("%Y-%m-%d %H%M")
+                r = requests.post(rec.target() + rec.id, data=json.dumps(rec.data))
+                return rec
+        except:
+            return None
+
+    @property
+    def views(self):
+        return self.data.get('_views',0)
+        
     def records(self, **kwargs):
         return [Record.get(**i['_source']['_id']) for i in Record.query(terms={'_collection':self.id}, **kwargs).get('hits',{}).get('hits',[])]
 
     def save(self):
+        if not self.owner and not current_user.is_anonymous() and not self.data.get('public',False):
+            self.data['owner'] = current_user.id
+        if not self.data.get('slug',False):
+            self.data['slug'] = util.slugify(self.data.get('name',uuid.uuid4().hex))
         if not self.id:
+            self.data['_id'] = self.owner + '_____' + self.data['slug']
+        if not self.data.get('url',False):
             url = app.config.get('SITE_URL','').rstrip('/') + '/'
             if self.owner:
                 url += self.owner + '/'
-            slug = util.slugify(self.data.get('name',uuid.uuid4().hex))
-            self.data['_id'] = self.owner + slug
-            self.data['url'] = url + slug
+            self.data['url'] = url + self.data['slug']
         if '_created' not in self.data:
             self.data['_created'] = datetime.now().strftime("%Y-%m-%d %H%M")
         self.data['_last_modified'] = datetime.now().strftime("%Y-%m-%d %H%M")
         r = requests.post(self.target() + self.id, data=json.dumps(self.data))
+        print r.text
 
     def delete(self):
         r = requests.delete( self.target() + self.id )
         count = 0
         while count < len(self):
             for record in self.records(_from=count,size=100):
-                record.data['_collection'].remove(self.id)
-                record.save()
+                record.removefromcollection(self.id)
             count += 100
     
     def __len__(self):
@@ -372,21 +497,34 @@ class Collection(DomainObject):
 
     @property
     def owner(self):
-        '''Get id of this object.'''
-        return self.data.get('owner', '')
+        return self.data.get('owner','')
 
     
-class Archive(DomainObject, UserMixin):
+class Archive(DomainObject):
     __type__ = 'archive'
     
     @classmethod
     def store(cls, data, action='update'):
         archive = Archive.get(data.get('_id',None))
         if not archive:
-            return None
-        if not archive.data['store']: archive.data['store'] = []
-        archive.data['store'].append({'user': current_user.id, 'state': data, 'action':action})
-        archive.save()
+            archive = Archive(_id=data.get('_id',None))
+        if archive:
+            if 'store' not in archive.data: archive.data['store'] = []
+            try:
+                who = current_user.id
+            except:
+                who = data.get('_created_by','anonymous')
+            archive.data['store'].insert(0, {
+                'date':data.get('_last_modified', datetime.now().strftime("%Y-%m-%d %H%M")), 
+                'user': who,
+                'state': data, 
+                'action':action
+            })
+            archive.save()
+    
+    
+class SearchHistory(DomainObject):
+    __type__ = 'searchhistory'
     
     
 class Account(DomainObject, UserMixin):
@@ -394,11 +532,31 @@ class Account(DomainObject, UserMixin):
 
     @classmethod
     def get_by_email(cls,email):
-        res = cls.query(terms={'email':email})
+        res = cls.query(q='email:"' + email + '"')
         if res.get('hits',{}).get('total',0) == 1:
             return cls(**res['hits']['hits'][0]['_source'])
         else:
             return None
+
+    @property
+    def recentsearches(self):
+        if app.config.get('QUERY_TRACKING', False):
+            res = SearchHistory.query(terms={'user':self.id}, sort={"_created":{"order":"desc"}})
+            return [i.get('_source',{}) for i in res.get('hits',{}).get('hits',[])]
+        else:
+            return []
+
+    @property
+    def recentviews(self):
+        return self.data.get('recentviews',[])
+
+    def addrecentview(self, rid):
+        if 'recentviews' not in self.data:
+            self.data['recentviews'] = []
+        self.data['recentviews'].insert(0, rid)
+        if len(self.data['recentviews']) > 100:
+            del self.data['recentviews'][100]
+        self.save()
 
     def set_password(self, password):
         self.data['password'] = generate_password_hash(password)
@@ -414,7 +572,7 @@ class Account(DomainObject, UserMixin):
     def email(self):
         return self.data['email']
 
-    def collections(self, **kwargs):
+    def collections(self, sort={"slug.exact":{"order":"asc"}}, **kwargs):
         return [Collection.get(i['_source']['_id']) for i in Collection.query(terms={'owner':self.id},**kwargs).get('hits',{}).get('hits',[])]
     
     def __len__(self):
@@ -429,3 +587,29 @@ class Account(DomainObject, UserMixin):
             count += 100
 
 
+class UnapprovedAccount(Account):
+    __type__ = 'unapprovedaccount'
+    
+    def requestvalidation(self):
+        # send an email to account email address and await response, unless in debug mode
+        # validate link is like http://siteaddr.net/username?validate=key
+        msg = "Hello " + self.id + "\n\n"
+        msg += "Thanks for signing up with " + app.config['SERVICE_NAME'] + "\n\n"
+        msg += "In order to validate and enable your account, please follow the link below:\n\n"
+        msg += app.config['SITE_URL'] + "/" + self.id + "?validate=" + self.data['validate_key'] + "\n\n"
+        msg += "Thanks! We hope you enjoy using " + app.config['SERVICE_NAME']
+        if not app.config['DEBUG']:
+            util.send_mail([self.data['email']], [app.config['EMAIL_FROM']], 'validate your account', msg)
+        
+    def validate(self,key):
+        # accept validation and create new account
+        if key == self.data['validate_key']:
+            del self.data['validate_key']
+            account = Account(**self.data)
+            account.save()
+            self.delete()
+            return account
+        else:
+            return None
+            
+            

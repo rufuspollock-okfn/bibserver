@@ -8,6 +8,18 @@
     })
 </script>
 
+    {% if not current_user.is_anonymous() %}
+        {% if not owner %}
+            <p>
+                <a class="btn" href="/{{ current_user.id }}/collections">View only your own collections</a>
+                <a class="btn" href="/create/collection">Create a new collection</a>
+            </p>
+        {% else %}
+            <h3 style="margin-bottom:10px;">Collections belonging to <a href="/{{owner}}">{{owner}}</a></h3>
+            <p><a class="btn" href="/create/collection">Create a new collection</a></p>
+        {% endif %}
+    {% endif %}
+    
     <div id="panel">
 
     </div>

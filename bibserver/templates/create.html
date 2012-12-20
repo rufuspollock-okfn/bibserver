@@ -3,6 +3,7 @@
 {% block content %}
 <script type="text/javascript" charset="utf-8">
 jQuery(document).ready(function() {
+
     var newcoll = function(event) {
         event.preventDefault();
         $('.newrecord').hide();
@@ -24,37 +25,47 @@ jQuery(document).ready(function() {
         'data':{}, 
         'makeform': false, 
         'actionbuttons': false,
+        'jsonbutton': false,
         'target': '/record',
         'delmsg':"", 
         'savemsg':"", 
         "saveonupdate":false, 
         "reloadonsave":""
     });
+    $('#jtedit_json').css({"width":"100%","min-height":"400px"}).toggle();
     var submitrecord = function(event) {
         event.preventDefault();
         $.fn.jtedit.saveit();
     };
     $('.submitrecord').bind('click',submitrecord);
-    $('.jtedit_title').focus().blur();
+    $('.jtedit_value').first().focus().blur();
     
     var addauthor = function(event) {
         event.preventDefault();
         var current = parseInt($(this).attr('href')) + 1;
-        $(this).attr('href',current.toString());
-        var newauthor = '<br><span class="upload_label">author ' + (current + 1).toString() + ':</span> <input type="text" class="jtedit_value jtedit_author_' + current.toString() + '_name" />';
-        $(this).parent().before(newauthor);
+        var newauthor = '<div><span class="upload_label"><a title="add another" id="addauthor" style="font-size:140%;font-weight:bold;" href="' + current.toString() + '"> + </a> author ' + (current + 1).toString() + ':</span> <input type="text" class="jtedit_value" data-path="author.' + current.toString() + '.name" /></div>';
+        $(this).parent().parent().after(newauthor);
+        $(this).remove();
+        $('#addauthor').bind('click',addauthor);
     };
     $('#addauthor').bind('click',addauthor);
     var addlink = function(event) {
         event.preventDefault();
         var current = parseInt($(this).attr('href')) + 1;
-        $(this).attr('href',current.toString());
-        var newlink = '<br><span class="upload_label">link ' + (current + 1).toString() + ':</span> <input type="text" class="jtedit_value jtedit_link_' + current.toString() + '_url" />';
-        $(this).parent().before(newlink);
+        var newlink = '<div><span class="upload_label"><a title="add another" id="addlink" style="font-size:140%;font-weight:bold;" href="' + current.toString() + '"> + </a> link ' + (current + 1).toString() + ':</span> <input type="text" class="jtedit_value" data-path="link.' + current.toString() + '.url" /></div>';
+        $(this).parent().parent().after(newlink);
+        $(this).remove();
+        $('#addlink').bind('click',addlink);
     };
     $('#addlink').bind('click',addlink);
     
-    $('.newcollection').show();
+    {% if rtype == 'collection' %}
+        $('#newcoll').trigger('click');
+    {% endif %}
+    {% if rtype == 'record' %}
+        $('#newrec').trigger('click');
+    {% endif %}
+    
 });
 
 // Retrieve the available license options from http://licenses.opendefinition.org/
@@ -74,29 +85,29 @@ jQuery.ajax({
 });
 </script>            
 
-<div class="row">
+<div class="row-fluid">
+    <div class="span12">
+        <div class="btn-group" data-toggle="buttons-radio" style="margin-bottom:10px; display:none;">
+            <button type="button" class="btn btn-large" id="newcoll">New collection</button>
+            <button type="button" class="btn btn-large" id="newrec">New record</button>
+        </div>
+    </div>
+</div>
+
+<div class="row-fluid">
     <div class="span6">
     <div class="hero-unit">
         
-            <h2><a href="#" class="newcollection" id="newcoll">Create a new collection</a></h2>
-            <!--<h2><a href="#" class="newrecord" id="newrec">Create a new record</a></h2>-->
-            <h3>CREATE NEW RECORD COMING SOON</h3>
-
             <div class="newcollection" style="display:none;">
                 <form action="/create" method="POST" enctype="multipart/form-data">
                     <p>Create a new collection then <a href="/search">search</a> for records to add to it. Alternatively, <a href="/upload">upload</a> a collection from your own source.</p>
-                    <!--<small><br><a href="#" class="newrecback">(or go back to creating a record)</a><br></small>-->
 
                     <br /><span class="upload_label">name your collection:</span> <input id="collection" type="text" name="collection" />
 
                     <br /><span class="upload_label">provide a description:</span> <textarea id="description" name="description"></textarea>
                     
                     <br /><span class="upload_label">collection license:</span> <select class="license_choice" name="license"></select>
-                    
-                    <br /><span class="upload_label">make it public:</span> <input type="checkbox" name="public" /> 
-                    
-                    <br /><br /><small>(all collections are publicly viewable, but explicitly making it public means that anyone can add or remove records to the collection, or delete it. It's like a shared tag, instead of a collection you personally manage.)</small>
-                                
+                                                                        
                     <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large" type="submit" name="submit" value="create collection" />            
                 </form>
             </div>
@@ -105,23 +116,22 @@ jQuery.ajax({
                 <form action="/create" method="POST" enctype="multipart/form-data">
                             
                     <p>Make a new record, add it to one of your collections.</p>
-                    <small><br><a href="#" class="newcollback">(or go back to creating a collection)</a><br></small>
                     
-                    <br /><span class="upload_label">title:</span> <input type="text" name="title" class="jtedit_value jtedit_title" />
-                    <br /><span class="upload_label"><a title="add another" id="addauthor" style="font-size:140%;font-weight:bold;" href="0"> + </a> author:</span> <input type="text" name="author_0_name" class="jtedit_value jtedit_author_0_name" />
-                    <br /><span class="upload_label">year:</span> <input type="text" name="year" class="jtedit_value jtedit_year" />
-                    <br /><span class="upload_label">type:</span> <input type="text" name="type" class="jtedit_value jtedit_type" />
-                    <br /><span class="upload_label">abstract:</span> <textarea type="text" name="abstract" class="jtedit_value jtedit_abstract"></textarea>
-                    <br /><span class="upload_label">license:</span> <select class="license_choice jtedit_value jtedit_license_0_type" name="license"></select>
+                    <div><span class="upload_label">title:</span> <input type="text" name="title" data-path="title" class="jtedit_value" /></div>
+                    <div><span class="upload_label"><a title="add another" id="addauthor" style="font-size:140%;font-weight:bold;" href="0"> + </a> author:</span> <input type="text" name="author_0_name" class="jtedit_value" data-path="author.0.name" /></div>
+                    
+                    <div><span class="upload_label">year:</span> <input type="text" name="year" class="jtedit_value" data-path="year" />
+                    </div><div><span class="upload_label">type:</span> <input type="text" name="type" class="jtedit_value" data-path="type" />
+                    </div><div><span class="upload_label">abstract:</span> <textarea type="text" name="abstract" class="jtedit_value" data-path="abstract"></textarea>
+                    </div><div><span class="upload_label">license:</span> <select class="license_choice jtedit_value" data-path="license.0.type" name="license"></select>
 
-
-                    <br /><span class="upload_label"><a title="add another" id="addlink" style="font-size:140%;font-weight:bold;" href="0"> + </a> link:</span> <input type="text" name="link_0_url" class="jtedit_value jtedit_link_0_url" />
-                    <br /><span class="upload_label">DOI:</span> <input type="hidden" class="jtedit_value jtedit_identifier_0_type" value="DOI" /><input type="text" name="identifier_0_id" class="jtedit_value jtedit_identifier_0_id" />
-                    <br /><span class="upload_label">journal name:</span> <input type="text" name="journal_name" class="jtedit_value jtedit_journal_name" />
+                    </div><div><span class="upload_label"><a title="add another" id="addlink" style="font-size:140%;font-weight:bold;" href="0"> + </a> link:</span> <input type="text" name="link_0_url" class="jtedit_value" data-path="link.0.url" />
+                    </div><div><span class="upload_label">DOI:</span> <input type="hidden" class="jtedit_value" data-path="identifier.0.type" value="DOI" /><input type="text" name="identifier_0_id" class="jtedit_value" data-path="identifier.0.id" />
+                    </div><div><span class="upload_label">journal name:</span> <input type="text" name="journal_name" class="jtedit_value" data-path="journal.name" /></div>
                     
                     <hr></hr>
                     
-                    <br /><span class="upload_label">add to collection:</span> <select name="collection" id="collection" class="jtedit_value jtedit_collection_0">
+                    <div><span class="upload_label">add to collection:</span> <select name="collection" id="collection" class="jtedit_value" data-path="collection.0">
                     <option value="">No thanks, just create the record</option>
                     <!--<option value="NEW">Hmm, make me a new collection to upload them to</option>
                     <option value="">------------------------------</option>-->
@@ -129,11 +139,11 @@ jQuery.ajax({
                         <option value="{{coll.id}}">{{coll.name}}</option>
                     {% endfor %}
                     </select>
-                    <small><br>If you don't see the collection you want, <a href="#" class="newcollback">go and create one first</a>.<br>Then come back and make your new record.<br></small>
+                    <small><br>If you don't see the collection you want, <a href="#" class="newcollback">go and create one first</a>.<br>Then come back and make your new record.<br></small></div>
 
                     <hr></hr>
                     
-                    <br /><br /><span class="upload_label"></span> <input class="btn btn-primary large submitrecord" type="submit" name="submit" value="create record" />
+                    <div><span class="upload_label"></span> <input class="btn btn-primary large submitrecord" type="submit" name="submit" value="create record" /></div>
                                         
                 </form>
             </div>
@@ -143,10 +153,10 @@ jQuery.ajax({
     
     <div class="span6 newrecord" style="display:none;">
     <div class="hero-unit">
-        <p>You can view and edit the JSON record directly if you prefer.</p>
+        <p>You can directly edit the JSON for more control.</p>
         <div id="creator" class="clearfix"></div>
-        <p><input class="btn btn-primary large submitrecord" style="margin-left:20px;" type="submit" name="submit" value="create record" /></p>
-        <small><br /><br />Check out the <a href="http://bibjson.org">bibjson conventions</a> for hints on how to create a suitable record.</small>
+        <p><input class="btn btn-primary large submitrecord" type="submit" name="submit" value="create record" /></p>
+        <small><br /><br />Check out the <a target="_blank" href="http://bibjson.org">bibjson conventions</a> for hints on how to create a suitable record.</small>
     </div>
     </div>
     

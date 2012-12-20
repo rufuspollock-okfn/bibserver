@@ -2,27 +2,31 @@
 
 {% block content %}
 
+    <style type="text/css">
+        body{padding-top:100px;}
+    </style>
+
     <script type="text/javascript">
     jQuery(document).ready(function() {
 
         var bubble = function(data) {
-            $('#collections').html('');
-            var r = jQuery('#collections').width(),
+            $('#bubbles').show().html('');
+            var r = jQuery('#bubbles').width(),
                 format = d3.format(",d"),
                 fill = d3.scale.category20c();
             var bubble = d3.layout.pack()
                 .sort(null)
                 .size([r, r]);
-            var vis = d3.select("#collections").append("svg:svg")
+            var vis = d3.select("#bubbles").append("svg:svg")
                 .attr("width", r)
-                .attr("height", r)
+                .attr("height", r-20)
                 .attr("class", "bubble")
             var node = vis.selectAll("g.node")
                 .data(bubble(data)
                 .filter(function(d) { return !d.children; }))
                 .enter().append("svg:g")
                 .attr("class", "node")
-                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+                .attr("transform", function(d) { return "translate(" + d.x + "," + (d.y-20) + ")"; });
             node.append("svg:circle")
                 .attr("r", 0)
                 .attr("fill", function(d) { return fill(d.data.packageName); })
@@ -30,14 +34,7 @@
                 .attr("stroke", function(d) { d3.rgb(fill(d.data.packageName)).darker()})
                 .transition().duration(2300).attr("r", function(d) { return d.r; })
             node.on('click',function(d) {
-                //clickbubble(d)
                 showtitle(d)
-            })
-            node.on('mouseover',function(d) {
-                //showtitle(d)
-            })
-            node.on('mouseout', function(d) {
-                //$('#header').html("");
             })
         };
         var indata = {{ colldata | safe }};
@@ -53,62 +50,54 @@
             }
             sdata["children"].push(arr);
         }
-        bubble(sdata);
 
         var showtitle = function(data) {
-            var title = '<h1><small>' + $('#bubbletype').val() + '</small> ' + data.data.className + ' <small> has ' + data.value;
-            data.value == 1 ? title += ' record' : title += ' records';
-            title += '</small></h1>';
-            data.data.description ? title += '<p>' + data.data.description + '</p>' : "";
-            /*if ( $('#bubbletype').val() == 'collection' ) {
-                title += '<p>Created by ' + data.data.owner + '. Click the bubble to browse the records in this collection.</p>';
+            var title = ''
+            if ( data.data.className.length != 0 ) { 
+                title += '<h3><small>' + $('#bubbletype').val() + '</small> ' + data.data.className + ' <small> has ' + data.value;
+                data.value == 1 ? title += ' record' : title += ' records';
             } else {
-                title += 'Click the bubble to show results in ' + data.data.className; 
-            }*/
+                title += '<h3><small>There are ' + data.value;
+                data.value == 1 ? title += ' record' : title += ' records';
+                title += ' with no ' + $('#bubbletype').val();
+            }
+            title += '</small></h3>';
+            data.data.description ? title += '<p>' + data.data.description + '</p>' : "";
+            var url = '/';
+            data.data.owner.length != 0 ? url += data.data.owner + '/' : "" 
+            url += data.data.slug;
+            var newtype = $('#bubbletype').val();
+            newtype != 'collection' ? url = '/' + newtype + '/' + data.data.className : "";
+            if ( $('#bubbletype').val() == '_collection' ) {
+                title += '<p>Created by ' + data.data.owner + '. <a href="' + url + '">Browse the records in this collection.</a></p>';
+            } else if ( data.data.className.length ) {
+                title += '<a href="' + url + '">Browse records where ' + $('#bubbletype').val() + ' is ' + data.data.className + '</a>';
+            }
             $('#header').show();
             $('#header').html(title);
         };
 
-        var clickbubble = function(data) {
-            var url = '/' + data.data.owner + '/' + data.data.slug;
-            var newtype = $('#bubbletype').val();
-            newtype != 'collection' ? url = '/' + newtype + '/' + data.data.className : "";
-            $('body').fadeOut(600, function() {
-                window.location = url;
-            });
-        };
-        
         var showabout = function(event) {
             event.preventDefault();
-            $('#about').toggle('slow');
+            $('.collections').toggle('slow');
+            $('.gooptions').toggle();
+            $('#bubbletype').toggle();
             $('#vids').hide();
             $('#header').toggle('fast');
-            // add a slide to the about location
-            if ( $('#showabout').html() == 'WHAT IS BibSoup?' ) {
-                $('#showabout').html('SHOW ME THE BUBBLES!');
-            } else {
-                $('#showabout').html('WHAT IS BibSoup?');
-            }
+            $('html,body').animate({scrollTop: '0px'}, 'fast');
         };
-        $('#showabout').bind('click',showabout);
-        $('#about').hide();
+        $('.showabout').bind('click',showabout);
         
         if ( window.location.href.indexOf('#') != -1 ) {
-            $('#welcome').hide();
-            $('.well').show();
-            $('#showabout').trigger('click');
             $('html,body').animate({
-                scrollTop: (window.pageYOffset - 50) + 'px'
+                scrollTop: (window.pageYOffset - 100) + 'px'
             }, 'fast');
-        } else {
-            $('#welcome').delay('2400').hide(1000);
-            $('.well').delay('2600').show(1200);
         };
         
         var goto = function(event) {
             event.preventDefault();
             $('html,body').animate({
-                scrollTop: '+=' + ( $( 'a[name=' + $(this).attr('href').replace('#','') + ']' ).offset().top - 50) + 'px'
+                scrollTop: ( $( 'a[name=' + $(this).attr('href').replace('#','') + ']' ).offset().top - 100) + 'px'
             }, 'fast');
         };
         $('.goto').bind('click',goto);
@@ -131,8 +120,8 @@
         };
         var newbubble = function(event) {
             var newtype = $(this).val();
-            $('#header').html('<p>Point to a bubble to learn more about ' + newtype + 's</p><p>Bubbles are grouped alphabetically.</p>');
-            newtype != 'collection' ? event.preventDefault() : window.location = window.location;
+            $('#header').html('<p>Click a bubble to learn more about ' + newtype + 's</p><p>Bubbles grouped closely by colour are alphabetically related.</p>');
+            event.preventDefault();
             var query = {
                 "query": {
                     "match_all": {}
@@ -162,36 +151,34 @@
     });
     </script>
 
-
-    <div class="well" style="display:none; position:fixed; top:45px; right:5px;">
-      <p style="text-align:right;">
-        <a class="btn btn-info" id="showabout" style="width:190px; margin-bottom:5px;margin-left:0;" href="#">WHAT IS BibSoup?</a> <br>
-        <select id="bubbletype" style="width:212px; margin-bottom:4px;">
-            <option value="collection">choose your bubble type</option>
-            <option value="license.url">license</option>
-            <option value="keyword">keyword</option>
-            <option value="cites.id">cites</option>
-            <option value="author.name">authors</option>
-            <option value="journal.name">journals</option>
-            <option value="year">publication years</option>
-        </select><br>
-        <a class="btn" href="/search" style="width:190px; margin-bottom:5px;margin-left:0;">search all records</a> <br>
-        <a class="btn" href="/collections" style="width:190px; margin-bottom:5px;margin-left:0;">list all collections</a>
-      </p>
+    <div class="well navbar-fixed-top" style="margin-top:40px; -webkit-border-radius:0; -moz-border-radius:0; border-radius:0; z-index:1;">
+        <div class="container">
+            <a class="label label-info gooptions showabout" href="#" style="font-size:20px;"> Try out our BibSoup bubble explorer </a><!-- &nbsp;or&nbsp; 
+            <a class="btn gooptions" href="/search" style="width:190px;">Search all records</a>
+            <a class="btn gooptions" href="/collections" style="width:190px;">Browse the collections</a>-->
+            <select id="bubbletype" style="width:212px; display:none;">
+                <option value="_collection">choose your bubble type</option>
+                <option value="_collection">collection / tag</option>
+                <option value="license.url">license</option>
+                <option value="keyword">keyword</option>
+                <option value="cites.id">cites</option>
+                <option value="author.name">authors</option>
+                <option value="journal.name">journals</option>
+                <option value="year">publication years</option>
+            </select>
+          <div id="header" style="height:60px;margin-top:5px;overflow:hidden;display:none;">
+            <p>Select what sort of information you wish to explore from the dropdown list above.</p>
+          </div>
+        </div>
     </div>
 
-    <div id="header" class="well" style="display:none; position:fixed; top:45px; left:5%; max-width:600px;">
-        <p>Point at a bubble to learn more about the collections in BibSoup.</p>
-    </div>
-
-    <div class="hero-unit" id="welcome" style="position:fixed; top:45px; left:10%;">
-        <h1>This is BibSoup!</h1>
+    <div class="row-fluid">
+      <div class="collections" style="display:none;min-height:400px;margin-top:60px;padding-top:5px;border:1px solid #ccc;border-top:none;margin-bottom:10px; -webkit-border-radius:0 0 5px 5px; -moz-border-radius:0 0 5px 5px; border-radius:0 0 5px 5px;">
+      <a class="close showabout" href="#" style="margin-right:5px;">close</a>
+      <div id="bubbles"></div>
+      </div>
     </div>
 
     {% include "home/about.html" %}
-
-    <div class="row-fluid">
-      <div id="collections" style="margin-top:-40px;"></div>
-    </div>
 
 {% endblock %}

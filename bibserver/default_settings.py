@@ -1,17 +1,49 @@
 SECRET_KEY = 'default-key'
 
-# service and super user accounts
+# service details
 SERVICE_NAME = "BibSoup"
 SITE_URL = "http://bibsoup.net"
 EMAIL_FROM = "nobody@bibsoup.net"
 HOST = "0.0.0.0"
 DEBUG = True
 PORT = 5000
+
+# superuser account - can alter anything
 SUPER_USER = ["test"]
 
 # elasticsearch settings
 ELASTIC_SEARCH_HOST = "http://127.0.0.1:9200"
 ELASTIC_SEARCH_DB = "bibserver"
+
+# if you want bibserver to initialise the indices defined in the mappings below, set this to true
+# if they already exist, nothing will happen so it is safe to leave this on. If they do not exist, 
+# they will be created. If you set this to false, then before running bibserver you should create 
+# the indices and PUT the mappings manually
+INITIALISE_INDEX = True
+
+# if you want to track submitted queries, set this to true
+# (puts extra load on the index)
+QUERY_TRACKING = True
+
+# to enable this, create a google analytics account and put the account ID here. Otherwise leave as False
+GOOGLE_ANALYTICS = False
+
+# if you want people to have to validate new accounts via email, set this to true
+# note that this requires there be functional mail capability on the server this is running on
+# it also requires that your SITE_URL and EMAIL_FROM be correctly set above
+ACCOUNT_EMAIL_VALIDATION = True
+
+# if you want people to be able to upload a file for a particular record, then 
+# enable the attachments plugin on your ES index then set this to true
+INDEX_ATTACHMENTS = False
+
+# if you want to archive versions of records whenever changes are made, then 
+# set this to True
+ARCHIVING = True
+
+# if you want to enable disqus on each record page, then sign up to disqus 
+# and set this value to be equal to your disqus_shortname
+DISQUS_RECORDS = "bibsoup"
 
 # bibserver functionality settings
 # set to false if no frontend upload wanted
@@ -136,8 +168,12 @@ SEARCH_RESULT_DISPLAY = [
 COLLECTIONS_RESULT_DISPLAY = [
     [
         {
-            "pre":'<h3><a href="',
-            "field":"url",
+            "pre":'<h3><a href="/',
+            "field":"owner",
+            "post":'/'
+        },
+        {
+            "field":"slug",
             "post":'">'
         },
         {
@@ -205,7 +241,7 @@ MAPPINGS = {
             ]
         }
     }
-},
+}
 
 # list of external sites to search for record data at    
 SEARCHABLES = {

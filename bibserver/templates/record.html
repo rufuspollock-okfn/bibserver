@@ -6,86 +6,270 @@
 <script type="text/javascript">
 jQuery(document).ready(function() {
     
-    var searcher = '<p style="text-align:right">search <select class="span2" id="extsrch_target">';
+    var searcher = '<p style="text-align:right">or search <select class="span2" id="extsrch_target">';
     searcher += '<option value="/search?q=">This site</option>';
-    var colls = {{ rec.data.collection }};
-    for (coll in colls) {
-        searcher += '<option value="/' + coll + '?q=">The ' + coll + ' collection</option>';
-    };
+    {% for coll in rec.data._collection %}
+    searcher += '<option value="/{{coll.replace('_____','/')}}?q=">The {{coll.replace('_____','/')}} collection</option>';
+    {% endfor %}
     var searchables = {{ searchables | safe }};
     for ( var item in searchables ) { searcher += '<option value="' + searchables[item] + '">' + item + '</option>'; };
     searcher += '</select><br>for <input class="span2" id="extsrch_value" />';
-    jQuery('#searcher').append(searcher);
+    $('#searcher').append(searcher);
     var searchvals = {{ rec.valuelist_string | safe }};
-    jQuery('#extsrch_value').autocomplete({source:searchvals});
+    $('#extsrch_value').autocomplete({source:searchvals});
 
     var dosearch = function(event) {
-        var target = jQuery('#extsrch_target').val();
-        var value = jQuery('#extsrch_value').val();
+        var target = $('#extsrch_target').val();
+        var value = $('#extsrch_value').val();
         if ( target.match("XXXX") ) {
             var href = target.replace("XXXX",value);
         } else {
             var href = target + value;
         };
-        window.open(href);
-        //window.location = href;
+        //window.open(href);
+        window.location = href;
     };
     var checkenter = function(event) {
         var keycode = (event.keyCode ? event.keyCode : event.which);
         if (keycode == '13') { dosearch(event) };
     };
-    jQuery('#extsrch_value').bind('keyup',checkenter);
+    $('#extsrch_value').bind('keyup',checkenter);
+
+    var colls = [{% for item in current_user.collections(size=1000) %}"{{item.data.slug}}",{% endfor %}];
+    $('.typeahead').typeahead({"source":colls, "minLength":0});
     
+    var data = {{ rec.json|safe }};
+    for ( var key in data ) {
+        if ( key.indexOf('_') == 0 ) {
+            delete data[key];
+        };
+    };
+    var editor = function(event) {
+        event.preventDefault();
+        $(this).hide();
+        $('#pretty').hide();
+        $('#panel').show();
+        $('#savecancel').show();
+        $('#panel').jtedit({
+            'data': data, 
+            'makeform': false, 
+            'actionbuttons': false,
+            'jsonbutton': false,
+            'target': window.location,
+            'delmsg':"", 
+            'savemsg':"", 
+            "saveonupdate":false, 
+            "reloadonsave":""
+        });
+        $('#jtedit_json').toggle();
+        $('#jtedit_json').css({"width":"100%","min-height":"500px"});
+    };
+    $('#editor').bind('click',editor);
+
+    var addtocoll = function(event) {
+        event.preventDefault();
+        var coll = $('#collval').val();
+        if ( coll.length > 0 ) {
+            if ( colls.indexOf(coll) != -1 ) {
+                coll = "{{ current_user.id }}" + '/' + coll;
+            }
+            $.ajax({
+                "type": "POST",
+                "url": window.location.href + '/collections/' + coll,
+            }).done(function() {window.location = window.location;});
+        }
+    };
+    $('#addtocoll').bind('click',addtocoll);
+
+    var deletefromcoll = function(event) {
+        event.preventDefault();
+        var conf = confirm('Are you sure you want to remove this record from this collection?');
+        if ( conf ) {
+            var coll = $(this).attr('href');
+            $.ajax({
+                "type": "DELETE",
+                "url": window.location.href + '/collections/' + coll,
+            }).done(function() {window.location = window.location;});
+        };
+    };
+    $('.deletefromcoll').bind('click',deletefromcoll);
+
+    var addtag = function(event) {
+        event.preventDefault();
+        var tag = $('#tagval').val();
+        if ( tag.length > 0 ) {
+            $.ajax({
+                "type": "POST",
+                "url": window.location.href + '/tags/' + tag,
+            }).done(function() {window.location = window.location;});
+        }
+    };
+    $('#addtag').bind('click',addtag);
+
+    var deletetag = function(event) {
+        event.preventDefault();
+        var conf = confirm('Are you sure you want to remove this tag from this record?');
+        if ( conf ) {
+            var tag = $(this).attr('href');
+            $.ajax({
+                "type": "DELETE",
+                "url": window.location.href + '/tags/' + tag,
+            }).done(function() {window.location = window.location;});
+        };
+    };
+    $('.deletetag').bind('click',deletetag);
+
+    var similar = function(event) {
+        event.preventDefault();
+        $('#stitles').toggle();
+    };
+    $('#stitle').bind('click',similar);
+    
+    var showabstract = function(event) {
+        event.preventDefault();
+        $('#abstract').toggle();
+    }
+    $('#showabstract').bind('click',showabstract);
+    
+    var revision = function(event) {
+        event.preventDefault();
+        $('#history').toggle();
+    };
+    $('#revision').bind('click',revision);
+    
+    var showprevious = function(event) {
+        event.preventDefault();
+        $(this).siblings('.oldrecord').toggle();
+    };
+    $('.showprevious').bind('click',showprevious);
+
 });
 </script>
 
-<div class="hero-unit clearfix">
-    <div class="span7">
-        {{ rec.pretty | safe }}
-    </div>
-    <div style="border-left:1px solid #666" class="span3" id="searcher">
-    </div>
-</div>
+<div class="row-fluid">
 
-<div class="row">
-
-    <div id="panel" class="span7">
-    {% if not current_user.is_anonymous() %}
-        <h3>Edit this record</h3>
-        <p>COMING SOON</p>
-    {% endif %}
-    </div>
-    <div class="span5">
-        <div class="alert alert-success">
-        {% if rec.isin['yours']|length %}
-            <br>in your collections: 
-            <select>
-            {% for item in rec.isin['yours'] %}
-                <option value="{{item}}">{{item}}</option>
-            {% endfor %}
-            </select>
-        {% endif %}
-        {% if current_user|length %}
-            <br>add to your: <select>
-            {% for coll in current_user.collections(size=10000) %}
-                {% if coll.name not in rec.isin['yours'] %}
-                    <option value="{{coll.id}}">{{coll.name.replace(current_user.id,'')}}</option>
+    <div class="span8">
+        <div class="hero-unit">
+            <div id="pretty">
+                {{ rec.pretty | safe }}
+                {% if rec.data['abstract'] %}
+                    <div id="abstract" style="display:none;"><small>{{ rec.data['abstract']|safe }}</small></div>
                 {% endif %}
+            </div>
+            <div id="panel" style="display:none;">
+            <p>Editing requires direct edit of the JSON record for the time being. <br>Check 
+            out the <a target="_blank" href="http://bibjson.org">BibJSON conventions</a> for more information.</p>
+            </div>
+            <div id="savecancel" style="display:none;"><div class="btn-group"><a class="btn jtedit_saveit" href="#">save changes</a><a class="btn" href="">cancel</a></div><small>NOTE: Record ID is based on authors and title; editing them may change the record ID. If this occurs, the record will remain in any collection but will have a new ID, and will be merged with any records with the same ID. Comments written on this record page will be lost.</small></div>
+            <div class="btn-group" style="margin-top:10px;">
+            {% if rec.data['abstract'] %}
+                <a class="btn" id="showabstract" href="#" alt="Read the abstract" title="Read the abstract">Read the abstract</a>
+            {% endif %}
+            {% if not current_user.is_anonymous() %}
+                <a class="btn" id="editor" href="#">Edit this record</a>
+                {% if uploadable %}
+                    <a class="btn" id="upload" href="#" alt="Upload material relevant to this record" title="Upload material relevant to this record">Upload resources</a>
+                {% endif %}
+                <!--
+                <a class="btn" id="sameas" href="#" alt="Tag this record as the same as another record" title="Tag this record as the same as another record">Sameas</a>
+                -->
+                {% if rec.history|length != 0 %}
+                    <a class="btn" id="revision" href="#">View previous versions</a>
+                {% endif %}
+            {% endif %}
+            </div>
+        </div>
+        
+        <div id="history" style="display:none;">
+            <table class="table table-striped table-bordered">
+                <tr>
+                    <td>Date</td>
+                    <td>User</td>
+                    <td>Action</td>
+                    <td>State</td>
+                </tr>
+            {% for item in rec.history %}
+                <tr>
+                    <td>{{ item['date'] }}</td>
+                    <td>{{ item['user'] }}</td>
+                    <td>{{ item['action'] }}</td>
+                    <td><a class="btn showprevious" href="#">show record</a><div class="oldrecord" style="display:none;">{{ item['state'] }}</div></td>
+                </tr>
             {% endfor %}
-            </select>
-        {% endif %}    
-        {% if rec.isin['other']|length %}
-            <br>also in: <select>
-            {% for item in rec.isin['other'] %}
-                <option value="{{item}}">{{item}}</option>
-            {% endfor %}
-            </select>
-        {% endif %}
-        <br>add public tag: <input type="text" />
+            </table>
         </div>
     </div>
+    
+    <div class="span4">
+        <div class="well">
+        <h4 style="margin-bottom:5px;">In collections</h4>
         
+        {% if rec.data['_collection']|length != 0 %}
+            {% for item in rec.data['_collection'] %}
+                <div class="btn-group" style="display:inline;float:left;margin:0px 3px 3px 0px;">
+                <a class="btn" alt="view this collection" title="view this collection" href="/{{ item.replace('_____','/') }}">{{ item.replace('_____','/') }}</a>
+                {% if item in rec.isinmy %}
+                    <a class="btn deletefromcoll" href="{{ item }}" alt="remove this record from this collection" title="remove this record from this collection" ><i class="icon-remove"></i></a>
+                {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if not current_user.is_anonymous() %}
+            <p><input id="collval" class="span3 typeahead" type="text" placeholder="add to collection" />
+            <a id="addtocoll" class="btn" href="#" style="margin-top:-8px;">add</a></p>
+            <p><a target="_blank" href="/create/collection">Create a new collection</a> to store this record in. Only you can change which records are in your collections.</p>
+        {% endif %}
+        </div>
+
+        <div class="alert alert-info">
+            <h4>Public tags</h4>
+            {% if rec.data.get('_tag',[])|length != 0 %}
+                {% for item in rec.data['_tag'] %}
+                    <div class="btn-group" style="display:inline;float:left;margin:0px 3px 3px 0px;">
+                    <a class="btn" alt="view records with this tag" title="view records with this tag" href="/_tag/{{ item }}">{{ item }}</a>
+                    <a class="btn deletetag" href="{{ item }}" alt="remove this tag from this record" title="remove this tag from this record" ><i class="icon-remove"></i></a>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <p><input id="tagval" class="span3 tagtypeahead" type="text" placeholder="add a public tag" />
+            <a id="addtag" class="btn" href="#" style="margin-top:-10px;">add</a></p>
+            <p>Anyone can add or remove any tag.</p>
+        </div>
+
+        <div class="alert alert-success">
+            <h4>Similar records</h4>
+            <p style="text-align:right;"><a id="stitle" class="btn" href="#">View some similar titles</a></p>
+            <div id="searcher"></div>
+            <div id="stitles" style="display:none;">
+            {% if rec.similar(field="title")|length == 0 %}
+                <p>Not found</p>
+            {% else %}
+                {% for item in rec.similar(field="title") %}
+                    <p><a href="/record/{{item.id}}">{{ item.data['title'] }}</a></p>
+                {% endfor %}            
+            {% endif %}
+            </div>
+        </div>
+    </div>
+
 </div>
+
+{% if disqus_shortname %}
+<div class="row-fluid">
+    <div class="img thumbnail" style="margin-top:20px;">
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            var disqus_shortname = '{{disqus_shortname}}';
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+    </div>        
+</div>
+{% endif %}
 
 {% endblock %}
 

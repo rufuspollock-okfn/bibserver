@@ -48,14 +48,16 @@ def login():
         password = form.password.data
         username = form.username.data
         user = dao.Account.get(username)
-        if not user:
-            dao.Account.get_by_email(username)
-        if user and user.check_password(password):
+        if user is None:
+            user = dao.Account.get_by_email(username)
+        if user is None:
+            flash('Sorry, that user cannot be found', 'error')
+        elif user.check_password(password):
             login_user(user, remember=True)
             flash('Welcome back ' + user.id, 'success')
             return redirect('/'+user.id)
         else:
-            flash('Incorrect username/password', 'error')
+            flash('Incorrect password', 'error')
     if request.method == 'POST' and not form.validate():
         flash('Invalid form', 'error')
     return render_template('account/login.html', form=form, upload=app.config['ALLOW_UPLOAD'])
@@ -69,13 +71,21 @@ def logout():
 
 def existscheck(form, field):
     test = dao.Account.get(form.w.data)
-    if test:
+    if test is not None:
         raise ValidationError('Taken! Please try another.')
+    elif app.config['ACCOUNT_EMAIL_VALIDATION']:
+        test = dao.UnapprovedAccount.get(form.w.data)
+        if test is not None:
+            raise ValidationError('Sorry! There is already a new account with that username awaiting validation. If you already tried to register, please check your emails and follow the link to enable your account.')
 
 def emailexistscheck(form, field):
     test = dao.Account.get_by_email(form.n.data)
-    if test:
+    if test is not None:
         raise ValidationError('Sorry! There is already a user named ' + test.id + ' registered with that email address.')
+    elif app.config['ACCOUNT_EMAIL_VALIDATION']:
+        test = dao.UnapprovedAccount.get(form.w.data)
+        if test is not None:
+            raise ValidationError('Sorry! There is already a new account awaiting validation registered with that email address. If you already tried to register, please check your emails and follow the link to enable your account.')
 
 class RegisterForm(Form):
     w = TextField('Username', [validators.Length(min=3, max=25),existscheck])
@@ -92,18 +102,30 @@ def register():
     # TODO: re-enable csrf
     form = RegisterForm(request.form, csrf_enabled=False)
     if request.method == 'POST' and form.validate():
-        api_key = str(uuid.uuid4())
-        account = dao.Account(
-            _id=form.w.data, 
-            email=form.n.data,
-            description = form.d.data,
-            api_key=api_key
-        )
-        account.set_password(form.s.data)
-        account.save()
-        login_user(account, remember=True)
-        flash('Thanks for signing-up', 'success')
-        return redirect('/'+account.id)
+        if app.config['ACCOUNT_EMAIL_VALIDATION'] and not app.config['DEBUG']:
+            newaccount = dao.UnapprovedAccount(
+                _id = form.w.data, 
+                email = form.n.data,
+                description = form.d.data,
+                api_key = str(uuid.uuid4()),
+                validate_key = str(uuid.uuid4())
+            )
+            newaccount.set_password(form.s.data)
+            newaccount.requestvalidation()
+            newaccount.save()
+            flash('Thanks for signing-up. Please check your email for a validation request. Once you respond your account will become active.', 'success')
+        else:
+            newaccount = dao.Account(
+                _id = form.w.data, 
+                email = form.n.data,
+                description = form.d.data,
+                api_key = str(uuid.uuid4())
+            )
+            newaccount.set_password(form.s.data)
+            newaccount.save()
+            login_user(newaccount, remember=True)
+            flash('Thanks for signing-up.', 'success')
+        return redirect('/'+newaccount.id)
     if request.method == 'POST' and not form.validate():
         flash('Please correct the errors', 'error')
     return render_template('account/register.html', form=form)
