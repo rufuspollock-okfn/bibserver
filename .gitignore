@@ -11,4 +11,5 @@ download_cache/*
 bibjson_cache/*
 local_config.json
 bin/*
+build/*
 ingest.pid
