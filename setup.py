@@ -8,7 +8,7 @@ setup(
         "Flask==0.8",
         "Flask-Login",
         "Flask-WTF",
-        "requests",
+        "requests==1.0.4",
     ],
     url = 'http://openbiblio.net/',
     author = 'Open Knowledge Foundation',

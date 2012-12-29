@@ -70,7 +70,7 @@ class DomainObject(UserDict.IterableUserDict):
             if out.status_code == 404:
                 return None
             else:
-                return cls(**out.json)
+                return cls(**out.json())
         except:
             return None
 
@@ -140,7 +140,7 @@ class DomainObject(UserDict.IterableUserDict):
             r = requests.get(cls.target() + recid + endpoint)
         else:
             r = requests.post(cls.target() + recid + endpoint, data=json.dumps(query))
-        return r.json
+        return r.json()
 
 
 class Record(DomainObject):
@@ -156,7 +156,7 @@ class Record(DomainObject):
             if out.status_code == 404:
                 return None
             else:
-                rec = cls(**out.json)
+                rec = cls(**out.json())
                 rec.data['_views'] = int(rec.data.get('_views',0)) + 1
                 rec.data['_last_viewed'] = datetime.now().strftime("%Y-%m-%d %H%M")
                 r = requests.post(rec.target() + rec.id, data=json.dumps(rec.data))
@@ -266,13 +266,13 @@ class Record(DomainObject):
         exists = requests.get(self.target() + derivedID)
         if exists.status_code == 200:
             # where found, merge with current data and this record will be overwritten on save
-            self.data = self.merge(self.data, exists.json)
+            self.data = self.merge(self.data, exists.json())
 
         # if this record has a new ID, need to merge the old record and delete it
         if self.id != derivedID:
             old = requests.get(self.target() + self.id)
             if old.status_code == 200:
-                self.data = self.merge(self.data, old.json)
+                self.data = self.merge(self.data, old.json())
                 if '_sameas' not in self.data: self.data['_sameas'] = []
                 self.data['_sameas'].append(self.id)
                 Archive.store(self.data, action='delete')
@@ -349,7 +349,7 @@ class Record(DomainObject):
                 servicecore = "not found in any UK repository"
                 addr = apis['servicecore']['url'] + self.data['title'].replace(' ','%20') + "?format=json&api_key=" + apis['servicecore']['key']
                 r = requests.get(addr)
-                data = r.json
+                data = r.json()
                 if 'ListRecords' in data and len(data['ListRecords']) != 0:
                     info['servicecore'] = data['ListRecords'][0]['record']['metadata']['oai_dc:dc']
             except:
@@ -451,7 +451,7 @@ class Collection(DomainObject):
             if out.status_code == 404:
                 return None
             else:
-                rec = cls(**out.json)
+                rec = cls(**out.json())
                 rec.data['_views'] = int(rec.data.get('_views',0)) + 1
                 rec.data['_last_viewed'] = datetime.now().strftime("%Y-%m-%d %H%M")
                 r = requests.post(rec.target() + rec.id, data=json.dumps(rec.data))
