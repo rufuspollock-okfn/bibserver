@@ -54,7 +54,7 @@
         var showtitle = function(data) {
             var title = ''
             if ( data.data.className.length != 0 ) { 
-                title += '<h3><small>' + $('#bubbletype').val() + '</small> ' + data.data.className + ' <small> has ' + data.value;
+                title += '<h3><small>' + $('#bubbletype').val() + '</small> ' + data.data.className.replace('_____','/') + ' <small> has ' + data.value;
                 data.value == 1 ? title += ' record' : title += ' records';
             } else {
                 title += '<h3><small>There are ' + data.value;
@@ -63,11 +63,10 @@
             }
             title += '</small></h3>';
             data.data.description ? title += '<p>' + data.data.description + '</p>' : "";
-            var url = '/';
-            data.data.owner.length != 0 ? url += data.data.owner + '/' : "" 
-            url += data.data.slug;
             var newtype = $('#bubbletype').val();
-            newtype != 'collection' ? url = '/' + newtype + '/' + data.data.className : "";
+            var url = '/';
+            newtype != '_collection' ? url += newtype + '/' : "";
+            url += data.data.className.replace('_____','/');
             if ( $('#bubbletype').val() == '_collection' ) {
                 title += '<p>Created by ' + data.data.owner + '. <a href="' + url + '">Browse the records in this collection.</a></p>';
             } else if ( data.data.className.length ) {
@@ -153,12 +152,11 @@
 
     <div class="well navbar-fixed-top" style="margin-top:40px; -webkit-border-radius:0; -moz-border-radius:0; border-radius:0; z-index:1;">
         <div class="container">
-            <a class="label label-info gooptions showabout" href="#" style="font-size:20px;"> Try out our BibSoup bubble explorer </a><!-- &nbsp;or&nbsp; 
-            <a class="btn gooptions" href="/search" style="width:190px;">Search all records</a>
-            <a class="btn gooptions" href="/collections" style="width:190px;">Browse the collections</a>-->
+            <a class="label label-info gooptions showabout" href="#" style="font-size:20px;"> Try out our BibSoup bubble explorer </a>
             <select id="bubbletype" style="width:212px; display:none;">
                 <option value="_collection">choose your bubble type</option>
-                <option value="_collection">collection / tag</option>
+                <option value="_collection">collection</option>
+                <option value="_tag">tag</option>
                 <option value="license.url">license</option>
                 <option value="keyword">keyword</option>
                 <option value="cites.id">cites</option>

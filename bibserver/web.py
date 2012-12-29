@@ -102,23 +102,21 @@ def query(path='Record'):
 
         # track queries submitted, if usage tracking is on
         if app.config.get('QUERY_TRACKING', False):
-            try: # (don't let tracking ever throw an error that actually blocks the service)
-                if not current_user.is_anonymous():
-                    who = current_user.id
-                else:
-                    who = 'anonymous'
-                dets = {
-                    'query': qs,
-                    'method': request.method,
-                    'source': request.remote_addr,
-                    'xhr': request.is_xhr,
-                    'resultsize': res.get('hits',{}).get('total',0),
-                    'user': who
-                }
-                track = bibserver.dao.SearchHistory(**dets)
-                track.save()
-            except:
-                pass
+            if current_user.is_anonymous():
+                who = 'anonymous'
+            else:
+                who = current_user.id
+            dets = {
+                'query': qs,
+                'querystring': json.dumps(qs),
+                'method': request.method,
+                'source': request.remote_addr,
+                'xhr': request.is_xhr,
+                'resultsize': res.get('hits',{}).get('total',0),
+                'user': who
+            }
+            track = bibserver.dao.SearchHistory(**dets)
+            track.save()
 
     resp.mimetype = "application/json"
     return resp
@@ -353,7 +351,7 @@ def record(rid=''):
     elif rec:        
         # add this to the recent viewed list of the current user if there is one
         if not current_user.is_anonymous():
-            current_user.addrecentview(rec.id)
+            current_user.addrecentview((rec.id,rec.data.get('title','untitled record')))
         # render the record with all extras
         return render_template('record.html', rec=rec, disqus_shortname=app.config['DISQUS_RECORDS'], uploadable=app.config['INDEX_ATTACHMENTS'], searchables=app.config['SEARCHABLES'])
     else:

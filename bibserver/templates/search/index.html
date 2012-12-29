@@ -28,7 +28,11 @@
             {% endif %}
             {% if 'license' in collection %}
             {% if collection.license not in ['','Not specified'] %}
-                <small><br>License {{collection.license.lower()}}</small>
+                {% if collection.license.startswith('http') or collection.license.startswith('www') %}
+                    <small><br>License <a target="_blank" href="{{collection.license.lower()}}">{{collection.license.lower()}}</a></small>
+                {% else %}
+                    <small><br>License {{collection.license.lower()}}</small>
+                {% endif %}
             {% endif %}
             {% endif %}
             </h2>

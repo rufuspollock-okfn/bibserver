@@ -202,6 +202,21 @@ jQuery(document).ready(function() {
     
     <div class="span4">
         <div class="well">
+            <p>Viewed 
+            {% if rec.views == 1 %}
+                once
+            {% else %}
+                {{ rec.views }} times
+            {% endif %}
+            {% if rec['data']['_collection']|length == 1 %}
+                and saved in one collection
+            {% else %}
+                {% if rec['data']['_collection']|length != 0 %}
+                    and saved in {{ rec['data']['_collection']|length }} collections</p>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="well">
         <h4 style="margin-bottom:5px;">In collections</h4>
         
         {% if rec.data['_collection']|length != 0 %}

@@ -67,14 +67,16 @@ FACETVIEW = {
         "from":0,
         "size":10
     },
-    "facets": []
+    "facets": [],
+    "search_sortby": [{"field":"_views","display":"views"},{"field":"_created.exact","display":"created"},{"field":"journal.name.exact","display":"journal name"},{"field":"year.exact","display":"year"}],
+    "searchbox_fieldselect": [{"field":"author.name","display":"author"},{"field":"journal.name","display":"journal"},{"field":"keyword","display":"keyword"}]
 }
 
 # The default fields and settings for which faceting should be made available on
 # for when viewing within a particular collection
 INCOLL_SEARCH_FACET_FIELDS = [
     {
-        "field":"collection.exact",
+        "field":"_collection.exact",
         "order":"term",
         "size":200,
         "display":"collection"
@@ -223,6 +225,46 @@ MAPPINGS = {
     },
     "collection" : {
         "collection" : {
+            "date_detection" : "false",
+            "dynamic_templates" : [
+                {
+                    "default" : {
+                        "match" : "*",
+                        "match_mapping_type": "string",
+                        "mapping" : {
+                            "type" : "multi_field",
+                            "fields" : {
+                                "{name}" : {"type" : "{dynamic_type}", "index" : "analyzed", "store" : "no"},
+                                "exact" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "yes"}
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "account" : {
+        "account" : {
+            "date_detection" : "false",
+            "dynamic_templates" : [
+                {
+                    "default" : {
+                        "match" : "*",
+                        "match_mapping_type": "string",
+                        "mapping" : {
+                            "type" : "multi_field",
+                            "fields" : {
+                                "{name}" : {"type" : "{dynamic_type}", "index" : "analyzed", "store" : "no"},
+                                "exact" : {"type" : "{dynamic_type}", "index" : "not_analyzed", "store" : "yes"}
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "searchhistory" : {
+        "searchhistory" : {
             "date_detection" : "false",
             "dynamic_templates" : [
                 {

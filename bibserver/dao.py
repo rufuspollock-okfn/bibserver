@@ -541,7 +541,8 @@ class Account(DomainObject, UserMixin):
     @property
     def recentsearches(self):
         if app.config.get('QUERY_TRACKING', False):
-            res = SearchHistory.query(terms={'user':self.id}, sort={"_created":{"order":"desc"}})
+            res = SearchHistory.query(terms={'user':current_user.id}, sort={"_created" + app.config.get('FACET_FIELD','.exact'):{"order":"desc"}}, size=100)
+            print res
             return [i.get('_source',{}) for i in res.get('hits',{}).get('hits',[])]
         else:
             return []
@@ -550,10 +551,11 @@ class Account(DomainObject, UserMixin):
     def recentviews(self):
         return self.data.get('recentviews',[])
 
-    def addrecentview(self, rid):
+    def addrecentview(self, ridtuple):
         if 'recentviews' not in self.data:
             self.data['recentviews'] = []
-        self.data['recentviews'].insert(0, rid)
+        if ridtuple[0] not in [t[0] for t in self.data['recentviews']]:
+            self.data['recentviews'].insert(0, ridtuple)
         if len(self.data['recentviews']) > 100:
             del self.data['recentviews'][100]
         self.save()

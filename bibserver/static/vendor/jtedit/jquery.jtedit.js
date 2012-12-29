@@ -206,26 +206,32 @@
         event ? event.preventDefault() : "";
         var options = $.fn.jtedit.options;
         !data ? data = $.parseJSON(jQuery('#jtedit_json').val()) : false;
-        !options.target ? options.target = prompt('Please provide URL to save this record to:') : false;
-        if (options.target) {
-            $.ajax({
-                url: options.target
-                , type: 'POST'
-                , data: JSON.stringify(data)
-                , contentType: "application/json; charset=utf-8" 
-                , dataType: options.datatype
-                , processData: false
-                , success: function(data, statusText, xhr) {
-                    options.savemsg ? alert(options.savemsg) : ""
-                    options.reloadonsave ? window.location = options.reloadonsave : ""
-                    refresh ? window.location = "" : ""
-                }
-                , error: function(xhr, message, error) {
-                    alert("Error... " + error)
-                }
-            });
+        var validated = JSON.stringify(data);
+        alert(validated);
+        if ( !validated ) {
+            alert("Your record does not appear to be valid JSON. Please fix it and try again.");
         } else {
-            alert('No suitable URL to save to was provided');
+            !options.target ? options.target = prompt('Please provide URL to save this record to:') : false;
+            if (options.target) {
+                $.ajax({
+                    url: options.target
+                    , type: 'POST'
+                    , data: JSON.stringify(data)
+                    , contentType: "application/json; charset=utf-8" 
+                    , dataType: options.datatype
+                    , processData: false
+                    , success: function(data, statusText, xhr) {
+                        options.savemsg ? alert(options.savemsg) : ""
+                        options.reloadonsave ? window.location = options.reloadonsave : ""
+                        refresh ? window.location = "" : ""
+                    }
+                    , error: function(xhr, message, error) {
+                        alert("Error... " + error)
+                    }
+                });
+            } else {
+                alert('No suitable URL to save to was provided');
+            };
         };
     };
 
