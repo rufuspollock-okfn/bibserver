@@ -8,6 +8,7 @@
 
     <script type="text/javascript">
     jQuery(document).ready(function() {
+        $('#header').hide();
 
         var bubble = function(data) {
             $('#bubbles').show().html('');
@@ -72,7 +73,6 @@
             } else if ( data.data.className.length ) {
                 title += '<a href="' + url + '">Browse records where ' + $('#bubbletype').val() + ' is ' + data.data.className + '</a>';
             }
-            $('#header').show();
             $('#header').html(title);
         };
 
@@ -82,7 +82,7 @@
             $('.gooptions').toggle();
             $('#bubbletype').toggle();
             $('#vids').hide();
-            $('#header').toggle('fast');
+            $('#header').toggle();
             $('html,body').animate({scrollTop: '0px'}, 'fast');
         };
         $('.showabout').bind('click',showabout);
@@ -158,7 +158,7 @@
                 <option value="journal.name">journals</option>
                 <option value="year">publication years</option>
             </select>
-          <div id="header" style="height:60px;margin-top:5px;overflow:hidden;display:none;">
+          <div id="header" style="height:60px;margin-top:5px;overflow:hidden;">
             <p>Select what sort of information you wish to explore from the dropdown list above.</p>
           </div>
         </div>
