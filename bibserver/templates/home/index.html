@@ -34,7 +34,7 @@
                 .attr("stroke", function(d) { d3.rgb(fill(d.data.packageName)).darker()})
                 .transition().duration(2300).attr("r", function(d) { return d.r; })
             node.on('click',function(d) {
-                showtitle(d)
+                showtitle(d);
             })
         };
         var indata = {{ colldata | safe }};
@@ -86,12 +86,6 @@
             $('html,body').animate({scrollTop: '0px'}, 'fast');
         };
         $('.showabout').bind('click',showabout);
-        
-        if ( window.location.href.indexOf('#') != -1 ) {
-            $('html,body').animate({
-                scrollTop: (window.pageYOffset - 100) + 'px'
-            }, 'fast');
-        };
         
         var goto = function(event) {
             event.preventDefault();
