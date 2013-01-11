@@ -214,7 +214,7 @@ class CreateView(MethodView):
                     owner = current_user.id
                 )
                 collection.save()
-                return redirect(collection.owner + '/' + collection.data['slug']
+                return redirect(collection.owner + '/' + collection.data['slug'])
         else:
             abort(400)
 
