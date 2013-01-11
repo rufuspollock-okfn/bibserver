@@ -601,7 +601,7 @@ class UnapprovedAccount(Account):
         msg += app.config['SITE_URL'] + "/" + self.id + "?validate=" + self.data['validate_key'] + "\n\n"
         msg += "Thanks! We hope you enjoy using " + app.config['SERVICE_NAME']
         if not app.config['DEBUG']:
-            util.send_mail([self.data['email']], [app.config['EMAIL_FROM']], 'validate your account', msg)
+            util.send_mail([self.data['email']], app.config['EMAIL_FROM'], 'validate your account', msg)
         
     def validate(self,key):
         # accept validation and create new account

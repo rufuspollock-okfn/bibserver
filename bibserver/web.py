@@ -152,6 +152,7 @@ def home():
     colls = bibserver.dao.Collection.query().get('hits',{}).get('total',0)
     records = bibserver.dao.Record.query().get('hits',{}).get('total',0)
     users = bibserver.dao.Account.query().get('hits',{}).get('total',0)
+    flash('Hi there, welcome to the new BibSoup. Please read <a target="_blank" href="http://openbiblio.net/2013/01/11/a-revamp-of-bibserver-and-bibsoup/">our latest post to learn about recent changes.')
     return render_template('home/index.html', colldata=json.dumps(data), colls=colls, records=records, users=users)
 
 
@@ -213,7 +214,7 @@ class CreateView(MethodView):
                     owner = current_user.id
                 )
                 collection.save()
-                return redirect(collection.owner + '/' + request.values['collection'])
+                return redirect(collection.owner + '/' + collection.data['slug']
         else:
             abort(400)
 
