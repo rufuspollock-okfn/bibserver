@@ -379,17 +379,18 @@ def record(rid=''):
             newdata = request.json
             checkedcolls = []
             for coll in newdata.get('_collection',[]):
-                c = bibserver.dao.Collection.get(coll)
-                if c is not None:
-                    if c.owner == current_user.id:
-                        checkedcolls.append(c.id)
-                else:
-                    coll.replace('/','_____')
-                    parts = coll.split('_____')
-                    if len(parts) == 1:
-                        checkedcolls.apend(current_user.id + '_____' + coll)
-                    elif parts[0] == current_user.id:
-                        checkedcolls.append(coll)
+                if len(coll) != 0:
+                    c = bibserver.dao.Collection.get(coll)
+                    if c is not None:
+                        if c.owner == current_user.id:
+                            checkedcolls.append(c.id)
+                    else:
+                        coll.replace('/','_____')
+                        parts = coll.split('_____')
+                        if len(parts) == 1:
+                            checkedcolls.append(current_user.id + '_____' + coll)
+                        elif parts[0] == current_user.id:
+                            checkedcolls.append(coll)
             newdata['_collection'] = checkedcolls 
             rec.data = newdata
             if new: rec.data['_created_by'] = current_user.id
