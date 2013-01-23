@@ -10,7 +10,33 @@
  *
  */
 
-// first define the bind with delay function from (saves loading it separately) 
+
+// define better JSON parse error handling
+// https://gist.github.com/1367429
+(function(){
+    var parse = JSON.parse;
+    JSON = {
+        stringify: JSON.stringify,
+        validate: function(str){
+            try{
+                parse(str);
+                return true;
+            }catch(err){
+                return err;
+            }
+        },
+        parse: function(str){
+            try{
+                return parse(str);
+            }catch(err){
+                return undefined;
+            }
+        }
+    }
+})();
+
+
+// define the bind with delay function from (saves loading it separately) 
 // https://github.com/bgrins/bindWithDelay/blob/master/bindWithDelay.js
 (function($) {
     $.fn.bindWithDelay = function( type, data, fn, timeout, throttle ) {
@@ -45,6 +71,7 @@
 
         // specify the defaults
         var defaults = {
+            "csv2list": true,                   // when encountering a field with comma separated values, turn them into a list. and vice versa
             "makeform": true,                   // whether or not to build the form first
             "actionbuttons": true,              // whether or not to show action buttons
             "jsonbutton": true,                 // show json button or not (alt. for these is write the buttons yourself)
@@ -73,12 +100,14 @@
         var dovisify = function(first) {
             var visify = function(data,route) {
                 for (var key in data) {
-                    route == undefined ? thisroute = key : thisroute = route + '_' + key;
+                    route == undefined ? thisroute = key : thisroute = route + '.' + key;
                     if ( typeof(data[key]) == 'object' ) {
                         visify(data[key],thisroute);
                     } else {
-                        options.makeform ? $('#jtedit').append('<input type="text" class="jtedit_value jtedit_' + thisroute + '" />') : "";
-                        $('.jtedit_' + thisroute).val( data[key] );
+                        if ( options.makeform && !$('[data-path="' + thisroute + '"]').length ) {
+                            $('#jtedit').append('<input type="text" data-path="' + thisroute + '" class="jtedit_value" />');
+                        }
+                        $('[data-path="' + thisroute + '"]').val( data[key] );
                     };
                 };
             };
@@ -206,11 +235,8 @@
         event ? event.preventDefault() : "";
         var options = $.fn.jtedit.options;
         !data ? data = $.parseJSON(jQuery('#jtedit_json').val()) : false;
-        var validated = JSON.stringify(data);
-        alert(validated);
-        if ( !validated ) {
-            alert("Your record does not appear to be valid JSON. Please fix it and try again.");
-        } else {
+        var valid = JSON.stringify(data);
+        if ( valid ) {
             !options.target ? options.target = prompt('Please provide URL to save this record to:') : false;
             if (options.target) {
                 $.ajax({
@@ -232,6 +258,8 @@
             } else {
                 alert('No suitable URL to save to was provided');
             };
+        } else {
+            alert("The record is not valid JSON. Please fix it and try again.");
         };
     };
 
