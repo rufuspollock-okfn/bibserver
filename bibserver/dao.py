@@ -266,13 +266,13 @@ class Record(DomainObject):
         exists = requests.get(self.target() + derivedID)
         if exists.status_code == 200:
             # where found, merge with current data and this record will be overwritten on save
-            self.data = self.merge(self.data, exists.json())
+            self.data = self.merge(self.data, exists.json()['_source'])
 
         # if this record has a new ID, need to merge the old record and delete it
-        if self.id != derivedID:
+        if self.id is not None and self.id != derivedID:
             old = requests.get(self.target() + self.id)
             if old.status_code == 200:
-                self.data = self.merge(self.data, old.json())
+                self.data = self.merge(self.data, old.json()['_source'])
                 if '_sameas' not in self.data: self.data['_sameas'] = []
                 self.data['_sameas'].append(self.id)
                 Archive.store(self.data, action='delete')

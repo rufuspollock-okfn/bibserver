@@ -20,6 +20,7 @@ ELASTIC_SEARCH_DB = "bibserver"
 # they will be created. If you set this to false, then before running bibserver you should create 
 # the indices and PUT the mappings manually
 INITIALISE_INDEX = True
+NO_QUERY_VIA_API = ['account'] # list index types that should not be queryable via the API
 
 # if you want to track submitted queries, set this to true
 # (puts extra load on the index)

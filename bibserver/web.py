@@ -1,7 +1,4 @@
-import os
-import urllib2
-import unicodedata
-import json
+import os, urllib2, unicodedata, json, requests
 from copy import deepcopy
 from datetime import datetime
 
@@ -65,7 +62,7 @@ def page_not_found(e):
 def query(path='Record'):
     pathparts = path.split('/')
     subpath = pathparts[0]
-    if subpath.lower() == 'account':
+    if subpath.lower() in app.config['NO_QUERY_VIA_API']:
         abort(401)
     klass = getattr(bibserver.dao, subpath[0].capitalize() + subpath[1:] )
     if len(pathparts) > 1 and pathparts[1] == '_mapping':
@@ -121,6 +118,51 @@ def query(path='Record'):
     resp.mimetype = "application/json"
     return resp
         
+
+# a route from which streams of data can be retrieved, for display in dropdowns and so on
+# DOES NOT USE THE DAO
+@app.route('/stream')
+@app.route('/stream/<index>')
+@app.route('/stream/<index>/<key>')
+def stream(index='record',key='tags'):
+
+    t = 'http://' + str(app.config['ELASTIC_SEARCH_HOST']).lstrip('http://').rstrip('/') + '/' + app.config['ELASTIC_SEARCH_DB'] + '/'
+
+    if index in app.config['NO_QUERY_VIA_API']: abort(401)
+    indices = []
+    for idx in index.split(','):
+        if idx not in app.config['NO_QUERY_VIA_API']:
+            indices.append(idx)
+
+    keys = key.split(',')
+
+    q = request.values.get('q','*')
+    if not q.endswith("*"): q += "*"
+    if not q.startswith("*"): q = "*" + q
+
+    qry = {
+        #'query':{'query_string':{'query':q}},
+        'query':{'match_all':{}},
+        'size': 0,
+        'facets':{}
+    }
+    for ky in keys:
+        qry['facets'][ky] = {"terms":{"field":ky+app.config['FACET_FIELD'],"order":request.values.get('order','term'), "size":request.values.get('size',100)}}
+    
+    r = requests.post(t + ','.join(indices) + '/_search', json.dumps(qry))
+
+    res = []
+    if request.values.get('counts',False):
+        for k in keys:
+            res = res + [[i['term'],i['count']] for i in r.json()['facets'][k]["terms"]]
+    else:
+        for k in keys:
+            res = res + [i['term'] for i in r.json()['facets'][k]["terms"]]
+
+    resp = make_response( json.dumps(res) )
+    resp.mimetype = "application/json"
+    return resp
+
 
 @app.route('/')
 def home():
@@ -329,21 +371,33 @@ def record(rid=''):
     elif request.method == 'POST':
         if current_user.is_anonymous() or not app.config.get("ALLOW_UPLOAD",False):
             abort(403)
-        try:
-            new = False
-            if not rec:
-                rec = bibserver.dao.Record()
-                new = True
-            if len(request.json):
-                rec.data = request.json
-                if new: rec.data['_created_by'] = current_user.id
-                rec.save()
-                resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
-                resp.mimetype = "application/json"
-                return resp
-            else:
-                abort(400)
-        except:
+        new = False
+        if not rec:
+            rec = bibserver.dao.Record()
+            new = True
+        if len(request.json):
+            newdata = request.json
+            checkedcolls = []
+            for coll in newdata.get('_collection',[]):
+                c = bibserver.dao.Collection.get(coll)
+                if c is not None:
+                    if c.owner == current_user.id:
+                        checkedcolls.append(c.id)
+                else:
+                    coll.replace('/','_____')
+                    parts = coll.split('_____')
+                    if len(parts) == 1:
+                        checkedcolls.apend(current_user.id + '_____' + coll)
+                    elif parts[0] == current_user.id:
+                        checkedcolls.append(coll)
+            newdata['_collection'] = checkedcolls 
+            rec.data = newdata
+            if new: rec.data['_created_by'] = current_user.id
+            rec.save()
+            resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )
+            resp.mimetype = "application/json"
+            return resp
+        else:
             abort(400)
     elif rec and util.request_wants_json():
         resp = make_response( json.dumps(rec.data, sort_keys=True, indent=4) )

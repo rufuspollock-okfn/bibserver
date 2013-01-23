@@ -28,9 +28,8 @@ jQuery(document).ready(function() {
         'jsonbutton': false,
         'target': '/record',
         'delmsg':"", 
-        'savemsg':"", 
-        "saveonupdate":false, 
-        "reloadonsave":""
+        'savemsg':"Your new record has been created. Continue creating more, or try searching for it.", 
+        "saveonupdate":false
     });
     $('#jtedit_json').css({"width":"100%","min-height":"400px"}).toggle();
     var submitrecord = function(event) {
@@ -131,7 +130,7 @@ jQuery.ajax({
                     
                     <hr></hr>
                     
-                    <div><span class="upload_label">add to collection:</span> <select name="collection" id="collection" class="jtedit_value" data-path="collection.0">
+                    <div><span class="upload_label">add to collection:</span> <select name="collection" id="collection" class="jtedit_value" data-path="_collection.0">
                     <option value="">No thanks, just create the record</option>
                     <!--<option value="NEW">Hmm, make me a new collection to upload them to</option>
                     <option value="">------------------------------</option>-->
