@@ -35,8 +35,10 @@ jQuery(document).ready(function() {
     };
     $('#extsrch_value').bind('keyup',checkenter);
 
+    {{ if not current_user.is_anonymous() }}
     var colls = [{% for item in current_user.collections(size=1000) %}"{{item.data.slug}}",{% endfor %}];
     $('.typeahead').typeahead({"source":colls, "minLength":0});
+    {{ endif }}
     
     var data = {{ rec.json|safe }};
     for ( var key in data ) {
