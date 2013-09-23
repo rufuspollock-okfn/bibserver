@@ -1,4 +1,4 @@
-BibServer_ is an open-source RESTful bibliographic data server. BibServer makes
+BibServer is an open-source RESTful bibliographic data server. BibServer makes
 it easy to create and manage collections of bibliographic records such as
 reading lists, publication lists and even complete library catalogs.
 
@@ -13,17 +13,15 @@ Main features:
 * Open-source and free to use
 * Hosted service available at http://bibsoup.net/
 
-.. _BibServer: http://bibserver.okfn.org/
 
 
 Quick Links
 ===========
 
-* Website: http://bibserver.okfn.org
 * Code: http://github.com/okfn/bibserver
 * Documentation: http://bibserver.readthedocs.org/
 * Mailing list: http://lists.okfn.org/mailman/listinfo/openbiblio-dev
-* Live demo: http://demo.bibserver.org/ (sandbox) or http://bibsoup.net/
+* Live demo: http://bibsoup.net/
 
 
 Installation
