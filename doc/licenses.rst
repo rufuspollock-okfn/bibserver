@@ -6,11 +6,8 @@ Licensing issues
 Software
 ========
 
-Bibserver is open source GNU Affero. It relies on other open source packages.
+Bibserver is open source MIT. It relies on other open source packages.
 
-List other packages and their open source licenses.
-
-Explain what this means in terms of re-use availability etc.
 
 
 Metadata

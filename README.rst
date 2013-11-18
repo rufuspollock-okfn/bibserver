@@ -55,9 +55,8 @@ Copyright and License
 
 Copyright 2011-2012 Open Knowledge Foundation.
 
-Licensed under the `GNU Affero GPL v3`_
+Licensed under the MIT license
 
-.. _GNU Affero GPL v3: http://www.gnu.org/licenses/agpl.html
 
 
 Vendor packages
