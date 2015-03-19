@@ -11,8 +11,6 @@ Main features:
 * Embed the collection browser in other websites
 * Full RESTful API
 * Open-source and free to use
-* Hosted service available at http://bibsoup.net/
-
 
 
 Quick Links
@@ -21,7 +19,6 @@ Quick Links
 * Code: http://github.com/okfn/bibserver
 * Documentation: http://bibserver.readthedocs.org/
 * Mailing list: http://lists.okfn.org/mailman/listinfo/openbiblio-dev
-* Live demo: http://bibsoup.net/
 
 
 Installation
