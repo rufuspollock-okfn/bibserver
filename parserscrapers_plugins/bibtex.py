@@ -114,7 +114,7 @@ class BibTexParser(object):
                     d[key] = self.add_val(val)
             elif inkey:
                 # if this line continues the value from a previous line, append
-                inval += kv
+                inval += ',' + kv
                 # if it looks like this line finishes the value, store it and clear for next loop
                 if ( inval.startswith('{') and inval.endswith('}') ) or ( inval.startswith('"') and inval.endswith('"') ):
                     d[inkey] = self.add_val(inval)
