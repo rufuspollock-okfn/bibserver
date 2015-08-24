@@ -15,9 +15,9 @@ Main features:
 * Embed the collection browser in other websites
 * Full RESTful API
 * Open-source and free to use
-* Hosted service available at http://bibsoup.net/
+* ~~Hosted service available at http://bibsoup.net/~~
 
-.. _BibServer: http://bibserver.org/
+.. _BibServer: http://bibserver.org/~~
 
 
 Quick Links
@@ -25,7 +25,7 @@ Quick Links
 
 * Code: http://github.com/okfn/bibserver
 * Mailing list: http://lists.okfn.org/mailman/listinfo/openbiblio-dev
-* Live demo: http://dev.bibsoup.net/ (sandbox) or http://bibsoup.net/
+* ~~Live demo: http://dev.bibsoup.net/ (sandbox) or http://bibsoup.net/~~
 
 
 Installation
