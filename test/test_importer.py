@@ -42,5 +42,5 @@ class TestImporter:
         assert records[0]['collection'] == coll['collection']
         # still should have only one record in it
         recs_for_collection = dao.Record.query('collection:"' + coll['collection'] + '"')
-        assert recs_for_collection['hits']['total'] == 1, recs_for_collection
+        assert recs_for_collection.total == 1, recs_for_collection
 

@@ -21,9 +21,9 @@
     <!-- get our js and css -->
     <link rel="stylesheet" type="text/css" href="/static/css/bibserver.css">
     <script type="text/javascript" src="/static/js/bibserver.js"></script>
-                
+
     <!-- extra includes for facetview - linkify, jquery-ui, d3 and facetview js and css -->
-    <script type="text/javascript" src="/static/vendor/facetview/vendor/linkify/1.0/jquery.linkify-1.0-min.js"></script>  
+    <script type="text/javascript" src="/static/vendor/facetview/vendor/linkify/1.0/jquery.linkify-1.0-min.js"></script>
     <link rel="stylesheet" href="/static/vendor/facetview/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
     <script type="text/javascript" src="/static/vendor/facetview/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
     <script type="text/javascript" src="/static/vendor/facetview/vendor/d3/d3.min.js"></script>
@@ -58,7 +58,7 @@
                 <input class="search-query" type="text" name="q" placeholder="search everything" />
               </form>
             </li>
-            {% if current_user.is_anonymous() %}
+            {% if current_user.is_anonymous %}
             <li>
               <a href="{{url_for('account.register')}}">Register</a>
             </li>
@@ -114,7 +114,7 @@
                 <a href="http://opendefinition.org/"><img src="/static/openservice.png" /></a>
                 <a href="http://opendefinition.org/"><img src="/static/opendata.png" /></a><br />
                 Created and maintained with support from <a href="http://jisc.ac.uk">JISC</a> and <a href="http://okfn.org">OKF</a><br />
-                Learn more about <a href="http://bibserver.org/about/related/">related projects</a> 
+                Learn more about <a href="http://bibserver.org/about/related/">related projects</a>
                 and <a href="http://openbiblio.net/p/jiscopenbib2/">people</a>
             </p>
         </div>

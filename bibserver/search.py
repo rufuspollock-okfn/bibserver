@@ -53,7 +53,7 @@ class Search(object):
         # default search page
         if util.request_wants_json():
             res = bibserver.dao.Record.query()
-            resp = make_response( json.dumps([i['_source'] for i in res['hits']['hits']], sort_keys=True, indent=4) )
+            resp = make_response( json.dumps([i.values() for i in res], sort_keys=True, indent=4) )
             resp.mimetype = "application/json"
             return resp
         else:
@@ -72,7 +72,7 @@ class Search(object):
                 del self.search_options['facets'][count]
         if util.request_wants_json():
             res = bibserver.dao.Record.query(terms=self.search_options['predefined_filters'])
-            resp = make_response( json.dumps([i['_source'] for i in res['hits']['hits']], sort_keys=True, indent=4) )
+            resp = make_response( json.dumps([i.values() for i in res], sort_keys=True, indent=4) )
             resp.mimetype = "application/json"
             return resp
         else:
@@ -87,8 +87,8 @@ class Search(object):
     def collections(self):
         if len(self.parts) == 1:
             if util.request_wants_json():
-                res = bibserver.dao.Collection.query(size=1000000)
-                colls = [i['_source'] for i in res['hits']['hits']]
+                res = bibserver.dao.Collection.query(size=10000)
+                colls = [i.values() for i in res]
                 resp = make_response( json.dumps(colls, sort_keys=True, indent=4) )
                 resp.mimetype = "application/json"
                 return resp
@@ -130,11 +130,11 @@ class Search(object):
             'collection'+config['facet_field']:self.parts[1],
             'id'+config['facet_field']:self.parts[2]
         })
-        if res['hits']['total'] == 0:
+        if res.total == 0:
             rec = bibserver.dao.Record.get(self.parts[2])
             if rec: found = 1
-        elif res['hits']['total'] == 1:
-            rec = bibserver.dao.Record.get(res['hits']['hits'][0]['_id'])
+        elif res.total == 1:
+            rec = bibserver.dao.Record.get(res[0]['_id'])
             found = 1
         else:
             found = 2
@@ -189,7 +189,7 @@ class Search(object):
                     c.request('GET', fullpath)
                     resp = c.getresponse()
                     res = json.loads(resp.read())
-                    mlt = [i['_source'] for i in res['hits']['hits']]
+                    mlt = [i.values() for i in res]
                     
                     # get any notes
                     notes = bibserver.dao.Note.about(rec.id)
@@ -231,11 +231,11 @@ class Search(object):
                     )
         else:
             if util.request_wants_json():
-                resp = make_response( json.dumps([i['_source'] for i in res['hits']['hits']], sort_keys=True, indent=4) )
+                resp = make_response( json.dumps([i.values() for i in res], sort_keys=True, indent=4) )
                 resp.mimetype = "application/json"
                 return resp
             else:
-                return render_template('record.html', multiple=[i['_source'] for i in res['hits']['hits']])
+                return render_template('record.html', multiple=[i.values() for i in res])
 
 
     def account(self):
@@ -275,8 +275,8 @@ class Search(object):
                 return resp
             else:
                 admin = True if auth.user.update(self.current_user,acc) else False
-                recordcount = bibserver.dao.Record.query(terms={'owner':acc.id})['hits']['total']
-                collcount = bibserver.dao.Collection.query(terms={'owner':acc.id})['hits']['total']
+                recordcount = bibserver.dao.Record.query(terms={'owner':acc.id}).total
+                collcount = bibserver.dao.Collection.query(terms={'owner':acc.id}).total
                 return render_template('account/view.html', 
                     current_user=self.current_user, 
                     search_options=json.dumps(self.search_options), 
@@ -312,8 +312,8 @@ class Search(object):
                 if not auth.collection.create(self.current_user, None):
                     abort(401)
                 else:
-                    size = bibserver.dao.Record.query(terms={'owner':self.parts[0],'collection':self.parts[1]})['hits']['total']
-                    for rid in bibserver.dao.Record.query(terms={'owner':self.parts[0],'collection':self.parts[1]},size=size)['hits']['hits']:
+                    size = bibserver.dao.Record.query(terms={'owner':self.parts[0],'collection':self.parts[1]}).total
+                    for rid in bibserver.dao.Record.query(terms={'owner':self.parts[0],'collection':self.parts[1]},size=size):
                         record = bibserver.dao.Record.get(rid['_id'])
                         if record: record.delete()
                     return ''
@@ -337,8 +337,8 @@ class Search(object):
                 admin = True if metadata != None and auth.collection.update(self.current_user, metadata) else False
                 if metadata and '_display_settings' in metadata:
                     self.search_options.update(metadata['_display_settings'])
-                users = bibserver.dao.Account.query(size=1000000) # pass the userlist for autocomplete admin addition (could be ajax'd)
-                userlist = [i['_source']['_id'] for i in users['hits']['hits']]
+                users = bibserver.dao.Account.query(size=10000) # pass the userlist for autocomplete admin addition (could be ajax'd)
+                userlist = [i['_id'] for i in users]
                 return render_template('search/index.html', 
                     current_user=self.current_user, 
                     search_options=json.dumps(self.search_options), 

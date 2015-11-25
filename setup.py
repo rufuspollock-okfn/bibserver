@@ -5,10 +5,10 @@ setup(
     version = '0.5.1',
     packages = find_packages(),
     install_requires = [
-        "Flask==0.8",
+        "Flask",
         "Flask-Login",
         "Flask-WTF",
-        "pyes==0.16",
+        "pyes",
         "chardet",
         "requests",
     ],
@@ -27,4 +27,3 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
 )
-

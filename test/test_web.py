@@ -50,7 +50,7 @@ class TestWeb(object):
         assert 'upload' in res.data, res.data
 
     def test_upload_post(self):
-        startnum = dao.Record.query()['hits']['total']
+        startnum = dao.Record.query().total
         res = self.app.post('/upload?format=bibtex&collection='+urllib.quote_plus('"My Test Collection"'),
             data = {'upfile': (open('test/data/sample.bibtex'), 'sample.bibtex')},
             headers={'REMOTE_USER': Fixtures.account.id}
@@ -62,7 +62,7 @@ class TestWeb(object):
             for t in ingest.get_tickets(state):
                 ingest.determine_action(t)
         
-        endnum = dao.Record.query()['hits']['total']
+        endnum = dao.Record.query().total
         assert_equal(endnum, startnum+1)
 
     # TODO: re-enable
@@ -86,7 +86,7 @@ class TestWeb(object):
         res = self.app.get('/query?q=title:non-existent')
         assert res.status == '200 OK', res.status
         out = json.loads(res.data)
-        assert out['hits']['total'] == 0, out
+        assert out.total == 0, out
 
     def test_accounts_query_inaccessible(self):
         res = self.app.get('/query/account')

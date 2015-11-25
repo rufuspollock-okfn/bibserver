@@ -28,8 +28,8 @@ def make_id(data):
     buf = json.dumps(new_data, sort_keys=True)
     new_id = hashlib.md5(buf).hexdigest()
     return new_id
-    
-    
+
+
 def init_db():
     conn, db = get_conn()
     try:
@@ -60,7 +60,7 @@ def get_conn():
 
 class InvalidDAOIDException(Exception):
     pass
-    
+
 class DomainObject(UserDict.IterableUserDict):
     # set __type__ on inheriting class to determine elasticsearch object
     __type__ = None
@@ -70,9 +70,8 @@ class DomainObject(UserDict.IterableUserDict):
         '''
         # IterableUserDict expects internal dictionary to be on data attribute
         if '_source' in kwargs:
-            self.data = dict(kwargs['_source'])
+            self.data = dict(kwargs.values())
             self.meta = dict(kwargs)
-            del self.meta['_source']
         else:
             self.data = dict(kwargs)
 
@@ -80,7 +79,7 @@ class DomainObject(UserDict.IterableUserDict):
     def id(self):
         '''Get id of this object.'''
         return self.data.get('_id', None)
-        
+
     @property
     def version(self):
         return self.meta.get('_version', None)
@@ -117,7 +116,7 @@ class DomainObject(UserDict.IterableUserDict):
     def get_mapping(cls):
         conn, db = get_conn()
         return conn.get_mapping(cls.__type__, db)
-        
+
     @classmethod
     def get_facets_from_mapping(cls,mapping=False,prefix=''):
         # return a sorted list of all the keys in the index
@@ -133,7 +132,7 @@ class DomainObject(UserDict.IterableUserDict):
                 keys = keys + cls.get_facets_from_mapping(mapping=mapping[item]['properties'],prefix=prefix+item+'.')
         keys.sort()
         return keys
-        
+
     @classmethod
     def upsert(cls, data, state=None):
         '''Update backend object with a dictionary of data.
@@ -159,15 +158,15 @@ class DomainObject(UserDict.IterableUserDict):
             else:
                 id_ = make_id(data)
                 data['_id'] = id_
-            
+
             if '_created' not in data:
                 data['_created'] = datetime.now().strftime("%Y%m%d%H%M%S")
             data['_last_modified'] = datetime.now().strftime("%Y%m%d%H%M%S")
-            
+
             index_result = conn.index(data, db, cls.__type__, urllib.quote_plus(id_), bulk=True)
         # refresh required after bulk index
-        conn.refresh()
-    
+        # conn.refresh()
+
     @classmethod
     def delete_by_query(cls, query):
         url = str(config['ELASTIC_SEARCH_HOST'])
@@ -237,7 +236,7 @@ class Note(DomainObject):
             return None
         conn, db = get_conn()
         res = Note.query(terms={"about":id_})
-        return [i['_source'] for i in res['hits']['hits']]
+        return [i.values() for i in res]
 
 
 class Collection(DomainObject):
@@ -245,20 +244,20 @@ class Collection(DomainObject):
 
     @property
     def records(self):
-        size = Record.query(terms={'owner':self['owner'],'collection':self['collection']})['hits']['total']
+        size = Record.query(terms={'owner':self['owner'],'collection':self['collection']}).total
         if size != 0:
-            res = [Record.get(i['_source']['_id']) for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)['hits']['hits']]
+            res = [Record.get(i['_id']) for i in Record.query(terms={'owner':self['owner'],'collection':self['collection']},size=size)]
         else: res = []
         return res
 
     @classmethod
     def get_by_owner_coll(cls,owner,coll):
         res = cls.query(terms={'owner':owner,'collection':coll})
-        if res['hits']['total'] == 1:
-            return cls(**res['hits']['hits'][0]['_source'])
+        if res.total == 1:
+            return cls(**res[0])
         else:
             return None
-            
+
     def delete(self):
         url = str(config['ELASTIC_SEARCH_HOST'])
         loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
@@ -269,12 +268,12 @@ class Collection(DomainObject):
         print resp.read()
         for record in self.records:
             record.delete()
-    
+
     def __len__(self):
         res = Record.query(terms={'owner':self['owner'],'collection':self['collection']})
-        return res['hits']['total']
+        return res.total
 
-    
+
 class Account(DomainObject, UserMixin):
     __type__ = 'account'
 
@@ -287,23 +286,23 @@ class Account(DomainObject, UserMixin):
     @property
     def is_super(self):
         return bibserver.auth.user.is_super(self)
-    
+
     @property
     def collections(self):
         colls = Collection.query(terms={
             'owner': [self.id]
             })
-        colls = [ Collection(**item['_source']) for item in colls['hits']['hits'] ]
+        colls = [ Collection(**item) for item in colls ]
         return colls
-        
+
     @property
     def notes(self):
         res = Note.query(terms={
             'owner': [self.id]
         })
-        allnotes = [ Note(**item['_source']) for item in res['hits']['hits'] ]
+        allnotes = [ Note(**item) for item in res ]
         return allnotes
-        
+
     def delete(self):
         url = str(config['ELASTIC_SEARCH_HOST'])
         loc = config['ELASTIC_SEARCH_DB'] + "/" + self.__type__ + "/" + self.id
@@ -314,4 +313,3 @@ class Account(DomainObject, UserMixin):
             coll.delete()
         for note in self.notes:
             note.delete()
-
