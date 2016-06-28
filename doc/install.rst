@@ -42,7 +42,7 @@ Simple Setup
 .. _ElasticSearch: http://www.elasticsearch.org/
 
 
-See doc/deploy.rst or http://bibserver.readthedocs.org/en/latest/deploy.html
+See doc/deploy.rst or https://bibserver.readthedocs.io/en/latest/deploy.html
 for more details on a full installation
 
 
