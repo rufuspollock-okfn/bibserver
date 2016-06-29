@@ -17,7 +17,7 @@ Quick Links
 ===========
 
 * Code: http://github.com/okfn/bibserver
-* Documentation: http://bibserver.readthedocs.org/
+* Documentation: https://bibserver.readthedocs.io/
 * Mailing list: http://lists.okfn.org/mailman/listinfo/openbiblio-dev
 
 
@@ -25,7 +25,7 @@ Installation
 ============
 
 See doc/install.rst or
-http://bibserver.readthedocs.org/en/latest/install.html
+https://bibserver.readthedocs.io/en/latest/install.html
 
 
 Command Line Usage
