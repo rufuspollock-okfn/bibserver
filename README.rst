@@ -6,7 +6,7 @@ Main features:
 
 * Create and manage bibliographic collections simply and easily
 * Import (and export) your collection from bibtex, MARC, RIS, BibJSON, RDF or
-  other bibliogrpaphic formats in a matter of seconds
+  other bibliographic formats in a matter of seconds
 * Browse collection via an elegant faceted interface
 * Embed the collection browser in other websites
 * Full RESTful API
@@ -60,7 +60,7 @@ Vendor packages
 ===============
 
 This BibServer repository also includes the following vendor packages, all of 
-which are javascript plugins available under open source license:
+which are JavaScript plugins available under open source license:
 
 * http://jquery.com
 * http://jqueryui.com
