@@ -42,7 +42,8 @@
 })(jQuery);
 
 // add extension to jQuery with a function to get URL parameters
-jQuery.extend({
+(function (jQuery) {
+  jQuery.extend({
     getUrlVars: function() {
         var params = new Object
         var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&')
@@ -63,7 +64,8 @@ jQuery.extend({
     getUrlVar: function(name){
         return jQuery.getUrlVars()[name]
     }
-})
+  })
+})(jQuery);
 
 
 // now the facetview function
@@ -647,34 +649,37 @@ jQuery.extend({
             // add the record based on display template if available
             var display = options.result_display
             var lines = ''
+            var res, line, thevalue
             for (var lineitem in display) {
                 line = ""
-                for (object in display[lineitem]) {
+                for (var object in display[lineitem]) {
                     var thekey = display[lineitem][object]['field']
-                    parts = thekey.split('.')
+                    var parts = thekey.split('.')
                     // TODO: this should perhaps recurse..
                     if (parts.length == 1) {
-                        var res = record
-                    } else if (parts.length == 2) {
-                        var res = record[parts[0]]
+                        res = record
+                    } else if (parts.length == 2) { // if ["author","name"], take only first entry to select from record
+                        res = record[parts[0]]
                     } else if (parts.length == 3) {
-                        var res = record[parts[0]][parts[1]]
+                        res = record[parts[0]][parts[1]]
                     }
                     var counter = parts.length - 1
                     if (res && res.constructor.toString().indexOf("Array") == -1) {
-                        var thevalue = res[parts[counter]]  // if this is a dict
+                        thevalue = res[parts[counter]]  // if this is a dict
                     } else {
-                        var thevalue = []
+                        thevalue = []
                         for (var row in res) {
-                            thevalue.push(res[row][parts[counter]])
+                            thevalue.push( res[row][parts[counter]] ? res[row][parts[counter]] : res[row])
                         }
                     }
                     if (thevalue && thevalue.length) {
                         display[lineitem][object]['pre'] 
-                            ? line += display[lineitem][object]['pre'] : false
+                            ? line += display[lineitem][object]['pre']
+                            : false
                         if ( typeof(thevalue) == 'object' ) {
                             for (var val in thevalue) {
-                                val != 0 ? line += ', ' : false
+                                val != 0 ? line += ', '
+                                    : false
                                 line += thevalue[val]
                             }
                         } else {
