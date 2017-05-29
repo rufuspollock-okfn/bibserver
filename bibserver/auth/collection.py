@@ -5,8 +5,8 @@ def read(account, collection):
     return True
 
 def update(account, collection):
-    allowed = not account.is_anonymous() and collection["owner"] == account.id
-    if not account.is_anonymous():
+    allowed = not account.is_anonymous and collection["owner"] == account.id
+    if not account.is_anonymous:
         try:
             if account.id in collection['_admins']:
                 allowed = True
@@ -17,5 +17,5 @@ def update(account, collection):
     return allowed
 
 def create(account, collection):
-    return not account.is_anonymous()
+    return not account.is_anonymous
 

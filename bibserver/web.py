@@ -97,14 +97,14 @@ def home():
     colls = bibserver.dao.Collection.query()['hits']['total']
     records = bibserver.dao.Record.query()['hits']['total']
     users = bibserver.dao.Account.query()['hits']['total']
-    print data
+    # print (data)
     return render_template('home/index.html', colldata=json.dumps(data), colls=colls, records=records, users=users)
 
 
 @app.route('/users')
 @app.route('/users.json')
 def users():
-    if current_user.is_anonymous():
+    if current_user.is_anonymous:
         abort(401)
     users = bibserver.dao.Account.query(sort={'_id':{'order':'asc'}},size=1000000)
     if users['hits']['total'] != 0:
@@ -244,7 +244,7 @@ else:
 @app.route('/note', methods=['GET','POST'])
 @app.route('/note/<nid>', methods=['GET','POST','DELETE'])
 def note(nid=''):
-    if current_user.is_anonymous():
+    if current_user.is_anonymous:
         abort(401)
 
     elif request.method == 'POST':

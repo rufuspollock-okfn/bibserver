@@ -58,7 +58,7 @@
                 <input class="search-query" type="text" name="q" placeholder="search everything" />
               </form>
             </li>
-            {% if current_user.is_anonymous() %}
+            {% if current_user.is_anonymous %}
             <li>
               <a href="{{url_for('account.register')}}">Register</a>
             </li>

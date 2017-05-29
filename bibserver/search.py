@@ -371,13 +371,20 @@ class Search(object):
                     res = record.get(parts[0],'')
                 elif len(parts) == 3:
                     res = record[parts[0]][parts[1]]
+
                 counter = len(parts) - 1
+
                 if res and isinstance(res, dict):
                     thevalue = res.get(parts[counter],'')  # this is a dict
+                elif res and isinstance(res, basestring):
+                    thevalue = res
                 else:
                     thevalue = []
+                    # print (type (res))
                     for row in res:
-                        thevalue.append(row[parts[counter]])
+                        thevalue.append(
+                            row if isinstance(row, basestring) else row[parts[counter]]
+                        )
 
                 if thevalue and len(thevalue):
                     line += obj.get('pre','')

@@ -30,9 +30,10 @@
                 .attr("height", r)
                 .attr("class", "bubble")
             var node = vis.selectAll("g.node")
-                .data(bubble(data)
-                .filter(function(d) { return !d.children; }))
-                .enter().append("svg:g")
+                .data(bubble(data))
+                .enter()
+            /* .filter(function(d) { return !d.children; }) */
+                .append("svg:g")
                 .attr("class", "node")
                 .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
             node.append("svg:title")
@@ -43,7 +44,7 @@
             node.append("svg:text")
                 .attr("text-anchor", "middle")
                 .attr("dy", ".3em")
-                .text(function(d) { return d.data.className.substr(0,12); })
+            /* .text(function(d) { return d.data.className.substr(0,12); }) */
             node.on('click',function(d) {
                 clickbubble(d.data.owner,d.data.slug)
             })
