@@ -2,61 +2,58 @@ sudo: false
 
 language: python
 
-os:
-  - linux
-#  - osx # Python + OSX is not supported on travis
-
-python:
-  - '2.7'
-
-env:
-  - TOX_ENV=py27
-  - TOX_ENV=pep8
-
 # Run each tox environment separately
-#matrix:
-#  include:
-#    - name: "Python 2.7 Unit Test"
-#      python: '2.7'
-#      env: TOX_ENV=py27
-#    - name: "Python 3.4 Unit Test"
-#      python: '3.4'
-#      env: TOX_ENV=py34
-#    - name: "Python 3.6 Unit Test"
-#      python: '3.6'
-#      env: TOX_ENV=py36
-#    - name: "Pypy Unit Test"
-#      python: pypy
-#      env: TOX_ENV=pypy
-#    - name: "Pep8 Test"
-#      python: 2.7
-#      env: TOX_ENV=pep8
-#  allow_failures:
-#    - python: '3.4'
-#    - python: '3.6'
-#    - python: pypy
-
-addons:
-  apt:
-    packages:
-    - build-essential
-    - python-pip
-    - python-dev
+matrix:
+  include:
+    - os: osx
+      language: generic
+      env: # System-provided
+        - TOX_ENV=py27-osx-builtin
+        - BREW_PYTHON_PACKAGE=
+    - os: osx
+      language: generic
+      env: # Homebrew-provided
+        - TOX_ENV=py27
+        - BREW_PYTHON_PACKAGE=python@2
+#    - os: osx
+#      language: generic
+#      env: # Python 3 from Homebrew
+#        - TOX_ENV=py37
+#        - BREW_PYTHON_PACKAGE=python@3
+    - os: linux
+      python: 2.7
+      env: TOX_ENV=py27
+#    - os: linux
+#      python: 3.7
+#      env: TOX_ENV=py37
+#      sudo: true # Required for python 3.7
+#      dist: xenial
 
 services:
   - elasticsearch
 
 # Cache pip requirements for faster builds
-cache:
-  directories:
-    - $HOME/.cache/pip
+cache: pip
 
 install:
   # Python test requirements
-  - pip install tox
-  
+  - |
+      if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+          if [[ -n "$BREW_PYTHON_PACKAGE" ]]; then
+              brew update
+              if ! brew list --versions "$BREW_PYTHON_PACKAGE" >/dev/null; then
+                  brew install "$BREW_PYTHON_PACKAGE"
+              elif ! brew outdated "$BREW_PYTHON_PACKAGE"; then
+                  brew upgrade "$BREW_PYTHON_PACKAGE"
+              fi
+          fi
+          sudo pip2 install tox
+      else
+        pip install tox
+      fi
+
   # Wait for elasticsearch to start up
   - sleep 10
 
 script:
-  - tox -e $TOX_ENV
+  - PATH="/usr/local/bin:$PATH" tox -e "$TOX_ENV"
