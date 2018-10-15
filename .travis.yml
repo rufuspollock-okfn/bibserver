@@ -1,0 +1,62 @@
+sudo: false
+
+language: python
+
+os:
+  - linux
+#  - osx # Python + OSX is not supported on travis
+
+python:
+  - '2.7'
+
+env:
+  - TOX_ENV=py27
+  - TOX_ENV=pep8
+
+# Run each tox environment separately
+#matrix:
+#  include:
+#    - name: "Python 2.7 Unit Test"
+#      python: '2.7'
+#      env: TOX_ENV=py27
+#    - name: "Python 3.4 Unit Test"
+#      python: '3.4'
+#      env: TOX_ENV=py34
+#    - name: "Python 3.6 Unit Test"
+#      python: '3.6'
+#      env: TOX_ENV=py36
+#    - name: "Pypy Unit Test"
+#      python: pypy
+#      env: TOX_ENV=pypy
+#    - name: "Pep8 Test"
+#      python: 2.7
+#      env: TOX_ENV=pep8
+#  allow_failures:
+#    - python: '3.4'
+#    - python: '3.6'
+#    - python: pypy
+
+addons:
+  apt:
+    packages:
+    - build-essential
+    - python-pip
+    - python-dev
+
+services:
+  - elasticsearch
+
+# Cache pip requirements for faster builds
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+install:
+  # Python test requirements
+  - pip install tox
+  
+  # Wait for elasticsearch to start up
+  - sleep 10
+
+script:
+  - tox -e $TOX_ENV

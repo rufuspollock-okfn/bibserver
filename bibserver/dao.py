@@ -9,7 +9,7 @@ import hashlib
 
 import pyes
 from werkzeug import generate_password_hash, check_password_hash
-from flask.ext.login import UserMixin
+from flask_login import UserMixin
 
 from bibserver.config import config
 import bibserver.util, bibserver.auth

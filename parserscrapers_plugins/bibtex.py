@@ -5,19 +5,19 @@ BibTex parser.
 '''
 
 import sys
-import string
 import cStringIO
 import json
 import unicodedata
-import re
+
 
 class BibTexParser(object):
 
     def __init__(self, fileobj):
 
         data = fileobj.read()
-        
-        # On some sample data files, the character encoding detection simply hangs
+
+        # On some sample data files, the character encoding detection simply
+        # hangs.
         # We are going to default to utf8, and mandate it.
         self.encoding = 'utf8'
 
@@ -25,32 +25,33 @@ class BibTexParser(object):
         if data[:3] == '\xef\xbb\xbf':
             data = data[3:]
         self.fileobj = cStringIO.StringIO(data)
-        
+
         # set which bibjson schema this parser parses to
         self.has_metadata = False
         self.persons = []
-        # if bibtex file has substition strings, they are stored here, 
+        # if bibtex file has substition strings, they are stored here,
         # then the values are checked for those substitions in add_val
         self.replace_dict = {}
         # pre-defined set of key changes
         self.alt_dict = {
-            'keyw':'keyword',
-            'keywords':'keyword',
-            'authors':'author',
-            'editors':'editor',
-            'url':'link',
-            'urls':'link',
-            'links':'link',
-            'subjects':'subject'
+            'keyw': 'keyword',
+            'keywords': 'keyword',
+            'authors': 'author',
+            'editors': 'editor',
+            'url': 'link',
+            'urls': 'link',
+            'links': 'link',
+            'subjects': 'subject'
         }
-        self.identifier_types = ["doi","isbn","issn"]
+        self.identifier_types = ["doi", "isbn", "issn"]
 
     def parse(self):
         '''given a fileobject, parse it for bibtex records,
         and pass them to the record parser'''
         records = []
         record = ""
-        # read each line, bundle them up until they form an object, then send for parsing
+        # read each line, bundle them up until they form an object, then
+        # send for parsing
         for line in self.fileobj:
             if '--BREAK--' in line:
                 break
@@ -72,23 +73,23 @@ class BibTexParser(object):
         return records, {}
 
     def parse_record(self, record):
-        '''given a bibtex record, tidy whitespace and other rubbish; 
+        '''given a bibtex record, tidy whitespace and other rubbish;
         then parse out the bibtype and citekey, then find all the
         key-value pairs it contains'''
-        
+
         d = {}
-        
+
         if not record.startswith('@'):
             return d
 
         # prepare record
         record = '\n'.join([i.strip() for i in record.split('\n')])
         if '}\n' in record:
-            record, rubbish = record.replace('\r\n','\n').replace('\r','\n').rsplit('}\n',1)
+            record, rubbish = record.replace('\r\n', '\n').replace('\r', '\n').rsplit('}\n', 1)  # noqa E501
 
         # if a string record, put it in the replace_dict
         if record.lower().startswith('@string'):
-            key, val = [i.strip().strip('"').strip('{').strip('}').replace('\n',' ') for i in record.split('{',1)[1].strip('\n').strip(',').strip('}').split('=')]
+            key, val = [i.strip().strip('"').strip('{').strip('}').replace('\n', ' ') for i in record.split('{', 1)[1].strip('\n').strip(',').strip('}').split('=')]  # noqa 501
             self.replace_dict[key] = val
             return d
 
@@ -98,16 +99,18 @@ class BibTexParser(object):
         inval = ""
         for kv in kvs:
             if kv.startswith('@') and not inkey:
-                # it is the start of the record - set the bibtype and citekey (id)
-                bibtype, id = kv.split('{',1)
+                # it is the start of the record - set the bibtype and
+                # citekey (id)
+                bibtype, id = kv.split('{', 1)
                 bibtype = self.add_key(bibtype)
                 id = id.strip('}').strip(',')
             elif '=' in kv and not inkey:
                 # it is a line with a key value pair on it
-                key, val = [i.strip() for i in kv.split('=',1)]
+                key, val = [i.strip() for i in kv.split('=', 1)]
                 key = self.add_key(key)
-                # if it looks like the value spans lines, store details for next loop
-                if ( val.startswith('{') and not val.endswith('}') ) or ( val.startswith('"') and not val.replace('}','').endswith('"') ):
+                # if it looks like the value spans lines, store details
+                # for next loop
+                if (val.startswith('{') and not val.endswith('}')) or (val.startswith('"') and not val.replace('}', '').endswith('"')):  # noqa 501
                     inkey = key
                     inval = val
                 else:
@@ -115,8 +118,9 @@ class BibTexParser(object):
             elif inkey:
                 # if this line continues the value from a previous line, append
                 inval += ',' + kv
-                # if it looks like this line finishes the value, store it and clear for next loop
-                if ( inval.startswith('{') and inval.endswith('}') ) or ( inval.startswith('"') and inval.endswith('"') ):
+                # if it looks like this line finishes the value, store it
+                # and clear for next loop
+                if (inval.startswith('{') and inval.endswith('}')) or (inval.startswith('"') and inval.endswith('"')):  # noqa 501
                     d[inkey] = self.add_val(inval)
                     inkey = ""
                     inval = ""
@@ -138,14 +142,17 @@ class BibTexParser(object):
         # apply any customisations to the record object then return it
         return self.customisations(d)
 
-    def customisations(self,record):
+    def customisations(self, record):
         '''alters some values to fit bibjson format'''
-        if 'eprint' in record and not 'year' in record: 
+        if 'eprint' in record and 'year' not in record:
             yy = '????'
             ss = record['eprint'].split('/')
-            if len(ss) == 2: yy = ss[1][0:2]
-            if yy[0] in ['0']: record['year'] = '20' + yy
-            elif yy[0] in ['9']: record['year'] = '19' + yy
+            if len(ss) == 2:
+                yy = ss[1][0:2]
+            if yy[0] in ['0']:
+                record['year'] = '20' + yy
+            elif yy[0] in ['9']:
+                record['year'] = '19' + yy
         if "pages" in record:
             if "-" in record["pages"]:
                 p = [i.strip().strip('-') for i in record["pages"].split("-")]
@@ -154,33 +161,33 @@ class BibTexParser(object):
             record["type"] = record["type"].lower()
         if "author" in record:
             if record["author"]:
-                record["author"] = self.getnames([i.strip() for i in record["author"].replace('\n',' ').split(" and ")])
+                record["author"] = self.getnames([i.strip() for i in record["author"].replace('\n',' ').split(" and ")])  # noqa E501
                 # convert author to object
-                record["author"] = [{"name":i,"id":i.replace(',','').replace(' ','').replace('.','')} for i in record["author"]]
+                record["author"] = [{"name": i,"id": i.replace(',', '').replace(' ', '').replace('.', '')} for i in record["author"]]  # noqa E501
             else:
                 del record["author"]
         if "editor" in record:
             if record["editor"]:
-                record["editor"] = self.getnames([i.strip() for i in record["editor"].replace('\n',' ').split(" and ")])
+                record["editor"] = self.getnames([i.strip() for i in record["editor"].replace('\n', ' ').split(" and ")])  # noqa E501
                 # convert editor to object
-                record["editor"] = [{"name":i,"id":i.replace(',','').replace(' ','').replace('.','')} for i in record["editor"]]
+                record["editor"] = [{"name": i,"id": i.replace(',', '').replace(' ', '').replace('.', '')} for i in record["editor"]]  # noqa E501
             else:
                 del record["editor"]
         if "journal" in record:
             # switch journal to object
             if record["journal"]:
-                record["journal"] = {"name":record["journal"],"id":record["journal"].replace(',','').replace(' ','').replace('.','')}
+                record["journal"] = {"name": record["journal"], "id": record["journal"].replace(',', '').replace(' ', '').replace('.', '')}  # noqa E501
         if "keyword" in record:
-            record["keyword"] = [i.strip() for i in record["keyword"].replace('\n','').split(",")]
+            record["keyword"] = [i.strip() for i in record["keyword"].replace('\n', '').split(",")]  # noqa E501
         if "subject" in record:
             if record["subject"]:
-                record["subject"] = {"name":record["subject"],"id":record["subject"].replace(',','').replace(' ','').replace('.','')}
+                record["subject"] = {"name": record["subject"], "id": record["subject"].replace(',', '').replace(' ', '').replace('.', '')}  # noqa E501
         if "link" in record:
-            links = [i.strip().replace("  "," ") for i in record["link"].split('\n')]
+            links = [i.strip().replace("  ", " ") for i in record["link"].split('\n')]  # noqa E501
             record['link'] = []
             for link in links:
                 parts = link.split(" ")
-                linkobj = { "url":parts[0] }
+                linkobj = {"url": parts[0]}
                 if len(parts) > 1:
                     linkobj["anchor"] = parts[1]
                 if len(parts) > 2:
@@ -198,23 +205,21 @@ class BibTexParser(object):
                 link = record['doi']
                 if link.startswith('10'):
                     link = 'http://dx.doi.org/' + link
-                record['link'].append( {"url": link, "anchor":"doi"} )
+                record['link'].append({"url": link, "anchor": "doi"})
         for ident in self.identifier_types:
             if ident in record:
                 if ident == 'issn':
                     if 'journal' in record:
                         if 'identifier' not in record['journal']:
                             record['journal']['identifier'] = []
-                        record['journal']['identifier'].append({"id":record[ident], "type":"issn"})
+                        record['journal']['identifier'].append({"id": record[ident], "type": "issn"})  # noqa E501
                 else:
                     if 'identifier' not in record:
                         record['identifier'] = []
-                    record['identifier'].append({"id":record[ident], "type":ident})
+                    record['identifier'].append({"id": record[ident], "type": ident})  # noqa E501
                 del record[ident]
-        
+
         return record
-
-
     # some methods to tidy and format keys and vals
 
     def strip_quotes(self, val):
@@ -239,16 +244,16 @@ class BibTexParser(object):
             if val == k:
                 val = self.replace_dict[k]
         if not isinstance(val, unicode):
-            val = unicode(val,self.encoding,'ignore')
+            val = unicode(val, self.encoding, 'ignore')
         if '\\' in val or '{' in val:
             for k, v in self.unicode_to_latex.iteritems():
                 if v in val:
                     parts = val.split(str(v))
-                    for key,val in enumerate(parts):
+                    for key, val in enumerate(parts):
                         if key+1 < len(parts) and len(parts[key+1]) > 0:
                             parts[key+1] = parts[key+1][0:]
                     val = k.join(parts)
-                val = val.replace("{","").replace("}","")
+                val = val.replace("{", "").replace("}", "")
         return val
 
     def add_val(self, val):
@@ -260,42 +265,40 @@ class BibTexParser(object):
         val = self.strip_braces(val)
         val = self.string_subst(val)
         """alter based on particular key types"""
-        return unicodedata.normalize('NFKD', val).replace(u'\x00', '').replace(u'\x1A', '')
-
+        return unicodedata.normalize('NFKD', val).replace(u'\x00', '').replace(u'\x1A', '')  # noqa E501
 
     def add_key(self, key):
         key = key.strip().strip('@').lower()
         if key in self.alt_dict.keys():
             key = self.alt_dict[key]
         if not isinstance(key, unicode):
-            return unicode(key,'utf-8')
+            return unicode(key, 'utf-8')
         else:
             return key
 
-
     ''' make people names as surname, firstnames
     or surname, initials. should eventually combine up the two'''
-    def getnames(self,names):
+    def getnames(self, names):
         tidynames = []
         for namestring in names:
             namestring = namestring.strip()
-            if len(namestring) < 1: continue
+            if len(namestring) < 1:
+                continue
             if ',' in namestring:
-                namesplit = namestring.split(',',1)
+                namesplit = namestring.split(',', 1)
                 last = namesplit[0].strip()
                 firsts = [i.strip().strip('.') for i in namesplit[1].split()]
             else:
                 namesplit = namestring.split()
                 last = namesplit.pop()
-                firsts = [i.replace('.',' ').strip() for i in namesplit]
-            if last in ['jnr','jr','junior']:
+                firsts = [i.replace('.', ' ').strip() for i in namesplit]
+            if last in ['jnr', 'jr', 'junior']:
                 last = firsts.pop()
             for item in firsts:
-                if item in ['van','der','de','la']:
+                if item in ['van', 'der', 'de', 'la']:
                     last = firsts.pop() + ' ' + last
             tidynames.append(last + ", " + ' '.join(firsts))
         return tidynames
-
 
     # list of latex conversions from
     # https://gist.github.com/798549
@@ -460,8 +463,8 @@ class BibTexParser(object):
         u"\u012F": "\\k{i}",
         u"\u0130": "\\.{I}",
         u"\u0131": "\\i ",
-#        u"\u0132": "IJ",
-#        u"\u0133": "ij",
+        # u"\u0132": "IJ",
+        # u"\u0133": "ij",
         u"\u0134": "\\^{J}",
         u"\u0135": "\\^{\\j}",
         u"\u0136": "\\c{K}",
@@ -927,7 +930,7 @@ class BibTexParser(object):
         u"\u2020": "\\textdagger ",
         u"\u2021": "\\textdaggerdbl ",
         u"\u2022": "\\textbullet ",
-#        u"\u2025": "..",
+        # u"\u2025": "..",
         u"\u2026": "\\ldots ",
         u"\u2030": "\\textperthousand ",
         u"\u2031": "\\textpertenthousand ",
@@ -1689,11 +1692,11 @@ class BibTexParser(object):
         u"\u3019": "\\ElsevierGlyph{3019}",
         u"\u301A": "\\openbracketleft ",
         u"\u301B": "\\openbracketright ",
-#        u"\uFB00": "ff",
-#        u"\uFB01": "fi",
-#        u"\uFB02": "fl",
-#        u"\uFB03": "ffi",
-#        u"\uFB04": "ffl",
+        # u"\uFB00": "ff",
+        # u"\uFB01": "fi",
+        # u"\uFB02": "fl",
+        # u"\uFB03": "ffi",
+        # u"\uFB04": "ffl",
         u"\uD400": "\\mathbf{A}",
         u"\uD401": "\\mathbf{B}",
         u"\uD402": "\\mathbf{C}",
@@ -2658,20 +2661,24 @@ class BibTexParser(object):
         u"\uD7FF": "\\mathtt{9}",
     }
 
+
 def parse(filehandle=sys.stdin):
     parser = BibTexParser(filehandle)
     records, metadata = parser.parse()
     if len(records) > 0:
-        sys.stdout.write(json.dumps({'records':records, 'metadata':metadata}))
+        sys.stdout.write(json.dumps(
+            {'records': records, 'metadata': metadata}
+        ))
     else:
         sys.stderr.write('Zero records were parsed from the data')
-    
+
+
 def main():
     conf = {"display_name": "BibTex",
             "format": "bibtex",
-            "contact": "openbiblio-dev@lists.okfn.org", 
-            "bibserver_plugin": True, 
-            "BibJSON_version": "0.81"}        
+            "contact": "openbiblio-dev@lists.okfn.org",
+            "bibserver_plugin": True,
+            "BibJSON_version": "0.81"}
     for x in sys.argv[1:]:
         if x == '-bibserver':
             sys.stdout.write(json.dumps(conf))
@@ -2680,6 +2687,7 @@ def main():
             parse(open(x))
             sys.exit()
     parse()
-            
+
+
 if __name__ == '__main__':
-    main()    
+    main()

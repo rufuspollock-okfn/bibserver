@@ -2,7 +2,7 @@ import os
 from flask import Flask
 
 from bibserver import default_settings
-from flask.ext.login import LoginManager, current_user
+from flask_login import LoginManager, current_user
 login_manager = LoginManager()
 
 def create_app():
