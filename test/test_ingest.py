@@ -1,4 +1,4 @@
-from test.base import fixtures, Fixtures, TESTDB
+from base import fixtures, Fixtures, TESTDB
 import bibserver.dao as dao
 import nose.tools
 from bibserver import ingest, dao

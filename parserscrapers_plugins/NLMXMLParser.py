@@ -1,7 +1,8 @@
 from xml.etree.ElementTree import ElementTree
 from bibserver.parsers import BaseParser
 
-'''this file can be called as a module or called directly from the command line like so:
+'''this file can be called as a module or called directly from the
+command line like so:
 
 python NLMXMLParser.py /path/to/file.xml
 
@@ -14,7 +15,6 @@ Returns a record dict
 '''
 
 
-
 class NLMXMLParser(BaseParser):
 
     def __init__(self, fileobj):
@@ -25,8 +25,7 @@ class NLMXMLParser(BaseParser):
         self.has_metadata = False
         self.persons = []
 
-        self.identifier_types = ["doi","isbn","issn"]
-
+        self.identifier_types = ["doi", "isbn", "issn"]
 
     def parse(self):
         '''given a fileobject, parse it for NLM XML records,
@@ -41,7 +40,6 @@ class NLMXMLParser(BaseParser):
         records.extend(self.parse_references(et.findall('back/ref-list/ref')))
 
         return records, {"schema": self.schema}
-
 
     def parse_front_matter(self, front):
 
@@ -84,7 +82,7 @@ class NLMXMLParser(BaseParser):
             record = self.parse_other(citation)
 
         else:
-            raise Exception('Unsupported citation type: ' + citation.attrib['citation-type'])
+            raise Exception('Unsupported citation type: ' + citation.attrib['citation-type'])  # noqa E501
 
         record['id'] = reference.attrib['id']
 
@@ -112,12 +110,13 @@ class NLMXMLParser(BaseParser):
                 'pages': self.get_page_numbers(citation)
             })
 
-
     def get_article_title(self, article_meta):
-        return "".join(article_meta.find('title-group/article-title').itertext())
+        return "".join(
+            article_meta.find('title-group/article-title').itertext()
+        )
 
     def get_article_authors(self, article_meta):
-        return self.get_names(article_meta.findall('contrib-group/contrib[@contrib-type="author"]/name'))
+        return self.get_names(article_meta.findall('contrib-group/contrib[@contrib-type="author"]/name'))  # noqa E501
 
     def get_page_numbers(self, context):
         if context.find('fpage') is None:
@@ -125,7 +124,7 @@ class NLMXMLParser(BaseParser):
         elif context.find('lpage') is None:
             return context.findtext('fpage')
         else:
-            return '%s--%s' % (context.findtext('fpage'), context.findtext('lpage'))
+            return '%s--%s' % (context.findtext('fpage'), context.findtext('lpage'))  # noqa E501
 
     def get_journal_citation_title(self, citation):
         if citation.find('article-title') is None:
@@ -157,29 +156,27 @@ class NLMXMLParser(BaseParser):
         elif context.find('publisher-loc') is None:
             return context.findtext('publisher-name')
         else:
-            return context.findtext('publisher-name') + ', ' + context.findtext('publisher-loc')
-
+            return context.findtext('publisher-name') + ', ' + context.findtext('publisher-loc')  # noqa E501
 
     def get_citation_authors(self, citation):
-        return self.get_names(citation.findall('person-group[@person-group-type="author"]/name'))
+        return self.get_names(citation.findall('person-group[@person-group-type="author"]/name'))  # noqa E501
 
     def get_citation_editors(self, citation):
-        return self.get_names(citation.findall('person-group[@person-group-type="editor"]/name'))
+        return self.get_names(citation.findall('person-group[@person-group-type="editor"]/name'))  # noqa E501
 
     def get_journal_name(self, journal_meta):
-        return journal_meta.findtext('.//journal-title');
+        return journal_meta.findtext('.//journal-title')
 
     def get_journal_publisher_name(self, journal_meta):
-        return journal_meta.findtext('.//publisher-name');
-
+        return journal_meta.findtext('.//publisher-name')
 
     def get_names(self, names):
-        return ['%s, %s' % (name.findtext('surname'), name.findtext('given-names')) for name in names]
+        return ['%s, %s' % (name.findtext('surname'), name.findtext('given-names')) for name in names]  # noqa E501
 
     def filter_empty_fields(self, dict):
         record = {}
         for k, v in dict.iteritems():
-            if not v is None:
+            if v is not None:
                 record[k] = v
         return record
 
@@ -189,6 +186,3 @@ if __name__ == "__main__":
     import sys
     parser = NLMXMLParser(open(sys.argv[1]))
     print parser.parse()
-
-
-

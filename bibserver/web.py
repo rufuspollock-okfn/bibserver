@@ -10,7 +10,7 @@ from datetime import datetime
 from flask import Flask, jsonify, json, request, redirect, abort, make_response
 from flask import render_template, flash
 from flask.views import View, MethodView
-from flask.ext.login import login_user, current_user
+from flask_login import login_user, current_user
 
 import bibserver.dao
 import bibserver.util as util

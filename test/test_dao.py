@@ -3,7 +3,7 @@ import json
 import pprint
 from nose.tools import assert_equal
 
-from test.base import fixtures, Fixtures, TESTDB
+from base import fixtures, Fixtures, TESTDB
 import bibserver.dao as dao
 import bibserver.util as util
 from datetime import datetime, timedelta

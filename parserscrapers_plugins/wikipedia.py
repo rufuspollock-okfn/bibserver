@@ -5,19 +5,24 @@ Wikipedia search to citations parser
 Reads a query term on stdin
 '''
 
-import os, sys
+import sys
 import re
 import json
-import urllib, urllib2, httplib
+import urllib
+import urllib2
+import httplib
 import traceback
+
 
 def repl(matchobj):
     return matchobj.group(0)
 
+
 def wikitext_to_dict(txt):
     buf = []
     for c in re.findall('{{Citation |cite journal(.*?)}}', txt):
-        if c.strip().startswith('needed'): continue
+        if c.strip().startswith('needed'):
+            continue
         c = re.sub('{{.*?|.*?|(.*?)}}', repl, c)
         tmp = {}
         for cc in c.split('|'):
@@ -32,18 +37,19 @@ def wikitext_to_dict(txt):
                     au = au.strip()
                     if au.startswith('and '):
                         au = au[4:]
-                    tmp.setdefault('author', []).append({'name':au})
-            name = '%s %s' % (tmp.get('first',''), tmp.get('last', ''))
+                    tmp.setdefault('author', []).append({'name': au})
+            name = '%s %s' % (tmp.get('first', ''), tmp.get('last', ''))
             if name.strip():
-                tmp.setdefault('author', []).append({'name':name})
+                tmp.setdefault('author', []).append({'name': name})
             if 'journal' in tmp:
-                tmp['journal'] = {'name':tmp['journal']}
+                tmp['journal'] = {'name': tmp['journal']}
             buf.append(tmp)
     return buf
-    
+
+
 def parse(local_cache):
     q = sys.stdin.read()
-    URL = 'http://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=50&srprop=wordcount&format=json&srsearch='
+    URL = 'http://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=50&srprop=wordcount&format=json&srsearch='  # noqa: E501 (URL)
     URLraw = 'http://en.wikipedia.org/w/index.php?action=raw&title='
     data_json = False
     if local_cache:
@@ -51,50 +57,54 @@ def parse(local_cache):
             cached_data = json.loads(open('wikipedia.py.data').read())
             data_json = cached_data.get('data1', {})
         except IOError:
-            cached_data = {'data1':{}, 'data2':{}}            
+            cached_data = {'data1': {}, 'data2': {}}
     if not data_json:
         data = urllib2.urlopen(URL+urllib.quote_plus(q)).read()
         data_json = json.loads(data)
     if local_cache:
         cached_data['data1'] = data_json
     records = []
-    
+
     try:
         search_result = data_json.get("query")
-        if not search_result: search_result = data_json.get("query-continue", {"search":[]})
+        if not search_result:
+            search_result = data_json.get("query-continue", {"search": []})
         for x in search_result["search"]:
             if x['wordcount'] > 20:
                 quoted_title = urllib.quote_plus(x['title'].encode('utf8'))
                 try:
                     title_data = None
                     if local_cache:
-                        title_data = cached_data.get('data2',{}).get(quoted_title)
+                        title_data = cached_data.get('data2', {}).get(quoted_title)  # noqa E501
                     if title_data is None:
-                        title_data = urllib2.urlopen(URLraw+quoted_title).read()
+                        title_data = urllib2.urlopen(URLraw+quoted_title).read()  # noqa E501
                     if local_cache:
-                        cached_data.setdefault('data2', {})[quoted_title] = title_data
+                        cached_data.setdefault('data2', {})[quoted_title] = title_data  # noqa E501
                 except httplib.BadStatusLine:
-                    sys.stderr.write('Problem reading %s\n' % (URLraw+quoted_title))
+                    sys.stderr.write('Problem reading %s\n' % (URLraw + quoted_title))  # noqa E501
                     continue
                 citations = wikitext_to_dict(title_data)
                 if citations:
                     for c in citations:
-                        c['link'] = [{'url':'http://en.wikipedia.org/wiki/'+quoted_title}]
+                        c['link'] = [
+                            {'url': 'http://en.wikipedia.org/wiki/' + quoted_title}  # noqa E501
+                        ]
                     records.extend(citations)
-    except:
+    except:  # noqa E722
         sys.stderr.write(traceback.format_exc())
-    sys.stdout.write(json.dumps({'records':records, 'metadata':{}}))
+    sys.stdout.write(json.dumps({'records': records, 'metadata': {}}))
     if local_cache:
         open('wikipedia.py.data', 'w').write(json.dumps(cached_data))
-    
+
+
 def main():
     conf = {"display_name": "Wikipedia search to citations",
             "format": "wikipedia",
             "downloads": True,
-            "contact": "openbiblio-dev@lists.okfn.org", 
-            "bibserver_plugin": True, 
+            "contact": "openbiblio-dev@lists.okfn.org",
+            "bibserver_plugin": True,
             "BibJSON_version": "0.81"}
-    local_cache = False        
+    local_cache = False
     for x in sys.argv[1:]:
         if x == '-bibserver':
             sys.stdout.write(json.dumps(conf))
@@ -102,6 +112,7 @@ def main():
         elif x == '-cache':
             local_cache = True
     parse(local_cache)
-            
+
+
 if __name__ == '__main__':
     main()

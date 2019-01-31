@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/okfn/bibserver.svg?branch=master
+    :target: https://travis-ci.org/okfn/bibserver
+
 BibServer is an open-source RESTful bibliographic data server. BibServer makes
 it easy to create and manage collections of bibliographic records such as
 reading lists, publication lists and even complete library catalogs.

@@ -1,0 +1,59 @@
+sudo: false
+
+language: python
+
+# Run each tox environment separately
+matrix:
+  include:
+    - os: osx
+      language: generic
+      env: # System-provided
+        - TOX_ENV=py27-osx-builtin
+        - BREW_PYTHON_PACKAGE=
+    - os: osx
+      language: generic
+      env: # Homebrew-provided
+        - TOX_ENV=py27
+        - BREW_PYTHON_PACKAGE=python@2
+#    - os: osx
+#      language: generic
+#      env: # Python 3 from Homebrew
+#        - TOX_ENV=py37
+#        - BREW_PYTHON_PACKAGE=python@3
+    - os: linux
+      python: 2.7
+      env: TOX_ENV=py27
+#    - os: linux
+#      python: 3.7
+#      env: TOX_ENV=py37
+#      sudo: true # Required for python 3.7
+#      dist: xenial
+
+services:
+  - elasticsearch
+
+# Cache pip requirements for faster builds
+cache: pip
+
+install:
+  # Python test requirements
+  - |
+      if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+          if [[ -n "$BREW_PYTHON_PACKAGE" ]]; then
+              brew update
+              if ! brew list --versions "$BREW_PYTHON_PACKAGE" >/dev/null; then
+                  brew install "$BREW_PYTHON_PACKAGE"
+              elif ! brew outdated "$BREW_PYTHON_PACKAGE"; then
+                  brew upgrade "$BREW_PYTHON_PACKAGE"
+              fi
+          fi
+          sudo pip2 install tox
+      else
+        pip install tox
+      fi
+
+  # Wait for elasticsearch to start up
+  - sleep 10
+
+script:
+  - PATH="/usr/local/bin:$PATH" tox -e "$TOX_ENV"
