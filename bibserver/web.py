@@ -45,9 +45,9 @@ def standard_authentication():
             login_user(user, remember=False)
     # add a check for provision of api key
     elif 'api_key' in request.values:
-        res = bibserver.dao.Account.query(q='api_key:"' + request.values['api_key'] + '"')['hits']['hits']
+        res = bibserver.dao.Account.query(q='api_key:"' + request.values['api_key'] + '"')
         if len(res) == 1:
-            user = bibserver.dao.Account.get(res[0]['_source']['_id'])
+            user = bibserver.dao.Account.get(res[0].values()['_id'])
             if user:
                 login_user(user, remember=False)
 
@@ -81,8 +81,8 @@ def home():
     data = []
     try:
         colldata = bibserver.dao.Collection.query(sort={"_created.exact":{"order":"desc"}},size=20)
-        if colldata['hits']['total'] != 0:
-            for coll in colldata['hits']['hits']:
+        if colldata.total != 0:
+            for coll in colldata:
                 colln = bibserver.dao.Collection.get(coll['_id'])
                 if colln:
                     data.append({
@@ -94,9 +94,9 @@ def home():
                     })
     except:
         pass
-    colls = bibserver.dao.Collection.query()['hits']['total']
-    records = bibserver.dao.Record.query()['hits']['total']
-    users = bibserver.dao.Account.query()['hits']['total']
+    colls = bibserver.dao.Collection.query().total
+    records = bibserver.dao.Record.query().total
+    users = bibserver.dao.Account.query().total
     print data
     return render_template('home/index.html', colldata=json.dumps(data), colls=colls, records=records, users=users)
 
@@ -104,11 +104,11 @@ def home():
 @app.route('/users')
 @app.route('/users.json')
 def users():
-    if current_user.is_anonymous():
+    if current_user.is_anonymous:
         abort(401)
-    users = bibserver.dao.Account.query(sort={'_id':{'order':'asc'}},size=1000000)
-    if users['hits']['total'] != 0:
-        accs = [bibserver.dao.Account.get(i['_source']['_id']) for i in users['hits']['hits']]
+    users = bibserver.dao.Account.query(sort={'_id':{'order':'asc'}},size=10000)
+    if users.total != 0:
+        accs = [bibserver.dao.Account.get(i['_id']) for i in users]
         # explicitly mapped to ensure no leakage of sensitive data. augment as necessary
         users = []
         for acc in accs:
@@ -244,7 +244,7 @@ else:
 @app.route('/note', methods=['GET','POST'])
 @app.route('/note/<nid>', methods=['GET','POST','DELETE'])
 def note(nid=''):
-    if current_user.is_anonymous():
+    if current_user.is_anonymous:
         abort(401)
 
     elif request.method == 'POST':

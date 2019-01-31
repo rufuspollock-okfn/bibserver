@@ -1,3 +1,4 @@
+.env
 *.pyc
 store/*
 *.egg-info/*
